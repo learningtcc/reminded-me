@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:p="http://www.springframework.org/schema/p" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.1.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+   	
+   	<import resource="classpath:main/resource/conf/core-context.xml"/>
+   	<import resource="classpath:main/resource/conf/batch-context.xml"/>
+   	<import resource="classpath:com/homefellas/context/rm-service-context.xml"/>
+   	<import resource="classpath:com/homefellas/context/user-context.xml"/>
+   	<import resource="classpath:main/resource/conf/metrics-context.xml"/>
+   	
+   	<bean id="notificationLauncherService" class="com.homefellas.notification.NotificationLauncherService" parent="notificationService">
+   		<property name="mailSender" ref="mailSender"/>
+   		<property name="reminderService" ref="reminderService"/>
+   		<property name="taskService" ref="taskService"/>
+   		<property name="defaultUserName" value="${emailService.defaultUserName}"/>
+   		<property name="defaultPassword" value="${emailService.defaultPassword}"/>
+   	</bean>
+   
+		
+   	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+			<property name="url" value="${db.url}" />
+			<property name="username" value="${db.username}" />
+			<property name="password" value="${db.password}" />
+	</bean>
+	
+	 	<bean id="brochureDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+			<property name="url" value="${brochure.db.url}" />
+			<property name="username" value="${db.username}" />
+			<property name="password" value="${db.password}" />
+	</bean>
+		
+	<bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<property name="basePropertiesHome" value="C:/workspace/sts/rm_ws/hf-build/properties/"/>
+		<property name="locations">
+			<list>
+				<value>core.properties</value>
+				<value>rm.properties</value>
+				<value>classpath:notification.properties</value>
+				<value>email.properties</value>
+				<value>metrics.properties</value>
+			</list>
+		</property>
+	</bean>
+</beans>

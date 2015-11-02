@@ -1,0 +1,9 @@
+package com.homefellas.rm.reminder;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.IRMValidator;
+
+public interface IReminderValidator extends IRMValidator
+{
+	public void validateAlarm(Alarm alarm) throws ValidationException;
+}

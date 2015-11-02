@@ -1,0 +1,9 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = Need Your Services For A New Project
+template = ContactCompany_en.html
+persist =true 
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

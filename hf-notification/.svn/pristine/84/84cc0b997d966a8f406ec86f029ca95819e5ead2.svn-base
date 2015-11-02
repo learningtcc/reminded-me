@@ -1,0 +1,265 @@
+package com.homefellas.notification;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimerTask;
+
+import javapns.Push;
+import javapns.communication.exceptions.CommunicationException;
+import javapns.communication.exceptions.KeystoreException;
+import javapns.notification.PushedNotification;
+import javapns.notification.ResponsePacket;
+
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
+
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationStatusEnum;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.queue.IRunnableTask;
+import com.homefellas.rm.notification.Device;
+
+/**
+ * @author Name
+ *
+ * actual implementation of unit of worker this code will contain the code
+ * sending the email and report status back through interface
+ * 
+ * It implements the interface RunnableTask
+ * 
+ */
+public class NotificationTask extends TimerTask implements IRunnableTask {
+	private long threadNumber = -1;
+	private NotificationLauncherService statusManager; // call back interface to update status
+	private Notification notification;
+//	private static Properties props; // this only needs to be once
+	
+	
+	@Override
+	public void run()
+	{
+		if (statusManager.isAddingEmailsAllowed()) {
+			System.out.println("DbRecordsLoader timer has ticked... attempting to load more records now");
+			statusManager.addNotificationToQueue();
+		} else {
+			System.out.println("DbRecordsLoader timer has ticked... but the statusManager indicated that the queue is already full... no db load will happend on this cycle");	
+		}
+	}
+
+	/**
+	 * @param anEmailContent
+	 * @param aStatusManager
+	 */
+	public NotificationTask(Notification anEmailContent, NotificationLauncherService aStatusManager) {
+		this.statusManager = aStatusManager;
+		this.notification = anEmailContent;
+	}
+	
+	public NotificationTask(NotificationLauncherService aStatusManager) {
+		this.statusManager = aStatusManager;
+	}
+	
+	public void execute() {
+		
+		try
+		{
+			if (NotificationTypeEnum.isEmail(notification.getNotificationTypeOrdinal()))
+			{
+				sendEmail(notification);
+			}
+				
+			if (NotificationTypeEnum.isPush(notification.getNotificationTypeOrdinal()))
+			{
+				sendPushNotification(notification);
+			}
+			
+			if (NotificationTypeEnum.isSMS(notification.getNotificationTypeOrdinal()))
+			{
+				sendSMS(notification);
+			}
+			
+			notification.setDateSent(System.currentTimeMillis());
+			notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+				
+			statusManager.updateNotification(notification);
+			
+			if (!String.valueOf(notification.getiNotificationId()).equals("0")&&notification.getiNotificationClassName()!=null)
+				statusManager.callback(notification);
+		}
+		catch (NotificationLauncherException launcherException)
+		{
+			System.out.println("NotificationLauncherException occured: "+launcherException.getErrorMessage());
+			try
+			{
+				notification.setSentStatusOrdinal(NotificationStatusEnum.FAILED.ordinal());
+				notification.setError(launcherException.getMessage());
+				statusManager.updateNotification(notification);
+			}
+			catch (Exception exception2)
+			{
+				System.out.println("Exceptiopn occuried while trying to update notification fail.");
+				exception2.printStackTrace();
+			}
+		}
+		catch (Exception exception)
+		{
+			exception.printStackTrace();
+			try
+			{
+				notification.setSentStatusOrdinal(NotificationStatusEnum.FAILED.ordinal());
+				notification.setError(exception.getMessage());
+				statusManager.updateNotification(notification);
+			}
+			catch (Exception exception2)
+			{
+				System.out.println("Exceptiopn occuried while trying to update notification fail.");
+				exception2.printStackTrace();
+			}
+		}
+		
+	}
+	
+	public boolean sendSMS(Notification notification) throws NotificationLauncherException
+	{
+System.out.println("Sending sms...");
+		return true;
+	}
+	
+	public boolean sendEmail(final Notification notification) throws NotificationLauncherException
+	{
+		long threadId = Thread.currentThread().getId();
+		System.out.println("Thread: "+threadId+" is sending email with ID of "+notification.getId());
+		
+		try
+		{
+			MimeMessagePreparator messagePreparator =  new MimeMessagePreparator() {
+				public void prepare(MimeMessage mimeMessage) throws Exception {
+					MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
+	//				
+	//				if(email.getBcc() != null)
+	//					message.setBcc(email.getBcc()); 
+	//				
+	//				if(email.getCc() != null)
+	//					message.setCc(email.getCc());
+	//				
+	//				if(email.getMultipleRecipients() != null)
+	//					message.setCc(email.getMultipleRecipients());
+					
+					if (notification.getSendFromAlias()==null || notification.getReplyTo() == null)
+						message.setFrom(new InternetAddress(notification.getSendFrom(), notification.getSendFrom()));
+					else
+						message.setFrom(new InternetAddress(notification.getSendFrom(), notification.getSendFromAlias()+" as "+notification.getReplyTo()));
+
+					if(notification.getReplyTo() != null)
+						message.setReplyTo(notification.getReplyTo());
+					
+					String subject = notification.getSubject();
+					try
+					{
+						message.setSubject(MimeUtility.encodeText(subject));
+					}
+					catch (Exception encodingException)
+					{
+						message.setSubject("RME");
+					}
+					message.setText(notification.getBody(), true);
+					
+					message.setTo(notification.getSendTo()); 
+		      	}
+			};
+			
+			if (notification.getReplyTo()==null)
+				statusManager.sendEmail(messagePreparator, notification.getSendFrom());
+			else
+				statusManager.sendEmail(messagePreparator, notification.getReplyTo());
+		}
+		catch (Exception exception)
+		{
+			exception.printStackTrace();
+			throw new NotificationLauncherException();
+		}
+		
+		return true;
+	}
+	
+	public boolean sendPushNotification(Notification notification) throws NotificationLauncherException
+	{ 
+		if (notification.getPushTypeOrdinal()==PushTypeEnum.APPLE.ordinal())
+		{
+			String keystore = statusManager.getNotificationProperties().getApnsKeystore();
+			String password = statusManager.getNotificationProperties().getApnsKeyStorePassword();
+			boolean prodMode = statusManager.getNotificationProperties().isProductionMode();
+			try
+			{
+//				Push.alert(notification.getBody(), (String)props.getProperty("apn_keystore"), (String)props.getProperty("apn_keystore_password"), Boolean.valueOf(props.getProperty("apn_production_mode")), notification.getSendTo());
+				String email = notification.getSendTo();
+				
+				List<String> devices;
+				if (email.contains("@"))
+				{
+					//this means that there is an email address in the field, so we need to look up by email to get the devices
+					devices = statusManager.getDevicesByEmailTX(email);
+					if (devices == null || devices.isEmpty())
+						return false;
+				}
+				else
+				{
+					//this means the to contains a device id so we can just use it
+					devices = new ArrayList<String>();
+					devices.add(email);
+				}
+//				"58c51630ecf8b85f90382a6af114f815952580b40ceb783cde9e2df4f107ba8c"
+				List<PushedNotification> notifications = Push.alert(notification.getBody(), keystore, password, prodMode, devices);
+				  for (PushedNotification pushedNotification : notifications) {
+                      if (pushedNotification.isSuccessful()) {
+                              /* Apple accepted the notification and should deliver it */  
+                              System.out.println("Push notification sent successfully to: " +
+                            		  pushedNotification.getDevice().getToken());
+                              /* Still need to query the Feedback Service regularly */  
+                      } else {
+                    	  System.out.println("Push was not successful.");
+                              String invalidToken = pushedNotification.getDevice().getToken();
+                              /* Add code here to remove invalidToken from your database */  
+                              statusManager.deleteDevice(invalidToken);
+                              
+                              /* Find out more about what the problem was */  
+                              Exception theProblem = pushedNotification.getException();
+                              theProblem.printStackTrace();
+
+                              /* If the problem was an error-response packet returned by Apple, get it */  
+                              ResponsePacket theErrorResponse = pushedNotification.getResponse();
+                              if (theErrorResponse != null) {
+                                      System.out.println(theErrorResponse.getMessage());
+                              }
+                              
+                              return false;
+                      }
+              }
+
+			}
+			catch (CommunicationException e)
+			{
+				e.printStackTrace();
+				throw new NotificationLauncherException();
+			}
+			catch (KeystoreException e)
+			{
+
+				e.printStackTrace();
+				throw new NotificationLauncherException();
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	
+}

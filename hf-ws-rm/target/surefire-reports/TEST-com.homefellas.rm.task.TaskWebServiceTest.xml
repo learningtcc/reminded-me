@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite failures="0" time="41.296" errors="0" skipped="0" tests="32" name="com.homefellas.rm.task.TaskWebServiceTest">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.6.0_45\jre\bin"/>
+    <property name="java.vm.version" value="20.45-b01"/>
+    <property name="java.vm.vendor" value="Sun Microsystems Inc."/>
+    <property name="java.vendor.url" value="http://java.sun.com/"/>
+    <property name="path.separator" value=";"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value="Service Pack 1"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="C:\workspace\sts\rm_ws\hf-build"/>
+    <property name="java.runtime.version" value="1.6.0_45-b06"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
+    <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\endorsed"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="C:\Users\prc9041\AppData\Local\Temp\"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="user.variant" value=""/>
+    <property name="os.name" value="Windows 7"/>
+    <property name="classworlds.conf" value="C:\workspace\sts\rm_ws\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf9126128201277241685.tmp"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk1.6.0_45\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\ThinkPad\Bluetooth Software\;C:\Program Files\ThinkPad\Bluetooth Software\syswow64;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Common Files\Lenovo;C:\Program Files (x86)\Common Files\Ulead Systems\MPEG;C:\SWTOOLS\ReadyApps;C:\Program Files (x86)\Common Files\Lenovo;C:\PROGRA~2\IBM\SQLLIB\BIN;C:\PROGRA~2\IBM\SQLLIB\FUNCTION;C:\PROGRA~2\IBM\SQLLIB\SAMPLES\REPL;C:\Program Files (x86)\AccuRev\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files\MySQL\MySQL Server 5.1\bin;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x86;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x64;."/>
+    <property name="m2eclipse.workspace.state" value="C:\workspace\sts\rm_ws\.metadata\.plugins\org.eclipse.m2e.core\workspacestate.properties"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="50.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="6.1"/>
+    <property name="user.home" value="C:\Users\prc9041"/>
+    <property name="user.timezone" value="America/New_York"/>
+    <property name="java.awt.printerjob" value="sun.awt.windows.WPrinterJob"/>
+    <property name="java.specification.version" value="1.6"/>
+    <property name="file.encoding" value="Cp1252"/>
+    <property name="user.name" value="prc9041"/>
+    <property name="java.class.path" value="/C:/software/springsource/sts-3.4.0.RELEASE/configuration/org.eclipse.osgi/bundles/556/1/.cp/jars/plexus-classworlds-2.4.jar"/>
+    <property name="java.vm.specification.version" value="1.0"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk1.6.0_45\jre"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -B -s C:\Users\prc9041\.m2\settings.xml install"/>
+    <property name="java.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="user.language" value="en"/>
+    <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.6.0_45"/>
+    <property name="java.ext.dirs" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\ext;C:\Windows\Sun\Java\lib\ext"/>
+    <property name="sun.boot.class.path" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\resources.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\rt.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\sunrsasign.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\jce.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\modules\jdk.boot.jar;C:\Program Files\Java\jdk1.6.0_45\jre\classes"/>
+    <property name="java.vendor" value="Sun Microsystems Inc."/>
+    <property name="maven.home" value="C:\workspace\sts\rm_ws\hf-build\EMBEDDED"/>
+    <property name="file.separator" value="\"/>
+    <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi"/>
+    <property name="maven.bootclasspath" value="/C:/software/springsource/sts-3.4.0.RELEASE/configuration/org.eclipse.osgi/bundles/556/1/.cp/jars/plexus-classworlds-2.4.jar"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.desktop" value="windows"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+  </properties>
+  <testcase time="0.993" classname="com.homefellas.rm.task.TaskWebServiceTest" name="updateTask"/>
+  <testcase time="1.002" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getTasksForMember"/>
+  <testcase time="1.027" classname="com.homefellas.rm.task.TaskWebServiceTest" name="createCalendar"/>
+  <testcase time="1.063" classname="com.homefellas.rm.task.TaskWebServiceTest" name="cancelTask"/>
+  <testcase time="1.464" classname="com.homefellas.rm.task.TaskWebServiceTest" name="taskEndDateChanged"/>
+  <testcase time="1.244" classname="com.homefellas.rm.task.TaskWebServiceTest" name="taskUpdateBeforeRepeatSetupCreate"/>
+  <testcase time="1.044" classname="com.homefellas.rm.task.TaskWebServiceTest" name="appleIOSEvent"/>
+  <testcase time="1.188" classname="com.homefellas.rm.task.TaskWebServiceTest" name="repeatSetupDeleteReAdd"/>
+  <testcase time="1.448" classname="com.homefellas.rm.task.TaskWebServiceTest" name="notifyShareeWhenStatusChanges"/>
+  <testcase time="1.364" classname="com.homefellas.rm.task.TaskWebServiceTest" name="notifyShareeWhenStatusChangesNoAccept"/>
+  <testcase time="1.941" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getAllDependantTaskObjects"/>
+  <testcase time="1.523" classname="com.homefellas.rm.task.TaskWebServiceTest" name="taskShareStatusSetToShared"/>
+  <testcase time="1.201" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getTasksByStatusAndMemberId"/>
+  <testcase time="1.837" classname="com.homefellas.rm.task.TaskWebServiceTest" name="repeatTasks"/>
+  <testcase time="1.688" classname="com.homefellas.rm.task.TaskWebServiceTest" name="notifyTaskCreatorAndShareeOnTaskEndDate"/>
+  <testcase time="1.049" classname="com.homefellas.rm.task.TaskWebServiceTest" name="clientNotification"/>
+  <testcase time="0.993" classname="com.homefellas.rm.task.TaskWebServiceTest" name="test401Error"/>
+  <testcase time="1.313" classname="com.homefellas.rm.task.TaskWebServiceTest" name="syncUpdateSyncWithDeleteStatus"/>
+  <testcase time="1.253" classname="com.homefellas.rm.task.TaskWebServiceTest" name="syncDeleteSync"/>
+  <testcase time="1.553" classname="com.homefellas.rm.task.TaskWebServiceTest" name="makeSureThatSharesGetModifiedTimeOnTaskUpdate"/>
+  <testcase time="1.198" classname="com.homefellas.rm.task.TaskWebServiceTest" name="createDeleteSyncTask"/>
+  <testcase time="1.065" classname="com.homefellas.rm.task.TaskWebServiceTest" name="testLocalizedTimeDate"/>
+  <testcase time="2.023" classname="com.homefellas.rm.task.TaskWebServiceTest" name="bulkSpeedTest"/>
+  <testcase time="1.29" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getBulkTask"/>
+  <testcase time="1.093" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getBulkCategory"/>
+  <testcase time="1.178" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getBulkCalendar"/>
+  <testcase time="1.137" classname="com.homefellas.rm.task.TaskWebServiceTest" name="createTaskWithGenericCategory"/>
+  <testcase time="1.343" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getCalendarsForMember"/>
+  <testcase time="1.261" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getCategoriesForMember"/>
+  <testcase time="1.135" classname="com.homefellas.rm.task.TaskWebServiceTest" name="clearCompletedForMember"/>
+  <testcase time="1.287" classname="com.homefellas.rm.task.TaskWebServiceTest" name="showCompletedForMember"/>
+  <testcase time="1.074" classname="com.homefellas.rm.task.TaskWebServiceTest" name="getTaskById"/>
+</testsuite>

@@ -1,0 +1,11 @@
+package com.homefellas.rm.user;
+
+import java.util.List;
+
+public interface IPersonalPointScoreService
+{
+
+	public List<PersonalPointScore> getLatestPersonalPointScoresTX(String email);
+	public PersonalPointScore getPersonalPointScoreByDateTX(String email, String date);
+	public List<PersonalPointScore> getPersonalPointScoreByDateRangeTX(String email, String start, String end);
+}

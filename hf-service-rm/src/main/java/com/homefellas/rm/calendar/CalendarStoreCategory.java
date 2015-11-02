@@ -1,0 +1,113 @@
+package com.homefellas.rm.calendar;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonManagedReference;
+import org.hibernate.annotations.Proxy;
+
+import com.homefellas.model.core.AbstractGUIDModel;
+
+@Entity
+@Table(name="t_calendarstorecategory")
+@Proxy(lazy=false)
+@XmlRootElement
+public class CalendarStoreCategory extends AbstractGUIDModel
+{
+
+	@Column(nullable=false)
+	private String categoryName;
+	private int priority=0;
+	
+	private String description;
+	
+	@OneToMany(fetch=FetchType.EAGER,cascade={CascadeType.ALL},mappedBy="calendarStoreCategory")
+	@JsonManagedReference("calendarStoreCategory")
+	protected Set<CalendarStoreSubCategory> calendarStoreSubCategories;
+
+	public CalendarStoreCategory()
+	{
+		generateGUIDKey();
+	}
+	
+	public enum DefaultCalendarStoreCategoryEnum { 
+		classes("0", "Classes"), 
+		proSports("1", "Professional Sports");
+	
+		private String categoryName;
+		private String id;
+		
+		private DefaultCalendarStoreCategoryEnum(String id, String name)
+		{
+			this.id = id;
+			this.categoryName = name;
+		}
+		
+		public String getCategoryName()
+		{
+			return this.categoryName;
+		}
+		
+		public String getId()
+		{
+			return this.id;
+		}
+	}
+	
+	public String getCategoryName()
+	{
+		return categoryName;
+	}
+
+	public void setCategoryName(String categoryName)
+	{
+		this.categoryName = categoryName;
+	}
+
+	public int getPriority()
+	{
+		return priority;
+	}
+
+	public void setPriority(int priority)
+	{
+		this.priority = priority;
+	}
+
+	public String getDescription()
+	{
+		return description;
+	}
+
+	public void setDescription(String description)
+	{
+		this.description = description;
+	}
+
+	public Set<CalendarStoreSubCategory> getCalendarStoreSubCategories()
+	{
+		return calendarStoreSubCategories;
+	}
+
+	public void setCalendarStoreSubCategories(
+			Set<CalendarStoreSubCategory> calendarStoreSubCategories)
+	{
+		this.calendarStoreSubCategories = calendarStoreSubCategories;
+	}
+	
+	public void addSubCategory(CalendarStoreSubCategory calendarStoreSubCategory)
+	{
+		if (calendarStoreSubCategories == null)
+			calendarStoreSubCategories = new HashSet<CalendarStoreSubCategory>();
+		
+		calendarStoreSubCategories.add(calendarStoreSubCategory);
+	}
+}

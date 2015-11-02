@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration
+    PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration >
+	<session-factory >
+		<!-- <mapping resource="main/resource/conf/hibernate/hbm/AuthorizationTO.hbm.xml"/> -->
+<!--
+		<mapping resource="main/resource/conf/hibernate/hbm/Authorization.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/Authenication.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/MemberTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/ListUserLevelsTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/ListUserTypesTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/CasRegisterTO.hbm.xml"/>
+-->
+		<mapping class="com.homefellas.user.Member"/>
+<!-- 		<mapping class="com.homefellas.user.User"/> -->
+		<mapping class="com.homefellas.user.Role"/>
+		<mapping class="com.homefellas.user.Profile"/>
+		<mapping class="com.homefellas.user.ExtendedProfile"/>
+		<mapping class="com.homefellas.user.Interest"/>
+		<mapping class="com.homefellas.user.FriendEmail"/>
+		<mapping class="com.homefellas.user.RegisterTicket"/>
+		<mapping class="com.homefellas.user.UserAttribute"/>
+		
+	</session-factory>
+</hibernate-configuration>
+

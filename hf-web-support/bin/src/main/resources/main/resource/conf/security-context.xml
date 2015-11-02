@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:security="http://www.springframework.org/schema/security"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+<!-- 
+This file managers the global security of the app.  It imports a securrity-client-context at the end which must be in every war that uses this.
+You define the method you want secured based on an annotation.  So you would add the following to a method signature if you wanted it to be 
+secured to the ROLE_HF_USER
+@PreAuthorize("hasRole('ROLE_HF_USER')")
+ -->
+	<security:global-method-security pre-post-annotations="enabled"/>
+	<!-- CAS CLIENT CONFIGURATION -->
+	 
+ 
+ 	<!--  AUTHENICATION MANAGERS -->
+    <security:authentication-manager alias="authenticationManager">
+        <security:authentication-provider ref="oAuthProvider" />
+        <security:authentication-provider ref="preAuthAuthProvider"/> 
+        <security:authentication-provider ref="anonymousAuthenticationProvider"/>        
+    </security:authentication-manager>
+ 
+ 	<!-- THIRD PARTY OAUTH PROVIDERS -->
+ 	<bean id="oAuthProvider" class="com.github.leleuj.ss.oauth.client.authentication.OAuthAuthenticationProvider">
+        <property name="providersDefinition" ref="providersDefinition" />
+    </bean>
+    
+    <bean id="providersDefinition" class="org.scribe.up.provider.ProvidersDefinition">
+        <property name="baseUrl" value="${oauth.security.check}" />
+        <property name="providers">
+         <list>
+         <ref bean="facebookProvider" />
+         <ref bean="twitterProvider" />
+         </list>
+        </property>
+    </bean>
+    
+    <bean id="facebookProvider" class="org.scribe.up.provider.impl.FacebookProvider">
+        <property name="key" value="${facebook.key}" />
+        <property name="secret" value="${facebook.secret}" />
+    </bean>
+      
+    <bean id="twitterProvider" class="org.scribe.up.provider.impl.TwitterProvider">
+        <property name="key" value="" />
+        <property name="secret" value="" />
+    </bean>
+
+	<bean id="servletContextAttributeExporter" class="org.springframework.web.context.support.ServletContextAttributeExporter">
+        <property name="attributes">
+            <map>
+                <entry key="facebookProvider" value-ref="facebookProvider" />
+                <entry key="twitterProvider" value-ref="twitterProvider" />
+            </map>
+        </property>
+    </bean>
+     
+     <bean id="facebookEntryPoint" class="com.github.leleuj.ss.oauth.client.web.OAuthAuthenticationEntryPoint">
+        <property name="provider" ref="facebookProvider" />
+    </bean>
+    
+    <bean id="oAuthFilter" class="com.github.leleuj.ss.oauth.client.web.OAuthAuthenticationFilter">
+        <property name="providersDefinition" ref="providersDefinition" />
+        <property name="authenticationManager" ref="authenticationManager" />
+    </bean>
+    
+    <!-- CAS BEANS -->
+     <bean id="preAuthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+        <property name="preAuthenticatedUserDetailsService">
+            <bean id="userDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+                <property name="userDetailsService" ref="userService"/>
+            </bean>
+        </property>
+    </bean>
+ 
+    <bean id="preAuthEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+    
+    <bean id="casAuthenticationFilter" class="com.homefellas.cas.client.authentication.CASAuthticationFilter">
+	    <property name="oauthProfileUrl" value="${cas.oauth.profile.url}"/>
+    	<property name="loginURL" value="${login.url}"/>
+    	<property name="userService" ref="userService"/>
+    </bean>
+    
+	<bean id="anonymousAuthenticationProvider" class="org.springframework.security.authentication.AnonymousAuthenticationProvider">
+  		<property name="key" value="hfanonymous"/>
+	</bean>
+    
+	<import resource="classpath:com/homefellas/context/security-client-context.xml"/>
+</beans>

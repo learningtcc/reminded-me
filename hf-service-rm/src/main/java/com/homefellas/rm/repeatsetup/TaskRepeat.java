@@ -1,0 +1,114 @@
+package com.homefellas.rm.repeatsetup;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Proxy;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.rm.task.Task;
+import com.homefellas.ws.core.JodaDateTimeJsonDeSerializer;
+import com.homefellas.ws.core.JodaDateTimeJsonSerializer;
+
+@Entity
+@Table(name="t_tasksrepeats")
+@Proxy(lazy=false)
+@XmlRootElement
+public class TaskRepeat extends AbstractGUIDModel
+{
+
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="taskId")
+	@JsonBackReference("task-repeats")
+	private Task task;
+	
+	@Columns(columns={@Column(name="datetime",insertable=true,updatable=true),@Column(name="datetimezone",insertable=true,updatable=true)})
+	@Type(type="org.joda.time.contrib.hibernate.PersistentDateTimeTZ")
+	@JsonSerialize(using=JodaDateTimeJsonSerializer.class)
+	@JsonDeserialize(using=JodaDateTimeJsonDeSerializer.class)
+	private DateTime datetime;
+	
+	private boolean enabled;
+	
+	private int status;
+
+	public DateTime getDatetime()
+	{
+		return datetime;
+	}
+
+	public void setDatetime(DateTime datetime)
+	{
+		this.datetime = datetime;
+	}
+
+	public boolean isEnabled()
+	{
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled)
+	{
+		this.enabled = enabled;
+	}
+
+	public int getStatus()
+	{
+		return status;
+	}
+
+	public void setStatus(int status)
+	{
+		this.status = status;
+	}
+
+	public Task getTask()
+	{
+		return task;
+	}
+
+	public void setTask(Task task)
+	{
+		this.task = task;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (enabled ? 1231 : 1237);
+		result = prime * result + status;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TaskRepeat other = (TaskRepeat) obj;
+		if (enabled != other.enabled)
+			return false;
+		if (status != other.status)
+			return false;
+		return true;
+	}
+	
+	
+}

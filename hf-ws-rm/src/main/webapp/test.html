@@ -1,0 +1,32 @@
+<html>
+<head>
+        <script src="jquery-1.7.1.min.js"></script>
+        <script>
+        function senddata(){
+                $.ajax({
+                    type: "POST",
+                    url: $("#url").val(),
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: $("#data").val(),
+                        success: function(res) {
+                                $("#result").val(res);
+                        },
+                        error: function(res) {
+                                $("#result").val(res);
+                        }
+                });
+        }
+        </script>
+</head>
+<body>
+        <input style="width:800px" id="url" value="http://test.homefellas.com/ws/rest/task/calendar/create" /><br />
+        <textarea style="width:800px;height:100px" id="data">
+        {"id":0,"calendarName":"Personal","member":{"id":"1"},"generic":false}   
+        </textarea><br/>
+        <input type="button"  onclick="senddata()" value="Send Data" />
+
+        <div id="result" style="width:800px;height:auto;padding:10px;">
+        </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+package com.homefellas.user;
+
+import java.net.URL;
+
+import com.homefellas.exception.DatabaseNotInitializedException;
+import com.homefellas.exception.ValidationException;
+
+public interface IUserServiceTX extends IUserService
+{
+
+	public Profile getProfileOrRegisterFaceBookUserTX(OAuthModel authModel) throws ValidationException, DatabaseNotInitializedException;
+	public Profile updateProfileTX(Profile profile) throws ValidationException;
+	public Profile registerBasicMemberTX(Profile profile) throws ValidationException, DatabaseNotInitializedException;
+	public ExtendedProfile createUpdateExtendedProfileTX(ExtendedProfile extendedProfile) throws ValidationException;
+	public ExtendedProfile addFriendsToExtendedProfileTX(ExtendedProfile extendedProfile) throws ValidationException;
+	public ExtendedProfile addUserCommentsToExtendedProfileTX(ExtendedProfile extendedProfile) throws ValidationException;
+	public Profile getProfileTX(String id);
+	public String forgotPasswordTX(String principalId, URL resetLink)  throws ValidationException;
+	public boolean resetPasswordTX(Member authenication) throws ValidationException;
+	public void confirmUserTX(String email);
+	public Profile getProfileByEmailTX(String email);
+	public Profile getProfileByFaceBookIdTX(String facebookId);
+	public RegisterTicket createSSOTokenTX(String ticket, String accountId);
+	public RegisterTicket getCasRegisterTX(String ticket, String email);
+	
+}

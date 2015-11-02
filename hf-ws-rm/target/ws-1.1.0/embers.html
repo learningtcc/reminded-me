@@ -1,0 +1,299 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            
+        <style> 
+                        
+        </style>
+
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/redmond/jquery-ui.css" type="text/css" />       
+                
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/highcharts/2.1.6/highcharts.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/ember.js/0.9.4/ember-0.9.4.min.js"></script>
+        
+        <script>
+        
+            // data
+			var data = { 
+				    categories: [{
+                        name: "Category 1",
+                        childCategories: [{
+                            name: "Child Category 1",
+                            childCategories: [{
+                                name: "Child Child Category 1",
+                                tasks: [{
+                                    name: "Child Child Category 1-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 1-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 1-Task",
+                            lowPriority: true
+                        }]
+                    },
+                    {
+                        name: "Category 2",
+                        childCategories: [{
+                            name: "Child Category 2",
+                            childCategories: [{
+                                name: "Child Child Category 2",
+                                tasks: [{
+                                    name: "Child Child Category 2-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 2-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 2-Task",
+                            lowPriority: true
+                        }]
+                    },{
+                        name: "Category 1",
+                        childCategories: [{
+                            name: "Child Category 1",
+                            childCategories: [{
+                                name: "Child Child Category 1",
+                                tasks: [{
+                                    name: "Child Child Category 1-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 1-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 1-Task",
+                            lowPriority: true
+                        }]
+                    },
+                    {
+                        name: "Category 2",
+                        childCategories: [{
+                            name: "Child Category 2",
+                            childCategories: [{
+                                name: "Child Child Category 2",
+                                tasks: [{
+                                    name: "Child Child Category 2-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 2-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 2-Task",
+                            lowPriority: true
+                        }]
+                    },{
+                        name: "Category 1",
+                        childCategories: [{
+                            name: "Child Category 1",
+                            childCategories: [{
+                                name: "Child Child Category 1",
+                                tasks: [{
+                                    name: "Child Child Category 1-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 1-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 1-Task",
+                            lowPriority: true
+                        }]
+                    },
+                    {
+                        name: "Category 2",
+                        childCategories: [{
+                            name: "Child Category 2",
+                            childCategories: [{
+                                name: "Child Child Category 2",
+                                tasks: [{
+                                    name: "Child Child Category 2-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 2-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 2-Task",
+                            lowPriority: true
+                        }]
+                    },{
+                        name: "Category 1",
+                        childCategories: [{
+                            name: "Child Category 1",
+                            childCategories: [{
+                                name: "Child Child Category 1",
+                                tasks: [{
+                                    name: "Child Child Category 1-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 1-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 1-Task",
+                            lowPriority: true
+                        }]
+                    },
+                    {
+                        name: "Category 2",
+                        childCategories: [{
+                            name: "Child Category 2",
+                            childCategories: [{
+                                name: "Child Child Category 2",
+                                tasks: [{
+                                    name: "Child Child Category 2-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 2-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 2-Task",
+                            lowPriority: true
+                        }]
+                    },{
+                        name: "Category 1",
+                        childCategories: [{
+                            name: "Child Category 1",
+                            childCategories: [{
+                                name: "Child Child Category 1",
+                                tasks: [{
+                                    name: "Child Child Category 1-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 1-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 1-Task",
+                            lowPriority: true
+                        }]
+                    },
+                    {
+                        name: "Category 2",
+                        childCategories: [{
+                            name: "Child Category 2",
+                            childCategories: [{
+                                name: "Child Child Category 2",
+                                tasks: [{
+                                    name: "Child Child Category 2-Task",
+                                    highPriority: true
+                                }]
+                            }],
+                            tasks: [{
+                                name: "Child Category 2-Task",
+                                mediumPriority: true
+                            }]
+                        }],
+                        tasks: [{
+                            name: "Category 2-Task",
+                            lowPriority: true
+                        }]
+                    }]
+			};
+            
+			$(document).ready(function() {  	
+				var startTime = new Date().getTime(); 
+					
+				window.App = Ember.Application.create();
+				
+	            App.set('categories', data.categories);
+	            
+	            App.CategoryView = Ember.View.extend({
+                    templateName: 'category-template'
+                });
+                
+                App.TaskView = Ember.View.extend({
+	                templateName: 'task-template'
+	            });
+
+                var view = Ember.View.create({
+                    templateName: 'categories-template',
+                    didInsertElement : function() {
+                    	var endTime = new Date().getTime();
+                        var seconds = (endTime-startTime)/1000;
+                        $('#loading').html("Took " + seconds + "s");
+                    }
+                });
+
+                view.append('#content');
+            });
+                                    
+        </script>
+        
+    </head>
+    <body> 
+    
+        <div id="loading">Loading..</div> 
+        
+        <div id="content"></div>
+        
+        <script type="text/x-handlebars" data-template-name="categories-template">
+            
+            {{#each App.categories}}
+                {{view App.CategoryView categoryBinding="this"}}
+            {{/each}}
+
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="category-template">
+
+            <div>{{category.name}}</div>
+
+            {{#each category.childCategories}}
+                <div>{{view App.CategoryView categoryBinding="this"}}</div>
+            {{/each}}
+
+            {{#each category.tasks}}
+                <div>{{view App.TaskView taskBinding="this"}}</div>
+            {{/each}}
+
+        </script>   
+
+        <script type="text/x-handlebars" data-template-name="task-template">
+
+            {{#if task.lowPriority}}   (L) {{/if}}
+            {{#if task.mediumPriority}}(M) {{/if}}
+            {{#if task.highPriority}}  (H) {{/if}}
+
+            <span>{{task.name}}</span>
+
+        </script>         
+                    
+    </body>
+</html>

@@ -1,0 +1,27 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	
+	<context:component-scan base-package="com.homefellas.rm" />
+
+	<bean id="userWebService" class="com.homefellas.rm.user.UserWebService" parent="springBean"/>
+	
+	<bean id="taskWebService" class="com.homefellas.rm.task.TaskWebService" parent="springBean"/>
+	
+	<bean id="remindedMeWebservice" class="com.homefellas.rm.RemindedMeWebService" parent="springBean"/>
+	
+	<bean id="reminderWebService" class="com.homefellas.rm.reminder.ReminderWebService" parent="springBean"/>
+	
+	<bean id="shareWebService" class="com.homefellas.rm.share.ShareWebService" parent="springBean">
+		
+	</bean>
+	
+	<bean id="clientNotificationWebService" class="com.homefellas.rm.notification.ClientNotificationWebService" parent="springBean"/>
+	
+	<bean id="didYouKnowWebService" class="com.homefellas.rm.dyk.DidYouKnowWebService" parent="springBean">
+		<property name="didYouKnowService" ref="didYouKnowService"/>
+	</bean>
+</beans>
+

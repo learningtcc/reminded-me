@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.homefellas.rm.task.TaskWebServiceTest
+-------------------------------------------------------------------------------
+Tests run: 32, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 41.291 sec

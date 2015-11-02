@@ -1,0 +1,45 @@
+package com.homefellas.user;
+
+import com.homefellas.exception.IValidationCode;
+
+public enum UserValidationCodeEnum implements IValidationCode {
+
+	//0
+	MEMBER_NOT_FOUND,
+	
+	//1
+	ROLE_HF_USER_NOT_DEFINED_IN_DB,
+	
+	//2
+	EMAIL_NULL,
+	
+	//3
+	PASSWORD_NULL,
+	
+	//4
+	MEMBER_ID_TAKEN,
+	
+	//5
+	NO_TICKET_SET,
+	
+	//6
+	EXTENDED_PROFILE_HAS_NULL_PROFILE_ID, 
+	
+	//
+	CANNOT_UPDATE_WITHOUT_PK,
+	
+	PASSWORD_RESET_MISMATCH,
+	
+	USER_MUST_BE_LOGGED_IN,
+	
+	EXTENDED_PROFILE_DOES_NOT_EXIST,
+	
+	NAME_IS_NULL,
+	
+	USER_NOT_LOGGED_INTO_FACEBOOK,
+	FACEBOOK_ID_NOT_LINKED,
+	PK_NOT_SET,
+	MEMBER_ID_IS_NULL,
+	DEVICE_ID_IS_NULL,
+	INVALID_PUSH_TYPE;
+}

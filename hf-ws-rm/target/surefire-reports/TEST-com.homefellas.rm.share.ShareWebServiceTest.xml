@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite failures="0" time="60.971" errors="0" skipped="0" tests="36" name="com.homefellas.rm.share.ShareWebServiceTest">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk1.6.0_45\jre\bin"/>
+    <property name="java.vm.version" value="20.45-b01"/>
+    <property name="java.vm.vendor" value="Sun Microsystems Inc."/>
+    <property name="java.vendor.url" value="http://java.sun.com/"/>
+    <property name="path.separator" value=";"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value="Service Pack 1"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="C:\workspace\sts\rm_ws\hf-build"/>
+    <property name="java.runtime.version" value="1.6.0_45-b06"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
+    <property name="java.endorsed.dirs" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\endorsed"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="C:\Users\prc9041\AppData\Local\Temp\"/>
+    <property name="line.separator" value="
+"/>
+    <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="user.variant" value=""/>
+    <property name="os.name" value="Windows 7"/>
+    <property name="classworlds.conf" value="C:\workspace\sts\rm_ws\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf9126128201277241685.tmp"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk1.6.0_45\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\ThinkPad\Bluetooth Software\;C:\Program Files\ThinkPad\Bluetooth Software\syswow64;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Common Files\Lenovo;C:\Program Files (x86)\Common Files\Ulead Systems\MPEG;C:\SWTOOLS\ReadyApps;C:\Program Files (x86)\Common Files\Lenovo;C:\PROGRA~2\IBM\SQLLIB\BIN;C:\PROGRA~2\IBM\SQLLIB\FUNCTION;C:\PROGRA~2\IBM\SQLLIB\SAMPLES\REPL;C:\Program Files (x86)\AccuRev\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files\MySQL\MySQL Server 5.1\bin;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x86;C:\Program Files (x86)\Intel\OpenCL SDK\2.0\bin\x64;."/>
+    <property name="m2eclipse.workspace.state" value="C:\workspace\sts\rm_ws\.metadata\.plugins\org.eclipse.m2e.core\workspacestate.properties"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="50.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="os.version" value="6.1"/>
+    <property name="user.home" value="C:\Users\prc9041"/>
+    <property name="user.timezone" value="America/New_York"/>
+    <property name="java.awt.printerjob" value="sun.awt.windows.WPrinterJob"/>
+    <property name="java.specification.version" value="1.6"/>
+    <property name="file.encoding" value="Cp1252"/>
+    <property name="user.name" value="prc9041"/>
+    <property name="java.class.path" value="/C:/software/springsource/sts-3.4.0.RELEASE/configuration/org.eclipse.osgi/bundles/556/1/.cp/jars/plexus-classworlds-2.4.jar"/>
+    <property name="java.vm.specification.version" value="1.0"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk1.6.0_45\jre"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -B -s C:\Users\prc9041\.m2\settings.xml install"/>
+    <property name="java.specification.vendor" value="Sun Microsystems Inc."/>
+    <property name="user.language" value="en"/>
+    <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.6.0_45"/>
+    <property name="java.ext.dirs" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\ext;C:\Windows\Sun\Java\lib\ext"/>
+    <property name="sun.boot.class.path" value="C:\Program Files\Java\jdk1.6.0_45\jre\lib\resources.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\rt.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\sunrsasign.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\jce.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.6.0_45\jre\lib\modules\jdk.boot.jar;C:\Program Files\Java\jdk1.6.0_45\jre\classes"/>
+    <property name="java.vendor" value="Sun Microsystems Inc."/>
+    <property name="maven.home" value="C:\workspace\sts\rm_ws\hf-build\EMBEDDED"/>
+    <property name="file.separator" value="\"/>
+    <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi"/>
+    <property name="maven.bootclasspath" value="/C:/software/springsource/sts-3.4.0.RELEASE/configuration/org.eclipse.osgi/bundles/556/1/.cp/jars/plexus-classworlds-2.4.jar"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.desktop" value="windows"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+  </properties>
+  <testcase time="1.065" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareTask"/>
+  <testcase time="5.196" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareCalendar"/>
+  <testcase time="1.492" classname="com.homefellas.rm.share.ShareWebServiceTest" name="getShareForUserAndTask"/>
+  <testcase time="1.3" classname="com.homefellas.rm.share.ShareWebServiceTest" name="acceptShare"/>
+  <testcase time="1.249" classname="com.homefellas.rm.share.ShareWebServiceTest" name="declineShare"/>
+  <testcase time="2.944" classname="com.homefellas.rm.share.ShareWebServiceTest" name="sharedTaskChangeEndTimeVerifyAlarms"/>
+  <testcase time="2.487" classname="com.homefellas.rm.share.ShareWebServiceTest" name="sharedSubTaskGetsAnotherTaskAdded"/>
+  <testcase time="1.542" classname="com.homefellas.rm.share.ShareWebServiceTest" name="alarmsAreSyncedWithSharedTasks"/>
+  <testcase time="1.404" classname="com.homefellas.rm.share.ShareWebServiceTest" name="publishToAppleStore"/>
+  <testcase time="2.388" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareSubListAddTask"/>
+  <testcase time="1.592" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareCalendarAddTask"/>
+  <testcase time="2.001" classname="com.homefellas.rm.share.ShareWebServiceTest" name="publicShareDirectLink"/>
+  <testcase time="2.191" classname="com.homefellas.rm.share.ShareWebServiceTest" name="privateShareDirectLink"/>
+  <testcase time="3.427" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareDeclineAccept"/>
+  <testcase time="1.179" classname="com.homefellas.rm.share.ShareWebServiceTest" name="registerSharedAccount"/>
+  <testcase time="1.602" classname="com.homefellas.rm.share.ShareWebServiceTest" name="declineListShare"/>
+  <testcase time="1.632" classname="com.homefellas.rm.share.ShareWebServiceTest" name="acceptListShare"/>
+  <testcase time="1.758" classname="com.homefellas.rm.share.ShareWebServiceTest" name="registerGuestOnShareCreation"/>
+  <testcase time="1.415" classname="com.homefellas.rm.share.ShareWebServiceTest" name="taskStatusIsDefaultedWhenShareIsCreated"/>
+  <testcase time="1.251" classname="com.homefellas.rm.share.ShareWebServiceTest" name="sendNotificationsToShares"/>
+  <testcase time="1.004" classname="com.homefellas.rm.share.ShareWebServiceTest" name="updateTaskAndCheckNonNotification"/>
+  <testcase time="1.279" classname="com.homefellas.rm.share.ShareWebServiceTest" name="completeTaskAndCheckNotification"/>
+  <testcase time="1.349" classname="com.homefellas.rm.share.ShareWebServiceTest" name="cancelTaskAndCheckNotification"/>
+  <testcase time="1.445" classname="com.homefellas.rm.share.ShareWebServiceTest" name="taskUpdateMultipleShareNotifications"/>
+  <testcase time="1.299" classname="com.homefellas.rm.share.ShareWebServiceTest" name="updateShare"/>
+  <testcase time="1.427" classname="com.homefellas.rm.share.ShareWebServiceTest" name="syncAcceptedShare"/>
+  <testcase time="1.64" classname="com.homefellas.rm.share.ShareWebServiceTest" name="wrongEmailShareError"/>
+  <testcase time="1.268" classname="com.homefellas.rm.share.ShareWebServiceTest" name="singleShareBulk"/>
+  <testcase time="1.207" classname="com.homefellas.rm.share.ShareWebServiceTest" name="doubleShares"/>
+  <testcase time="1.314" classname="com.homefellas.rm.share.ShareWebServiceTest" name="getRecievedInvitesForMember"/>
+  <testcase time="1.595" classname="com.homefellas.rm.share.ShareWebServiceTest" name="shareTaskUninvite"/>
+  <testcase time="1.384" classname="com.homefellas.rm.share.ShareWebServiceTest" name="deleteShare"/>
+  <testcase time="1.135" classname="com.homefellas.rm.share.ShareWebServiceTest" name="acceptPublicShare"/>
+  <testcase time="1.315" classname="com.homefellas.rm.share.ShareWebServiceTest" name="getSentInvitesForMember"/>
+  <testcase time="1.362" classname="com.homefellas.rm.share.ShareWebServiceTest" name="getSharesForUser"/>
+  <testcase time="1.803" classname="com.homefellas.rm.share.ShareWebServiceTest" name="getShareDirectLink"/>
+</testsuite>

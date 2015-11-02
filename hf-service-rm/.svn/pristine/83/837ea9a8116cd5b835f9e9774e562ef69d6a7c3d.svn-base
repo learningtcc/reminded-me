@@ -1,0 +1,18 @@
+package com.homefellas.rm.reminder;
+
+import java.util.List;
+
+import org.joda.time.DateTime;
+
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+
+public interface IReminderDao
+{
+	public List<Alarm> getBulkAlarms(List<String> ids, String loggedInEmail);
+	public List<Alarm> getAlarmByTaskAndMember(Task task, Member member);
+	public List<Alarm> getAlarmdsyTask(Task task);
+	public Alarm getAlarmByTaskMemberAndTime(Task task, Member member, DateTime fireTime);
+//	public void deleteReminderNotificationsByReminder(Reminder reminder);
+//	public List<ReminderNotification> getReminderNotifications(Reminder reminder);
+}

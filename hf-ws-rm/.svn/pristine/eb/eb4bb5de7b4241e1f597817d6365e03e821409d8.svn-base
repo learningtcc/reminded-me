@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+ 	<ResourceLink 
+            name="jdbc/rm"
+            global="jdbc/rm"
+            type="com.mchange.v2.c3p0.ComboPooledDataSource"
+          />
+          
+  <ResourceLink 
+            name="jdbc/brochure"
+            global="jdbc/brochure"
+            type="com.mchange.v2.c3p0.ComboPooledDataSource"
+          /> 	         	
+</Context>

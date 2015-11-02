@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration
+    PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration >
+	<session-factory >
+		<mapping resource="main/resource/conf/hibernate/hbm/Country.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/County.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/LocationAlias.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/State.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/Zip.hbm.xml"/>
+
+	</session-factory>
+</hibernate-configuration>
+

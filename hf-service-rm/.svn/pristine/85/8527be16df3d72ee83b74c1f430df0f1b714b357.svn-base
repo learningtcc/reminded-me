@@ -1,0 +1,48 @@
+package com.homefellas.rm.notification;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMValidator;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.user.UserValidationCodeEnum;
+
+public class ClientNotificationValidator extends AbstractRMValidator implements
+		IClientNotificationValidator
+{
+
+	@Override
+	public void validateClientNotification(ClientNotification clientNotification)
+			throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validateMemberId(codes, clientNotification.getMember());
+		validatePrimaryKey(codes, clientNotification);
+		
+		if (isNullOrBlank(clientNotification.getReferenceId()))
+			codes.add(ValidationCodeEnum.REFERENCE_ID_IS_NULL);
+			
+		if (isNullOrBlank(clientNotification.getReferenceClassName()))
+			codes.add(ValidationCodeEnum.REFERENCE_CLASS_NAME_IS_NULL);
+		
+		throwException(codes, clientNotification);
+		
+	}
+	
+	public void validateDevice(Device device) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validateMemberId(codes, device.getProfile());
+		validatePrimaryKey(codes, device);
+			
+		if (device.getPushTypeOrdinal()<1 || device.getPushTypeOrdinal()>3)
+			codes.add(UserValidationCodeEnum.INVALID_PUSH_TYPE);
+		throwException(codes);
+	}
+
+	
+}

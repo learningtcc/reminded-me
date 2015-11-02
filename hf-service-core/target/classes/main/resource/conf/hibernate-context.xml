@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xmlns:ehcache="http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.2.xsd"
+   	>
+
+	<jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/rm" />
+	<jee:jndi-lookup id="brochureDataSource" jndi-name="java:comp/env/jdbc/brochure" />
+	
+	<bean id="hibernateDao" abstract="true" parent="springBean">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+		<property name="brochureSessionFactory" ref="brochureSessionFactory"/>
+	</bean>
+	
+	<bean id="cassandraDao" parent="springBean" class="com.homefellas.dao.cassandra.core.CassandraDao"/>
+	
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref local="dataSource"/>
+		</property>
+		<property name="configLocations">
+            <list>
+                <value>classpath*:main/resource/conf/hibernate/*.cfg.xml</value>
+                <value>classpath*:com/homefellas/conf/hibernate/*.cfg.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${db.dialect}</prop>
+
+				<prop key="hibernate.hbm2ddl.auto">update</prop>		
+        		<prop key="hibernate.show_sql">false</prop>
+				<!-- Botlist default for format_sql should be 'false' -->
+				<prop key="hibernate.format_sql">${hibernate.formatSql}</prop>
+				<prop key="hibernate.generate_statistics">${hibernate.generateStatistics}</prop>
+				<!-- ============================================= -->
+
+				<!-- Caching Properties -->
+				<prop key="hibernate.cache">${hibernate.cache}</prop>
+				<prop key="hibernate.cache.use_query_cache">${cache.use_query_cache}</prop>
+				
+				<prop key="hibernate.cache.provider_class">${hibernate.cacheProviderClass}</prop>
+			<!--	
+			<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
+			<prop key="hibernate.cache.provider_class">${cache.provider_class}</prop> 
+			<prop key="org.hibernate.FlushMode">commit</prop>
+			-->
+
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager" >
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	
+	<bean id="brochureSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref local="brochureDataSource"/>
+		</property>
+		<property name="configLocations">
+            <list>
+                <value>classpath*:main/resource/conf/hibernate/brochure.cfg.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${db.dialect}</prop>
+
+				<prop key="hibernate.hbm2ddl.auto">update</prop>		
+        		<prop key="hibernate.show_sql">false</prop>
+				<!-- Botlist default for format_sql should be 'false' -->
+				<prop key="hibernate.format_sql">${hibernate.formatSql}</prop>
+				<prop key="hibernate.generate_statistics">${hibernate.generateStatistics}</prop>
+				<!-- ============================================= -->
+
+				<!-- Caching Properties -->
+				<prop key="hibernate.cache">${hibernate.cache}</prop>
+				<prop key="hibernate.cache.use_query_cache">${cache.use_query_cache}</prop>
+				
+				<prop key="hibernate.cache.provider_class">${hibernate.cacheProviderClass}</prop>
+			<!--	
+			<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
+			<prop key="hibernate.cache.provider_class">${cache.provider_class}</prop> 
+			-->
+
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="brochureTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager" >
+		<property name="sessionFactory" ref="brochureSessionFactory"/>
+	</bean>  
+</beans>

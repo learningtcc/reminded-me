@@ -1,0 +1,24 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+Forgot your password on <a href="http://www.homefellas.com/login">HomeFellas.com</a>?&nbsp;
+<br/>
+
+<br/> 
+<div style="margin-left: 40px;">Click <a href="${resetLink}">here</a> to reset it.<br>
+</div>
+
+<br>
+If you still experience issues logging in on HomeFellas.com please contact us on support@homefellas.com.&nbsp; 
+
+Thanks!<br>
+<br>
+<br>
+Sincerely,
+<br>
+HomeFellas Support
+</body>
+</html>

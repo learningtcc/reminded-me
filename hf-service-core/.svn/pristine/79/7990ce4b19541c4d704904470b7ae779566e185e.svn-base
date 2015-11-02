@@ -1,0 +1,187 @@
+package com.homefellas.metrics;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
+import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.Element;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+
+import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.homefellas.model.core.TestModelBuilder;
+import com.homefellas.service.core.AbstractTestService;
+
+public class MetricServiceTest extends AbstractTestService{
+
+
+//	@Before
+//	public void primeCache()
+//	{
+//		int numberElements = 1000;
+//		Ehcache cache = createCacheInstance("metricCache", numberElements, false, false, 90, MemoryStoreEvictionPolicy.FIFO);
+//		metricService.setCache(cache);
+//		
+//		for (int i=0;i<numberElements;i++)
+//		{
+//			MetricDataPoint metric = new MetricDataPoint();
+//			metric.setMethodName("test");
+//			metric.setClassName(getClass().getName());
+//			metric.setExecutionTime(new Random().nextInt(1000));
+//			metric.setTimestamp(System.currentTimeMillis());
+//			UUID uuid = UUID.randomUUID();
+//			cache.put(new Element(uuid, metric));
+//		}
+//	}
+//	
+//	@Test
+//	public void testFlushPerformance() {
+//		int numberElements = 1000000;
+//		Ehcache cache = createCacheInstance("metricCache", numberElements, false, false, 90, MemoryStoreEvictionPolicy.FIFO);
+//		metricService.setCache(cache);
+//		
+//		Random randomMethod = new Random();
+//		Random executionTime = new Random();
+//		
+//		for (int i=0;i<numberElements;i++)
+//		{
+//			MetricDataPoint metric = new MetricDataPoint();
+//			metric.setMethodName("test"+randomMethod.nextInt(50));
+//			metric.setClassName(getClass().getName());
+//			metric.setExecutionTime(executionTime.nextInt(10000));
+//			metric.setTimestamp(System.currentTimeMillis());
+//			UUID uuid = UUID.randomUUID();
+//			cache.put(new Element(uuid, metric));
+//		}
+//		
+//		System.out.println("DataSet Built");
+//		List<UUID> elements = cache.getKeys();
+//		
+//		long start = System.currentTimeMillis();
+//		Collection<Metric> movingMetrics = metricService.collectMetricsWithMovingAverage(elements, false);
+//		long end = System.currentTimeMillis();
+//		long movingAverageExecution = end-start;
+//		
+//		start = System.currentTimeMillis();
+//		Collection<Metric> metrics = metricService.collectMetrics(elements, false);
+//		end = System.currentTimeMillis();
+//		long average = end-start;
+//		
+//		System.out.println("--------------------------------");
+//		System.out.println("Moving:");
+//		System.out.println("Method execution="+movingAverageExecution);
+//		for (Metric metric : movingMetrics)
+//		{
+//			System.out.println("Max="+metric.getMax());
+//			System.out.println("Min="+metric.getMin());
+//			System.out.println("Occurances="+metric.getOccurances());
+//			System.out.println("Average="+metric.getAverage());
+//		}
+//		
+//		System.out.println("--------------------------------");
+//		System.out.println("Constanst:");
+//		System.out.println("Method Execution="+average);
+//		for (Metric metric : metrics)
+//		{
+//			System.out.println("Max="+metric.getMax());
+//			System.out.println("Min="+metric.getMin());
+//			System.out.println("Occurances="+metric.getOccurances());
+//			System.out.println("Average="+metric.getAverage());
+//		}
+//	}
+
+	
+	
+//	@Test
+//	public void testFlushCache() {
+//		
+//		int numberElements = 5;
+//		Ehcache cache = createCacheInstance("metricCache", numberElements, false, false, 90, MemoryStoreEvictionPolicy.FIFO);
+//		metricService.setCache(cache);
+//		
+//		MetricDataPoint metric1 = new MetricDataPoint();
+//		metric1.setMethodName("test");
+//		metric1.setClassName(getClass().getName());
+//		metric1.setExecutionTime(1);
+//		metric1.setTimestamp(System.currentTimeMillis());
+//		UUID uuid1 = UUID.randomUUID();
+//		cache.put(new Element(uuid1, metric1));
+//		
+//		MetricDataPoint metric2 = new MetricDataPoint();
+//		metric2.setMethodName("test");
+//		metric2.setClassName(getClass().getName());
+//		metric2.setExecutionTime(2);
+//		metric2.setTimestamp(System.currentTimeMillis());
+//		UUID uuid2 = UUID.randomUUID();
+//		cache.put(new Element(uuid2, metric2));
+//		
+//		MetricDataPoint metric3 = new MetricDataPoint();
+//		metric3.setMethodName("test");
+//		metric3.setClassName(getClass().getName());
+//		metric3.setExecutionTime(3);
+//		metric3.setTimestamp(System.currentTimeMillis());
+//		UUID uuid3 = UUID.randomUUID();
+//		cache.put(new Element(uuid3, metric3));
+//		
+//		Collection<Metric> results = new ArrayList<Metric>();
+//		Metric metric = new Metric();
+//		metric.setMin(1);
+//		metric.setMax(3);
+//		metric.setAverage(2);
+//		metric.setOccurances(3);
+//		results.add(metric);
+//		
+//		dao.saveAllObjects(results);
+//		EasyMock.expectLastCall();
+//		
+//		EasyMock.replay(dao);
+//		
+//		metricService.flushCache();
+//	}
+//	
+//	@Test
+//	public void testSaveClientMetric()
+//	{
+//		ClientMetric clientMetric = TestModelBuilder.buildClientMetric(true);
+//		
+//		dao.save(clientMetric);
+//		EasyMock.expectLastCall();
+//		
+//		EasyMock.replay(dao);
+//		
+//		metricService.saveClientMetric(clientMetric);
+//		EasyMock.verify(dao);
+//	}
+	
+	@Test
+	public void testSaveBulkClientMetrics()
+	{
+		ClientMetric clientMetric1 = TestModelBuilder.buildClientMetric(true);
+		ClientMetric clientMetric2 = TestModelBuilder.buildClientMetric(true);
+		ClientMetric clientMetric3 = TestModelBuilder.buildClientMetric(true);
+		ClientMetric clientMetric4 = TestModelBuilder.buildClientMetric(true);
+		ClientMetric clientMetric5 = TestModelBuilder.buildClientMetric(true);
+		List<ClientMetric> clientMetrics = new ArrayList<ClientMetric>();
+		clientMetrics.add(clientMetric1);
+		clientMetrics.add(clientMetric2);
+		clientMetrics.add(clientMetric3);
+		clientMetrics.add(clientMetric4);
+		clientMetrics.add(clientMetric5);
+		
+		dao.saveAllObjects(clientMetrics);
+		EasyMock.expectLastCall();
+		
+		EasyMock.replay(dao);
+		
+		metricService.saveBulkClientMetrics(clientMetrics);
+		EasyMock.verify(dao);
+	}
+
+}

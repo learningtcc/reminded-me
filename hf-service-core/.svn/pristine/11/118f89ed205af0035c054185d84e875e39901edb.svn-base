@@ -1,0 +1,15 @@
+package com.homefellas.batch;
+
+import java.util.List;
+
+public interface INotificationDao
+{
+
+	public List<Notification> getNotificationsForINotification(INotifiable notification);
+	public List<Notification> getNotificationsForINotification(INotifiable notification, String toEmail);
+	public Notification getNotificationToBeSent(long pollTime);
+	public List<Notification> getNotificationsToBeSent(long pollTime, int maxResults);
+	public List<String> getDeviceIdsByEmail(String email);
+	public List<String> getDeviceIdsForDailyDYKNotification(PushTypeEnum pushTypeEnum);
+	public List<Notification> getNotificationsToEmail(String toEmail);
+}

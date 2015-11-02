@@ -1,0 +1,315 @@
+package com.homefellas.rm.reminder;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+
+import com.homefellas.batch.INotifiable;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.rm.ISynchronizeableFiltered;
+import com.homefellas.rm.ITaskDependable;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+import com.homefellas.ws.core.JodaDateTimeJsonDeSerializer;
+import com.homefellas.ws.core.JodaDateTimeJsonSerializer;
+
+@Entity
+@Table(name="r_alarms")
+@Proxy(lazy=false)
+@XmlRootElement
+public class Alarm extends AbstractGUIDModel implements INotifiable, ISynchronizeableFiltered, ITaskDependable
+{
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+	@Column(nullable=false)
+	private String message;
+	
+	@Column(nullable=false)
+	private boolean activeReminder=true;
+	
+	@Column(nullable=false)
+	private int notificationType=NotificationTypeEnum.NONE.ordinal();
+	
+	@Column(nullable=false)
+	private int pushType=PushTypeEnum.NONE.ordinal();
+	
+	@Column(nullable=false)
+	private int snoozeTimeInMin=5;
+	
+	private boolean emailReminder=false;
+	
+	@Columns(columns={@Column(name="customTime",insertable=true,updatable=true),@Column(name="customTimeTZ",insertable=true,updatable=true)})
+	@Type(type="org.joda.time.contrib.hibernate.PersistentDateTimeTZ")
+	@JsonSerialize(using=JodaDateTimeJsonSerializer.class)
+	@JsonDeserialize(using=JodaDateTimeJsonDeSerializer.class)
+	private DateTime alarmTime;
+	
+	@Column(nullable=true)
+	private String alarmTimeZone;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="taskId")
+//	@JsonBackReference("task-alarms")
+	private Task task;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="memberId")
+	@Index(name="alarmMemberIndex")
+	private Member member;
+	
+	@Column(nullable=false)
+	private int reminderIntervaleType=RepeatOccurance.NONE.ordinal();
+	
+	@Column(nullable=false)
+	private int reminderIntervale=0;
+	
+	@Column(nullable=false)
+	private int alarmStatus = AlarmStatusEnum.ACTIVE.ordinal();
+		
+	public enum AlarmStatusEnum {ACTIVE, DELETED};
+
+	public Alarm()
+	{
+		
+	}
+	
+	public Alarm(Alarm newAlarm)
+	{
+		setAlarmTime(newAlarm.getAlarmTime());
+		setMessage(newAlarm.getMessage());
+		setAlarmStatus(newAlarm.getAlarmStatus());
+		setAlarmTimeZone(newAlarm.getAlarmTimeZone());
+		setNotificationType(newAlarm.getNotificationType());
+		setPushType(newAlarm.getPushType());
+		setReminderIntervale(newAlarm.getReminderIntervale());
+		setReminderIntervaleType(newAlarm.getReminderIntervaleType());
+		setSnoozeTimeInMin(newAlarm.getSnoozeTimeInMin());
+
+	}
+	public String getLastModifiedDeviceId()
+	{
+		return lastModifiedDeviceId;
+	}
+
+	public void setLastModifiedDeviceId(String lastModifiedDeviceId)
+	{
+		this.lastModifiedDeviceId = lastModifiedDeviceId;
+	}
+
+	public String getMessage()
+	{
+		return message;
+	}
+
+	public void setMessage(String message)
+	{
+		this.message = message;
+	}
+
+	public boolean isActiveReminder()
+	{
+		return activeReminder;
+	}
+
+	public void setActiveReminder(boolean activeReminder)
+	{
+		this.activeReminder = activeReminder;
+	}
+
+	public int getNotificationType()
+	{
+		return notificationType;
+	}
+
+	public void setNotificationType(int notificationType)
+	{
+		this.notificationType = notificationType;
+	}
+
+	public int getPushType()
+	{
+		return pushType;
+	}
+
+	public void setPushType(int pushType)
+	{
+		this.pushType = pushType;
+	}
+
+	public int getSnoozeTimeInMin()
+	{
+		return snoozeTimeInMin;
+	}
+
+	public void setSnoozeTimeInMin(int snoozeTimeInMin)
+	{
+		this.snoozeTimeInMin = snoozeTimeInMin;
+	}
+
+	public boolean isEmailReminder()
+	{
+		return emailReminder;
+	}
+
+	public void setEmailReminder(boolean emailReminder)
+	{
+		this.emailReminder = emailReminder;
+	}
+
+
+	public Task getTask()
+	{
+		return task;
+	}
+
+	public void setTask(Task task)
+	{
+		this.task = task;
+	}
+
+	public int getReminderIntervaleType()
+	{
+		return reminderIntervaleType;
+	}
+
+	public void setReminderIntervaleType(int reminderIntervaleType)
+	{
+		this.reminderIntervaleType = reminderIntervaleType;
+	}
+
+	public int getReminderIntervale()
+	{
+		return reminderIntervale;
+	}
+
+	public void setReminderIntervale(int reminderIntervale)
+	{
+		this.reminderIntervale = reminderIntervale;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getMemberAttributeName()
+	{
+		return "member";
+	}
+
+	@Override
+	@JsonIgnore
+	public String getSyncId()
+	{
+		return "id";
+	}
+
+	@Override
+	@JsonIgnore
+	public String getDeleteStatusField()
+	{
+		return "alarmStatus";
+	}
+
+	@Override
+	@JsonIgnore
+	public int getDeletedTrueValue()
+	{
+//		return alarmStatus;
+		return AlarmStatusEnum.DELETED.ordinal();
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isStatusExclusive()
+	{
+		return true;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getNotificationId()
+	{
+		return getId();
+	}
+
+	@Override
+	@JsonIgnore
+	public String getClassName()
+	{
+		return getClass().getName();
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isCallBack()
+	{
+		return false;
+	}
+
+	public DateTime getAlarmTime()
+	{
+		return alarmTime;
+	}
+
+	public void setAlarmTime(DateTime alarmTime)
+	{
+		this.alarmTime = alarmTime;
+	}
+
+	public String getAlarmTimeZone()
+	{
+		return alarmTimeZone;
+	}
+
+	public void setAlarmTimeZone(String alarmTimeZone)
+	{
+		this.alarmTimeZone = alarmTimeZone;
+	}
+
+	public int getAlarmStatus()
+	{
+		return alarmStatus;
+	}
+
+	public void setAlarmStatus(int alarmStatus)
+	{
+		this.alarmStatus = alarmStatus;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getTaskAttributeName()
+	{
+		return "task";
+	}
+
+	public Member getMember()
+	{
+		return member;
+	}
+
+	public void setMember(Member member)
+	{
+		this.member = member;
+	}
+	
+	
+	
+	
+	
+}

@@ -1,0 +1,68 @@
+package com.homefellas.rm.share;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMValidator;
+import com.homefellas.rm.ValidationCodeEnum;
+
+public class ShareValidator extends AbstractRMValidator implements IShareValidator
+{
+
+	public void validateShare(Share share) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		if (share == null)
+		{
+			codes.add(ValidationCodeEnum.SHARE_IS_NULL);
+			throwException(codes);
+			return;
+		}
+		
+		if (isNullOrBlank(share.getId()))
+			codes.add(ValidationCodeEnum.SHARE_ID_IS_NULL);
+		
+		if (share.getUser() == null || isNullOrBlank(share.getUser().getId()))
+			codes.add(ValidationCodeEnum.USER_ID_IS_NULL);
+		
+		if (share.getTask() == null || isNullOrBlank(share.getTask().getId()))
+			codes.add(ValidationCodeEnum.TASK_ID_IS_NULL);
+		
+		if (isNullOrBlank(share.getId()))
+			codes.add(ValidationCodeEnum.SHARE_ID_IS_NULL);
+		throwException(codes);
+	}
+	
+	public void validateInvite(Invite invite) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		if (invite == null)
+		{
+			codes.add(ValidationCodeEnum.INVITE_IS_NULL);
+			throwException(codes);
+			return;
+		}
+		
+		if (invite.getDirectLink()==null)
+			codes.add(ValidationCodeEnum.LINK_IS_NULL);
+		
+		if (isNullOrBlank(invite.getSubject()))
+			codes.add(ValidationCodeEnum.SUBJECT_IS_NULL);
+		
+		if (isNullOrBlank(invite.getMessage()))
+			codes.add(ValidationCodeEnum.MESSAGE_IS_NULL);
+		
+		if (isNullOrBlank(invite.getShareId()))
+			codes.add(ValidationCodeEnum.SHARE_ID_IS_NULL);
+		
+		if (invite.getEmailAddresses()==null||invite.getEmailAddresses().isEmpty()||invite.getEmailAddresses().size()<1)
+			codes.add(ValidationCodeEnum.ONE_EMAIL_ADDRESS_IS_REQUIRED_TO_SHARE);
+		
+		
+		throwException(codes);
+	}
+}

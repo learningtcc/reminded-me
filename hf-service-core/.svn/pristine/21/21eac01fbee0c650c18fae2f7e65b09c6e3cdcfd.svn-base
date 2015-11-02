@@ -1,0 +1,31 @@
+package com.homefellas.cassandra.core;
+
+import org.junit.Test;
+
+
+public class CassandraDaoTest
+{
+
+	@Test
+	public void testCassandra()
+	{
+//		Profile profile = new Profile();
+//		profile.setName("Tim Delesio");
+//		Member member = new Member();
+//		member.setEmail("tdelesio@gmail.com");
+//		member.setPassword("rage311");
+//		profile.setMember(member);
+//		CassandraDao dao = new CassandraDao();
+//		profile = dao.save(profile);
+//		dao.insert(profile);
+//		
+//		String id = profile.getId();
+//		Assert.assertNotNull(id);
+//		
+//		Profile classUnderTest = (Profile)dao.get(id);
+//		
+//		Assert.assertEquals(profile.getName(), classUnderTest.getName());
+//		Assert.assertEquals(profile.getMember().getEmail(), classUnderTest.getMember().getEmail());
+//		Assert.assertEquals(profile.getMember().getPassword(), classUnderTest.getMember().getPassword());
+	}
+}

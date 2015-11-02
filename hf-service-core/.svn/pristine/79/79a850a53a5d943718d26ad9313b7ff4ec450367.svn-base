@@ -1,0 +1,5 @@
+package com.homefellas.metrics;
+
+public interface IMetricDao {
+
+}

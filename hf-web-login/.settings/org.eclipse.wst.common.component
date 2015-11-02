@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="hf-web-login">
+        <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+        <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <dependent-module archiveName="hf-service-login-1.1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/hf-service-login/hf-service-login">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="hf-service-core-1.1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/hf-service-core/hf-service-core">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="hf-web-support-1.1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/hf-web-support/hf-web-support">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/" handle="module:/overlay/var/M2_REPO/org/jasig/cas/cas-server-webapp/3.5.1/cas-server-webapp-3.5.1.war?unpackFolder=target/m2e-wtp/overlays&amp;includes=**/**&amp;excludes=META-INF/MANIFEST.MF">
+            <dependency-type>consumes</dependency-type>
+        </dependent-module>
+        <dependent-module deploy-path="/" handle="module:/overlay/slf/?includes=**/**&amp;excludes=META-INF/MANIFEST.MF">
+            <dependency-type>consumes</dependency-type>
+        </dependent-module>
+        <property name="context-root" value="sso"/>
+        <property name="java-output-path" value="/hf-web-login/target/classes"/>
+    </wb-module>
+</project-modules>

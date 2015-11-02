@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true">
+<!-- 
+	<class name="com.homefellas.user.Authorization" table="authorizations">
+		<cache usage="read-write"/>
+		
+		<id name="id" column="ID" type="long">
+			<generator class="identity"/>  
+		</id>
+		
+		<many-to-one name="role" 
+		 		class="com.homefellas.user.Role" 
+		 		column="roleId" 
+		 		fetch="join" 
+		 		lazy="false"  		
+		 		not-null="true"/>
+		
+		<many-to-one name="authenication" 
+		 		class="com.homefellas.user.Authenication" 
+		 		column="authenicationId" 
+		 		fetch="join" 
+		 		lazy="false"  		
+		 		not-null="true"/>
+		
+		
+
+	</class>
+ -->	
+	<class name="com.homefellas.user.Role" table="roles">
+		<cache usage="read-write"/>
+		
+		<id name="id" column="ID" type="long">
+			<generator class="identity"/>  
+		</id>
+		
+		<property name="role" column="role" length="25" not-null="true" lazy="false" type="string" unique="true" update="false"/>
+		
+	</class>	
+
+</hibernate-mapping>
+	

@@ -1,0 +1,138 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>hf-web-build</artifactId>
+	<packaging>pom</packaging>
+	<name>hf-build</name>
+
+	<parent>
+		<groupId>com.homefellas</groupId>
+		<artifactId>hf-service-build</artifactId>
+		<version>1.1.0</version>
+		<relativePath>../hf-service-build/pom.xml</relativePath>
+	</parent>
+
+	<modules>
+		<module>../hf-web-support</module>
+		<module>../hf-ws-build</module>
+		<module>../hf-web-login</module>
+	</modules>
+
+	<dependencies>
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.struts</groupId> -->
+		<!-- <artifactId>struts2-core</artifactId> -->
+		<!-- <version>${struts2.version}</version> -->
+		<!-- </dependency> -->
+
+
+
+		<dependency>
+			<groupId>com.github.leleuj.springframework.security</groupId>
+			<artifactId>spring-security-oauth-client</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scribe</groupId>
+			<artifactId>scribe</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<classifier>jdk15</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>org.owasp</groupId>
+			<artifactId>antisamy</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jasig.cas.client</groupId>
+			<artifactId>cas-client-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.thetransactioncompany.cors</groupId>
+			<artifactId>cors-filter</artifactId>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.security</groupId> -->
+		<!-- <artifactId>spring-security-cas-client</artifactId> -->
+		<!-- <version>3.0.5.RELEASE</version> -->
+		<!-- </dependency> -->
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.cargo</groupId>
+					<artifactId>cargo-maven2-plugin</artifactId>
+					<configuration>
+						<container>
+							<containerId>tomcat6x</containerId>
+							<home>${tomcat.home}</home>
+						</container>
+						<configuration>
+							<home>${tomcat.webapps.home}</home>
+							<type>standalone</type>
+							<!-- <configfiles> -->
+							<!-- <configfile> -->
+							<!-- <file>../hf-build/properties/environment.properties</file> -->
+							<!-- <todir>${properties.home}</todir> -->
+							<!-- <tofile>environment.properties</tofile> -->
+							<!-- </configfile> -->
+							<!-- </configfiles> -->
+							<deployables>
+								<deployable>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>${project.artifactId}</artifactId>
+									<type>war</type>
+									<properties>
+										<context>${web-context}</context>
+									</properties>
+								</deployable>
+							</deployables>
+							<properties>
+								<cargo.tomcat.webappsDirectory>${tomcat.webappsDirectory}</cargo.tomcat.webappsDirectory>
+							</properties>
+						</configuration>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

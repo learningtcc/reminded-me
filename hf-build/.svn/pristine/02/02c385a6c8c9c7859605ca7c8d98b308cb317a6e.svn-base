@@ -1,0 +1,13 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = Request Confirmation!
+template = ConfirmationEmailToProjectCreator_en.html
+persist =true
+bcc=support@homefellas.com
+
+testmode=false
+testemail=tdelesio@gmail.com 
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

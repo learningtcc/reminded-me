@@ -1,0 +1,762 @@
+package com.homefellas.rm.task;
+
+import static com.homefellas.rm.RMTestModelBuilder.*;
+import static junit.framework.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import junit.framework.Assert;
+
+import org.hibernate.Query;
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMTestDao;
+import com.homefellas.rm.ISynchronizeable.SynchronizeableObject;
+import com.homefellas.rm.RMTestModelBuilder;
+import com.homefellas.rm.reminder.RepeatOccurance;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.task.AbstractTask.PriorityEnum;
+import com.homefellas.rm.task.AbstractTask.ProgressEnum;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+
+public class TaskDaoTest extends AbstractRMTestDao {
+
+	@Resource(name="taskDao")
+	private ITaskDao taskDao;
+	
+	@Test
+	public void getUpcomingTasks()
+	{
+		Profile profile1 = createProfile();
+		Task task1 = createTask(profile1);
+		
+		Task task2 = task(profile1);
+		task2.setEndTime(new DateTime().plusDays(1));
+		task2 = createTask(task2);
+		
+		Task task3 = task(profile1);
+		task3.setEndTime(new DateTime().minusDays(2));
+		task3 = createTask(task3);
+		
+		Task task4 = task(profile1);
+		task4.setProgress(ProgressEnum.DONE.ordinal());
+		task4.setEndTime(new DateTime().plusDays(2));
+		task4 = createTask(task4);
+		
+		List<Task> tasks = taskDao.getUpcomingTasks(profile1.getEmail(), 10, 0);
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertTrue(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task3));
+	}
+	
+	
+	@Test
+	public void getDatelessOverdueTasksForMember()
+	{
+		Profile profile1 = createProfile();
+		Task task1 = task(profile1);
+		task1.setPriority(PriorityEnum.LOW.ordinal());
+		task1 = createTask(task1);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task2 = createTask(profile1);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task3 = task(profile1);
+		task3.setEndTime(new DateTime().plusMinutes(22));
+		task3 = createTask(task3);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task4 = task(profile1);
+		task4.setProgress(ProgressEnum.DONE.ordinal());
+		task4 = createTask(task4);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task5 = task(profile1);
+		task5.setEndTime(new DateTime().minusDays(1));
+		task5.setPriority(PriorityEnum.HIGH.ordinal());
+		task5 = createTask(task5);		
+		try{Thread.sleep(50);}catch(Exception e){}
+		Profile profile2 = createProfile();
+		Task task9 = createTask(profile2);
+		
+		List<Task> tasks = taskDao.getDatelessOverdueTasksForMember(profile1.getEmail(), 10, 0);
+		Assert.assertTrue(tasks.contains(task1));
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertTrue(tasks.contains(task5));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task9));
+		
+		tasks = taskDao.getDatelessOverdueTasksForMember(profile1.getEmail(), 10, 2);
+		Assert.assertEquals(1, tasks.size());
+		
+		Assert.assertTrue(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task9));
+		Assert.assertFalse(tasks.contains(task5));
+		Assert.assertFalse(tasks.contains(task2));
+		
+		tasks = taskDao.getDatelessOverdueTasksForMember(profile1.getEmail(), 10, 1);
+		Assert.assertEquals(2, tasks.size());
+		
+		Assert.assertTrue(tasks.contains(task1));
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task9));
+		Assert.assertFalse(tasks.contains(task5));
+	
+		
+		
+		
+	}
+	
+	@Test
+	public void getCompletedCanceledTasksForMember()
+	{	
+		Profile profile1 = createProfile();
+		Task task1 = createTask(profile1);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task2 = createTask(profile1);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task3 = task(profile1);
+		task3.setEndTime(new DateTime().plusMinutes(22));
+		task3.setProgress(ProgressEnum.DELETE.ordinal());
+		task3.setPriority(PriorityEnum.LOW.ordinal());
+		task3 = createTask(task3);
+		
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task4 = task(profile1);
+		task4.setProgress(ProgressEnum.DONE.ordinal());
+		task4 = createTask(task4);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Task task5 = task(profile1);
+		task5.setEndTime(new DateTime().minusDays(1));
+		task5 = createTask(task5);
+		try{Thread.sleep(50);}catch(Exception e){}
+		Profile profile2 = createProfile();
+		Task task9 = createTask(profile2);
+		
+		List<Task> tasks = taskDao.getCompletedCanceledTasksForMember(profile1.getEmail(), 10, 0);
+		Assert.assertTrue(tasks.contains(task3));
+		Assert.assertTrue(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task2));
+		Assert.assertFalse(tasks.contains(task9));
+		Assert.assertFalse(tasks.contains(task5));
+		
+		tasks = taskDao.getCompletedCanceledTasksForMember(profile1.getEmail(), 1, 0);
+		Assert.assertTrue(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(task2));
+		Assert.assertFalse(tasks.contains(task9));
+		Assert.assertFalse(tasks.contains(task5));
+		
+//		tasks = taskDao.getCompletedCanceledTasksForMember(profile1.getEmail(), 1, 1);
+//		Assert.assertTrue(tasks.isEmpty());
+		
+	}
+	
+	
+	@Test
+	@Transactional
+	public void getTimelessTasksEnding()
+	{
+		Profile profile = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile);
+		task1.setEndTime(new DateTime());
+		task1.setTimeLessTask(true);
+		task1 = createTask(task1);
+		
+		Task task2 = RMTestModelBuilder.task(profile);
+		task2.setEndTime(new DateTime().plusDays(1));
+		task2.setTimeLessTask(true);
+		task2 = createTask(task2);
+		
+		Task task3 = RMTestModelBuilder.task(profile);
+		task3.setEndTime(new DateTime().plusDays(2));
+		task3.setTimeLessTask(true);
+		task3 = createTask(task3);
+		
+		Task unTimelessTask = RMTestModelBuilder.task(profile);
+		unTimelessTask.setEndTime(new DateTime().plusDays(1).plusMinutes(2).plusHours(1));
+		unTimelessTask = createTask(unTimelessTask);
+		
+		Task task4 = RMTestModelBuilder.task(profile);
+		task4.setEndTime(new DateTime().plusDays(1).plusMinutes(22));
+		task4.setTimeLessTask(true);
+		task4 = createTask(task4);
+		
+		List<Task> tasks = taskDao.getTimelessTasksEnding();
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertTrue(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(unTimelessTask));
+	}
+	
+	@Test
+	@Transactional
+	public void getTimelessTasksEndingNightly()
+	{
+		Profile profile = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile);
+		task1.setEndTime(new DateTime());
+		task1.setTimeLessTask(true);
+		task1 = createTask(task1);
+		
+		Task task2 = RMTestModelBuilder.task(profile);
+		task2.setEndTime(new DateTime().plusDays(1));
+		task2.setTimeLessTask(true);
+		task2 = createTask(task2);
+		
+		Task task3 = RMTestModelBuilder.task(profile);
+		task3.setEndTime(new DateTime().plusDays(2));
+		task3.setTimeLessTask(true);
+		task3 = createTask(task3);
+		
+		Task unTimelessTask = RMTestModelBuilder.task(profile);
+		unTimelessTask.setEndTime(new DateTime().plusDays(1).plusMinutes(2).plusHours(1));
+		unTimelessTask = createTask(unTimelessTask);
+		
+		Task task4 = RMTestModelBuilder.task(profile);
+		task4.setEndTime(new DateTime().plusDays(1).plusMinutes(22).plusHours(2));
+		task4.setTimeLessTask(true);
+		task4.setProgress(ProgressEnum.DONE.ordinal());
+		task4 = createTask(task4);
+		
+		List<Task> tasks = taskDao.getTimelessTasksEndingNotCompleted();
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertFalse(tasks.contains(task4));
+		Assert.assertFalse(tasks.contains(task1));
+		Assert.assertFalse(tasks.contains(task3));
+		Assert.assertFalse(tasks.contains(unTimelessTask));
+	}
+	
+	@Test
+	@Transactional
+	public void getTaskWho()
+	{
+		Profile profile = createProfile();
+		Profile sharee1 = createProfile("sharee1@reminded.me");
+		Profile sharee2 = createProfile("sharee2@reminded.me");
+		Task task = createTask(profile);
+		
+		Share share = createShare(task, sharee1);
+		Share share2 = createShare(task, sharee2);
+		
+		List<String> names = taskDao.getTaskWho(task);
+		
+		Assert.assertTrue(names.contains(sharee1.getId()));
+		Assert.assertTrue(names.contains(sharee2.getId()));
+		
+	}
+	
+	
+	@Test
+	@Transactional
+	public void getNextTaskByRepeatSetup()
+	{
+		Profile profile = createProfile();
+		Task task = createTask(profile);
+		
+		RepeatSetup repeatSetup = new RepeatSetup();
+		repeatSetup.generateGUIDKey();
+		repeatSetup.setRepeatOccurance(RepeatOccurance.day.name());
+		repeatSetup.setRepeatPeriod(1);
+		repeatSetup.setMonthlyrule("monthday");
+		repeatSetup.setClonedTask(new TaskTemplate(task.getId()));
+		repeatSetup.setMember(profile.getMember());
+		
+		try
+		{
+			taskService.createRepeatSetupTX(repeatSetup);
+			
+			task.setRepeatSetup(repeatSetup);
+			taskService.updateTaskTX(task, profile.getEmail());
+			
+			Task taskUnderTest = taskDao.getNextTaskByRepeatSetup(repeatSetup);
+			Assert.assertEquals(task, taskUnderTest);
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	
+	@Test
+	@Transactional
+	public void getTaskIDForCalendar()
+	{
+		Profile profile2 = createProfile();
+		Task task2 = createTask(profile2);
+		Task task3 = createTask(profile2);
+		
+		Calendar calendar = new Calendar();
+		calendar.setCalendarName("Stuff to do");
+		calendar.setMember(profile2.getMember());
+		dao.save(calendar);
+		
+		task2.addCalendar(calendar);
+		dao.updateObject(task2);
+		
+		task3.addCalendar(calendar);
+		dao.updateObject(task3);
+		
+		List<String> tasks = taskDao.getTaskIdsForCalendar(calendar);
+		Assert.assertTrue(tasks.contains(task2.getId()));
+		Assert.assertTrue(tasks.contains(task3.getId()));
+	}
+	
+	@Test
+	@Transactional
+	public void getTaskForCalendar()
+	{
+		Profile profile2 = createProfile();
+		Task task2 = createTask(profile2);
+		Task task3 = createTask(profile2);
+		
+		Calendar calendar = new Calendar();
+		calendar.setCalendarName("Stuff to do");
+		calendar.setMember(profile2.getMember());
+		dao.save(calendar);
+		
+		task2.addCalendar(calendar);
+		dao.updateObject(task2);
+		
+		task3.addCalendar(calendar);
+		dao.updateObject(task3);
+		
+		List<Task> tasks = taskDao.getTaskForCalendar(calendar);
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertTrue(tasks.contains(task3));
+	}
+	
+	@Test
+	@Transactional
+	public void getTaskByIds()
+	{
+		Profile profile1 = createProfile();
+		Task task1 = createTask(profile1);
+		Task task2 = createTask(profile1);
+		Task task3 = createTask(profile1);
+		Task task4 = createTask(profile1);
+		Task task5 = createTask(profile1);
+		Task task6 = createTask(profile1);
+		Task task7 = createTask(profile1);
+		Task task8 = createTask(profile1);
+		Task task9 = createTask(profile1);
+		
+		
+		List<String> ids = new ArrayList<String>();
+		ids.add(task1.getId());
+		ids.add(task2.getId());
+		ids.add(task3.getId());
+		ids.add(task4.getId());
+		ids.add(task5.getId());
+		ids.add(task6.getId());
+		ids.add(task7.getId());
+		ids.add(task8.getId());
+		ids.add(task9.getId());
+		
+		List<Task> tasks = taskDao.getTaskByIds(ids);
+		Assert.assertTrue(tasks.contains(task1));
+		Assert.assertTrue(tasks.contains(task2));
+		Assert.assertTrue(tasks.contains(task3));
+		Assert.assertTrue(tasks.contains(task4));
+		Assert.assertTrue(tasks.contains(task5));
+		Assert.assertTrue(tasks.contains(task6));
+		Assert.assertTrue(tasks.contains(task7));
+		Assert.assertTrue(tasks.contains(task8));
+		Assert.assertTrue(tasks.contains(task9));
+		
+	}
+	
+	@Test
+	@Transactional
+	public void getTaskById()
+	{
+		Profile profile1 = createProfile();
+		Task task1 = createTask(profile1);
+		Task task2 = createTask(profile1);
+		Task task3 = createTask(profile1);
+		Task task4 = createTask(profile1);
+		Task task5 = createTask(profile1);
+		Task task6 = createTask(profile1);
+		Task task7 = createTask(profile1);
+		Task task8 = createTask(profile1);
+		Task task9 = createTask(profile1);
+		
+		Assert.assertEquals(task1, taskDao.getTaskById(task1.getId()));
+		Assert.assertEquals(task2, taskDao.getTaskById(task2.getId()));
+		Assert.assertEquals(task3, taskDao.getTaskById(task3.getId()));
+		Assert.assertEquals(task4, taskDao.getTaskById(task4.getId()));
+		Assert.assertEquals(task5, taskDao.getTaskById(task5.getId()));
+		Assert.assertEquals(task6, taskDao.getTaskById(task6.getId()));
+		Assert.assertEquals(task7, taskDao.getTaskById(task7.getId()));
+		Assert.assertEquals(task8, taskDao.getTaskById(task8.getId()));
+		Assert.assertEquals(task9, taskDao.getTaskById(task9.getId()));
+	}
+	
+	
+
+	
+	@Test
+	@Transactional
+	public void testGetGenericCalendars()
+	{
+		Profile profile1 = createProfile();
+		Member memeber1 = profile1.getMember();
+		
+		Calendar userCreatedCalendar = buildCalendar(true, "userCreatedCalendar", memeber1);
+		List<Calendar> genericCalendars = taskDao.getGenericCalendars();
+		
+		assertTrue(genericCalendars.contains(calendarDefaultPublic));
+		assertFalse(genericCalendars.contains(userCreatedCalendar));
+//		assertFalse(genericCalendars.contains(calendarUserCreated));
+	}
+
+	@Test
+	@Transactional
+	public void testGetUserDefinedCalendars()
+	{
+		Profile profile1 = createProfile();
+		Member memeber1 = profile1.getMember();
+		
+		Calendar calendarUserCreated = createCalendar(profile1);
+		
+		List<Calendar> userDefinedCalendars = taskDao.getUserDefinedCalendars(memeber1);
+		
+		assertTrue(userDefinedCalendars.contains(calendarUserCreated));
+	}
+	
+	@Test
+	@Transactional
+	public void testGetGenericCategories()
+	{
+		Profile profile1 = createProfile();
+		Member memeber1 = profile1.getMember();
+		
+		Category categoryUserCreatedPublic = buildSampleCategory(true, false, memeber1);
+		Category categoryUserCreatedPrivate = buildSampleCategory(true, true, memeber1);
+		
+		List<Category> genericCategories = taskDao.getGenericCategories();
+		assertTrue(genericCategories.contains(categoryDefaultPersonal));
+		assertTrue(genericCategories.contains(categoryDefaultWork));
+		assertTrue(!genericCategories.contains(categoryUserCreatedPrivate));
+		assertTrue(!genericCategories.contains(categoryUserCreatedPublic));
+	}
+	
+	@Test
+	@Transactional
+	public void testGetUserDefinedCategories()
+	{
+		Profile profile1 = createProfile();
+		Member memeber1 = profile1.getMember();
+		Profile profile2 = createProfile();
+		Member member2 = profile2.getMember();
+		
+		Category categoryUserCreatedPublic = buildSampleCategory(true, false, memeber1);
+		Category categoryUserCreatedPrivate = buildSampleCategory(true, true, memeber1);
+		
+		dao.save(categoryUserCreatedPrivate);
+		dao.save(categoryUserCreatedPublic);
+		
+		List<Category> userDefinedCategories = taskDao.getUserDefinedCategories(memeber1);
+		
+		assertTrue(userDefinedCategories.contains(categoryUserCreatedPrivate));
+		assertTrue(userDefinedCategories.contains(categoryUserCreatedPublic));
+		
+		userDefinedCategories = taskDao.getUserDefinedCategories(member2);
+		
+		assertTrue(userDefinedCategories.isEmpty());
+	}
+	
+	@Test
+	@Transactional
+	public void testGetTasksForMember()
+	{	
+		Profile profile1 = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile1);
+		task1.setStartTime(new DateTime());
+		task1.setEndTime((new DateTime()).plusMonths(1));
+		task1.setPriority(PriorityEnum.MEDIUM.ordinal());
+		task1 = createTask(task1);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task2 = RMTestModelBuilder.task(profile1);
+		task2.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task2.setStartTime((new DateTime()).plusDays(1));
+		task2.setEndTime( (new DateTime()).plusDays(2));
+		task2.setPriority(PriorityEnum.HIGH.ordinal());
+		task2 = createTask(task2);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task3 = RMTestModelBuilder.task(profile1);
+		task3.setProgress(ProgressEnum.DELETE.ordinal());
+		task3.setStartTime((new DateTime()).plusDays(2));
+		task3.setEndTime((new DateTime()).plusDays(3));
+		task3.setPriority(PriorityEnum.HIGH.ordinal());
+		task3 = createTask(task3);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task4 = RMTestModelBuilder.task(profile1);
+		task4.setProgress(ProgressEnum.ALMOST_THERE.ordinal());
+		task4.setStartTime((new DateTime()).plusDays(3));
+		task4.setEndTime((new DateTime()).plusDays(5));
+		task4.setPriority(PriorityEnum.LOW.ordinal());
+		task4 = createTask(task4);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task5 = RMTestModelBuilder.task(profile1);
+		task5.setStartTime((new DateTime()).plusDays(4));
+		task5.setPriority(PriorityEnum.HIGH.ordinal());
+		task5 = createTask(task5);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task6 = RMTestModelBuilder.task(profile1);
+		task6.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task6.setPriority(PriorityEnum.HIGH.ordinal());
+		task6 = createTask(task6);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task7 = RMTestModelBuilder.task(profile1);
+		task7.setProgress(ProgressEnum.DONE.ordinal());
+		task7.setStartTime((new DateTime()).plusMinutes(5));
+		task7.setEndTime((new DateTime()).plusHours(1));
+		task7.setPriority(PriorityEnum.LOW.ordinal());
+		task7 = createTask(task7);
+		
+		List<Task> tasks = taskDao.getTasksForMember(profile1);
+		
+		Assert.assertEquals(task7, tasks.get(0));
+		Assert.assertEquals(task6, tasks.get(1));
+		Assert.assertEquals(task5, tasks.get(2));
+		Assert.assertEquals(task4, tasks.get(3));
+		Assert.assertEquals(task2, tasks.get(4));
+		Assert.assertEquals(task1, tasks.get(5));
+	}
+	
+	
+	@Test
+	public void testGetTasksForMemberOrderByStartDate()
+	{	
+		Profile profile1 = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile1);
+		task1.setStartTime(new DateTime());
+		task1.setEndTime((new DateTime()).plusMonths(1));
+		task1.setPriority(PriorityEnum.MEDIUM.ordinal());
+		task1 = createTask(task1);
+		
+		Task task2 = RMTestModelBuilder.task(profile1);
+		task2.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task2.setStartTime((new DateTime()).plusDays(1));
+		task2.setEndTime( (new DateTime()).plusDays(2));
+		task2.setPriority(PriorityEnum.HIGH.ordinal());
+		task2 = createTask(task2);
+		
+		Task task3 = RMTestModelBuilder.task(profile1);
+		task3.setProgress(ProgressEnum.DELETE.ordinal());
+		task3.setStartTime((new DateTime()).plusDays(2));
+		task3.setEndTime((new DateTime()).plusDays(3));
+		task3.setPriority(PriorityEnum.HIGH.ordinal());
+		task3 = createTask(task3);
+		
+		Task task4 = RMTestModelBuilder.task(profile1);
+		task4.setProgress(ProgressEnum.ALMOST_THERE.ordinal());
+		task4.setStartTime((new DateTime()).plusDays(3));
+		task4.setEndTime((new DateTime()).plusDays(5));
+		task4.setPriority(PriorityEnum.LOW.ordinal());
+		task4 = createTask(task4);
+		
+		Task task5 = RMTestModelBuilder.task(profile1);
+		task5.setStartTime((new DateTime()).plusDays(4));
+		task5.setPriority(PriorityEnum.HIGH.ordinal());
+		task5 = createTask(task5);
+		
+		Task task6 = RMTestModelBuilder.task(profile1);
+		task6.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task6.setPriority(PriorityEnum.HIGH.ordinal());
+		task6 = createTask(task6);
+		
+		Task task7 = RMTestModelBuilder.task(profile1);
+		task7.setProgress(ProgressEnum.DONE.ordinal());
+		task7.setStartTime((new DateTime()).plusMinutes(5));
+		task7.setEndTime((new DateTime()).plusHours(1));
+		task7.setPriority(PriorityEnum.LOW.ordinal());
+		task7 = createTask(task7);
+		
+		List<Task> tasks = taskDao.getTasksForMemberOrderByStartDate(profile1);
+		
+		Assert.assertEquals(task6, tasks.get(0));
+		Assert.assertEquals(task1, tasks.get(1));
+		Assert.assertEquals(task7, tasks.get(2));
+		Assert.assertEquals(task2, tasks.get(3));
+		Assert.assertEquals(task4, tasks.get(4));
+		Assert.assertEquals(task5, tasks.get(5));
+		
+	}
+	
+	@Test
+	public void testGetTasksForMemberOrderByDueDate()
+	{	
+		Profile profile1 = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile1);
+		task1.setStartTime(new DateTime());
+		task1.setEndTime((new DateTime()).plusMonths(1));
+		task1.setPriority(PriorityEnum.MEDIUM.ordinal());
+		task1 = createTask(task1);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+
+		Task task2 = RMTestModelBuilder.task(profile1);
+		task2.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task2.setStartTime((new DateTime()).plusDays(1));
+		task2.setEndTime( (new DateTime()).plusDays(2));
+		task2.setPriority(PriorityEnum.HIGH.ordinal());
+		task2 = createTask(task2);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task3 = RMTestModelBuilder.task(profile1);
+		task3.setProgress(ProgressEnum.DELETE.ordinal());
+		task3.setStartTime((new DateTime()).plusDays(2));
+		task3.setEndTime((new DateTime()).plusDays(3));
+		task3.setPriority(PriorityEnum.HIGH.ordinal());
+		task3 = createTask(task3);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task4 = RMTestModelBuilder.task(profile1);
+		task4.setProgress(ProgressEnum.ALMOST_THERE.ordinal());
+		task4.setStartTime((new DateTime()).plusDays(3));
+		task4.setEndTime((new DateTime()).plusDays(5));
+		task4.setPriority(PriorityEnum.LOW.ordinal());
+		task4 = createTask(task4);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task5 = RMTestModelBuilder.task(profile1);
+		task5.setStartTime((new DateTime()).plusDays(4));
+		task5.setPriority(PriorityEnum.HIGH.ordinal());
+		task5 = createTask(task5);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task6 = RMTestModelBuilder.task(profile1);
+		task6.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task6.setPriority(PriorityEnum.HIGH.ordinal());
+		task6 = createTask(task6);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task7 = RMTestModelBuilder.task(profile1);
+		task7.setProgress(ProgressEnum.DONE.ordinal());
+		task7.setStartTime((new DateTime()).plusMinutes(5));
+		task7.setEndTime((new DateTime()).plusHours(1));
+		task7.setPriority(PriorityEnum.LOW.ordinal());
+		task7 = createTask(task7);
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		List<Task> tasks = taskDao.getTasksForMemberOrderByDueDate(profile1);
+		
+		
+		Assert.assertEquals(task7, tasks.get(0));
+		Assert.assertEquals(task2, tasks.get(1));
+		Assert.assertEquals(task4, tasks.get(2));
+		Assert.assertEquals(task1, tasks.get(3));
+	
+		//null
+		Assert.assertEquals(task6, tasks.get(4));
+		Assert.assertEquals(task5, tasks.get(5));
+		
+	}
+	
+	@Test
+	public void testGetTasksForMemberOrderByPriority()
+	{	
+		Profile profile1 = createProfile();
+		Task task1 = RMTestModelBuilder.task(profile1);
+		task1.setStartTime(new DateTime());
+		task1.setEndTime((new DateTime()).plusMonths(1));
+		task1.setPriority(PriorityEnum.MEDIUM.ordinal());
+		task1 = createTask(task1);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task2 = RMTestModelBuilder.task(profile1);
+		task2.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task2.setStartTime((new DateTime()).plusDays(1));
+		task2.setEndTime( (new DateTime()).plusDays(2));
+		task2.setPriority(PriorityEnum.HIGH.ordinal());
+		task2 = createTask(task2);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task3 = RMTestModelBuilder.task(profile1);
+		task3.setProgress(ProgressEnum.DELETE.ordinal());
+		task3.setStartTime((new DateTime()).plusDays(2));
+		task3.setEndTime((new DateTime()).plusDays(3));
+		task3.setPriority(PriorityEnum.HIGH.ordinal());
+		task3 = createTask(task3);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task4 = RMTestModelBuilder.task(profile1);
+		task4.setProgress(ProgressEnum.ALMOST_THERE.ordinal());
+		task4.setStartTime((new DateTime()).plusDays(3));
+		task4.setEndTime((new DateTime()).plusDays(5));
+		task4.setPriority(PriorityEnum.LOW.ordinal());
+		task4 = createTask(task4);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task5 = RMTestModelBuilder.task(profile1);
+		task5.setStartTime((new DateTime()).plusDays(4));
+		task5.setPriority(PriorityEnum.HIGH.ordinal());
+		task5 = createTask(task5);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task6 = RMTestModelBuilder.task(profile1);
+		task6.setProgress(ProgressEnum.RUNNING_LATE.ordinal());
+		task6.setPriority(PriorityEnum.HIGH.ordinal());
+		task6 = createTask(task6);
+		
+		try{Thread.sleep(10);}catch (InterruptedException e) {}
+		
+		Task task7 = RMTestModelBuilder.task(profile1);
+		task7.setProgress(ProgressEnum.DONE.ordinal());
+		task7.setStartTime((new DateTime()).plusMinutes(5));
+		task7.setEndTime((new DateTime()).plusHours(1));
+		task7.setPriority(PriorityEnum.LOW.ordinal());
+		task7 = createTask(task7);
+		
+		List<Task> tasks = taskDao.getTasksForMemberOrderByPriority(profile1);
+		
+		//high
+		Assert.assertEquals(task6, tasks.get(0));
+		Assert.assertEquals(task5, tasks.get(1));
+		Assert.assertEquals(task2, tasks.get(2));
+		
+		//med
+		Assert.assertEquals(task1, tasks.get(3));
+		
+		//low
+		Assert.assertEquals(task7, tasks.get(4));
+		Assert.assertEquals(task4, tasks.get(5));
+		
+	}
+	
+	
+}

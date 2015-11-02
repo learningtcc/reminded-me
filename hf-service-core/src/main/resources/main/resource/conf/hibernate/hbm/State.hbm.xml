@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true" package="com.homefellas.model.location">
+	<class name="State" table="list_stateprovinces">
+		<cache usage="read-write"/>
+		<id name="id" column="id" type="long" unsaved-value="0">
+   <generator class="identity"/>
+  </id>
+		<property name="code" column="CODE" not-null="true" length="2">
+		</property>
+		<property name="name" column="NAME" not-null="true" length="50">
+		</property>
+		<property name="fips" column="FIPS" not-null="false" length="2" type="integer">
+		</property>
+		<property name="realState" type="boolean"/>
+		<many-to-one name="country" class="Country" column="countryId" lazy="false"/>
+		<property name="defaultZip" column="defaultZip" length="5" />
+		
+	</class>
+</hibernate-mapping>
+	

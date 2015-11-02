@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+
+	
+    <artifactId>hf-web-support</artifactId>
+    <parent>
+    	<groupId>com.homefellas</groupId>
+    	<artifactId>hf-web-build</artifactId>
+    	<version>1.1.0</version>
+    	<relativePath>../hf-web-build/pom.xml</relativePath>
+    </parent>
+    <dependencies>
+    	<dependency>
+    		<groupId>com.homefellas</groupId>
+    		<artifactId>hf-service-core</artifactId>
+    	</dependency>
+    	<dependency>
+    		<groupId>com.homefellas</groupId>
+    		<artifactId>hf-service-login</artifactId>
+    	</dependency>
+    	
+    </dependencies>
+</project>

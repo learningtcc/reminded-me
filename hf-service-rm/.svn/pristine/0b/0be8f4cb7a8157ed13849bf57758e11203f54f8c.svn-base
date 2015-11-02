@@ -1,0 +1,36 @@
+package com.homefellas.rm.share;
+
+import java.util.List;
+
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+
+public interface IShareServiceTX extends IShareService
+{
+
+	public void messageSharesTX(Invite invite) throws ValidationException;
+	public Invite updateInviteTX(Invite invite) throws ValidationException;
+	public Share updateShareTX(Share share) throws ValidationException;
+	public List<Share> getBulkSharesTX(String taskDelimiter);
+	public List<Invite> getBulkInvitesTX(String taskDelimiter);
+	public Share acceptPublicShareTX(String taskId, String memberId) throws ValidationException;
+	public Share getShareForUserAndTaskTX(Task task, Member user);
+	public List<Invite> getInvitesSharedWithEmailTX(String memberId);
+	public List<Invite> getSentInvitesForMemberTX(String memberId);
+	public void deleteShareTX(Share share);
+	public Share shareViewedTX(String shareId) throws ValidationException;
+	public Share acceptShareTX(String shareId) throws ValidationException;
+	public Share declineShareTX(String shareId);
+	public void shareTaskTX(Invite invite) throws ValidationException;
+	public Invite shareCalenderTX(Invite invite) throws ValidationException;
+	public Share getShareDirectLinkTX(String taskId, String email) throws ValidationException;
+	public List<Share> getSharesForTaskTX(Task task);
+	public List<Share> getSharesForUserTX(Member user);
+	public ShareCalendar acceptDeclineShareCaledarTX(String shareCalendarId, ShareApprovedStatus shareApprovedStatus, String loggedInEmail) throws ValidationException;
+	public ShareCalendar getShareCalendarByCalendarAndMemberTX(Calendar calendar, Member member);
+	public Calendar publishCalendarToStore(Calendar calendar, PushTypeEnum pushTypeEnum, String loggedInEmail) throws ValidationException;
+	public List<ShareCalendar> getBulkShareCalendarsTX(String taskDelimiter);
+}

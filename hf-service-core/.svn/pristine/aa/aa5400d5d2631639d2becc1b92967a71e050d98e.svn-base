@@ -1,0 +1,17 @@
+package com.homefellas.batch;
+
+import java.util.List;
+
+import org.joda.time.DateTime;
+
+public interface INotificationService
+{
+
+	public void cancelNotification(INotifiable notification);
+	public void scheduleNotification(Notification iNotification);
+	public void scheduleNotifications(List<? extends Notification> iNotifications);
+	public void sendDailyAppleDYKNotificaiton(String message, String iNotificaitonClassName);
+	public Notification getNotificationBySendToAndDateTime(String toEmail, DateTime dateTime);
+	public void cancelNotification(Notification notification);
+}
+

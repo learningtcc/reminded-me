@@ -1,0 +1,102 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ws-core</artifactId>
+    <packaging>war</packaging>
+    <name>hf-ws-core</name>
+	<parent>
+    	<groupId>com.homefellas</groupId>
+    	<artifactId>hf-ws-build</artifactId>
+    	<version>1.1.0</version>
+    	<relativePath>../hf-ws-build/pom.xml</relativePath>
+    </parent>
+    
+    <properties>
+        	<web-context>ws-core</web-context>
+        	<eclipse.dependency>true</eclipse.dependency>
+    </properties>
+    
+    <repositories>
+    	<repository>
+  			<id>spring-snapshost</id>
+  			<name>Spring Framework Maven Snapshot Repository</name>
+  			<url>http://maven.springframework.org/snapshot</url>
+		</repository>
+    </repositories>
+    
+    <dependencies>
+    	<dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-service-core</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-web-support</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-service-rm</artifactId>
+        </dependency>
+         <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-ws-support</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-ws-support</artifactId>
+        	<scope>test</scope>
+        	<classifier>tests</classifier>
+        </dependency>
+         <dependency>
+    		<groupId>com.homefellas</groupId>
+    		<artifactId>hf-service-core</artifactId>
+    		<classifier>tests</classifier>
+    		<scope>test</scope>
+    	</dependency>
+         
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-login</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-login</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>   
+  
+  	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<configuration>
+					<container>
+						<containerId>tomcat6x</containerId>
+						<home>${tomcat.home}</home>
+					</container>
+					<configuration>
+						<home>${tomcat.webapps.home}</home>
+						<type>standalone</type>
+						<deployables>
+							<deployable>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<type>war</type>
+								<properties>
+									<context>${web-context}</context>
+								</properties>
+							</deployable>
+						</deployables>
+						<properties>
+							<cargo.tomcat.webappsDirectory>${tomcat.webappsDirectory}</cargo.tomcat.webappsDirectory>
+						</properties>
+					</configuration>
+				</configuration>
+			</plugin>
+			
+		</plugins>
+	</build>   
+</project>

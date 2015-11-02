@@ -1,0 +1,13 @@
+package com.homefellas.batch;
+
+import java.util.List;
+
+public interface INotificationServiceTX extends INotificationService
+{
+
+	public List<Notification> getNotificationsForINotificationTX(INotifiable inotifiable);
+	public List<Notification> getNotificationsForINotificationAndToEmailTX(INotifiable inotifiable, String toEmail);
+	public Notification getNotificationToBeSentTX(long pollTime);
+	public List<Notification> getNotificationsToBeSentTX(long pollTime, int maxResults);
+	public List<Notification> getNotificationsToEmailTX(String toEmail);
+}

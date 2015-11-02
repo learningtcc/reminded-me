@@ -1,0 +1,1209 @@
+package com.homefellas.rm.task;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.validator.routines.CalendarValidator;
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.batch.INotificationService;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.metrics.CollectTimeMetrics;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.notification.EmailService.TaskStatusChangeEvent;
+import com.homefellas.rm.notification.IEmailService;
+import com.homefellas.rm.reminder.IReminderValidator;
+import com.homefellas.rm.reminder.ReminderValidator;
+import com.homefellas.rm.share.IShareService;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.ShareApprovedStatus;
+import com.homefellas.rm.task.AbstractTask.ProgressEnum;
+import com.homefellas.rm.task.RepeatSetup.RepeatSetupStatus;
+import com.homefellas.service.core.AbstractService;
+import com.homefellas.user.IUserService;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+import com.homefellas.user.UserValidationCodeEnum;
+
+public class TaskService extends AbstractService implements ITaskServiceTX {
+
+	
+//	@Autowired
+	private ITaskDao taskDao;
+	
+//	@Autowired
+	private ITaskValidator taskValidator;
+	
+//	@Autowired
+	private IReminderValidator reminderValidator;
+				
+	private INotificationService notificationService;
+	
+	
+	private IShareService shareService;
+	
+	@Autowired
+	private IUserService userService;
+	
+	
+	private IEmailService emailService;
+	
+	public void setNotificationService(INotificationService notificationService)
+	{
+		this.notificationService = notificationService;
+	}
+
+	public void setEmailService(IEmailService emailService)
+	{
+		this.emailService = emailService;
+	}
+
+	public void setShareService(IShareService shareService)
+	{
+		this.shareService = shareService;
+	}
+
+
+	
+	public void setTaskDao(ITaskDao taskDao)
+	{
+		this.taskDao = taskDao;
+	}
+
+	public List<Task> getTimelessTasksEnding()
+	{
+		return taskDao.getTimelessTasksEnding();
+	}
+	
+	/**
+	 * @param reminderValidator the reminderValidator to set
+	 */
+	@Deprecated
+	public void setReminderValidator(IReminderValidator reminderValidator)
+	{
+		this.reminderValidator = reminderValidator;
+	}
+
+
+	@Deprecated
+	public void setTaskValidator(ITaskValidator taskValidator) {
+		this.taskValidator = taskValidator;
+	}
+
+	
+	/************************************************
+	 * *          Start Business Methods
+	 * ***********************************************
+	 */
+//	public List<String> synchronizeTasks(String loggedInMemberEmail, String deviceId, DateTime startDateTime, DateTime endDateTime, ) throws ValidationException
+//	{
+//		if (loggedInMemberEmail == null || "".equals(loggedInMemberEmail.trim()))
+//			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+//		
+//		if (deviceId == null)
+//			deviceId = "INITIAL_SYNC";
+//		
+//		Profile profile = userService.getProfileByEmail(loggedInMemberEmail);
+//		if (profile == null)
+//			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+//		
+//		String memberId = profile.getId();
+//		
+//		if (startDateTime == null && endDateTime == null)
+//		{
+//			//call sync w/o dates
+//		}
+//		else if (startDateTime!=null && endDateTime == null)
+//		{
+//			//call sync if modified date
+//		}
+//		else if (startDateTime==null && endDateTime != null)
+//		{
+//			//call sync if modified date
+//		}
+//		else
+//		{
+//			//call sync with timerange
+//		}
+//	}
+//	
+//	public List<String> synchronizeCompletedTasks(String loggedInMemberEmail, String deviceId, DateTime startDateTime, DateTime endDateTime) throws ValidationException
+//	{
+//		if (loggedInMemberEmail == null || "".equals(loggedInMemberEmail.trim()))
+//			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+//		
+//		
+//	}
+//	
+//	public List<String> synchronizeCanceledTasks(String loggedInMemberEmail, String deviceId, DateTime startDateTime, DateTime endDateTime) throws ValidationException
+//	{
+//		if (loggedInMemberEmail == null || "".equals(loggedInMemberEmail.trim()))
+//			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+//		
+//		
+//	}
+	
+//	@Transactional 
+//	@CollectTimeMetrics
+//	public List<Task> getUpcomingTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException
+//	{
+//		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+//			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+//	}
+	
+	@Transactional 
+	@CollectTimeMetrics
+	public List<Task> getUpcomingTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException
+	{
+		return taskDao.getUpcomingTasks(loggedInUserEmail, chunkSize, startIndex);
+	}
+	
+	@Transactional 
+	@CollectTimeMetrics
+	public List<Task> getDatelessOverdueTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		return taskDao.getDatelessOverdueTasksForMember(loggedInUserEmail, chunkSize, startIndex);
+	}
+	
+	
+	@Transactional 
+	@CollectTimeMetrics
+	public List<Task> getCompletedCanceledTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		return taskDao.getCompletedCanceledTasksForMember(loggedInUserEmail, chunkSize, startIndex);
+	}
+	
+	
+	@Transactional 
+	@CollectTimeMetrics
+	public List<Task> getTodayTasksTX(long startRange, long endRange, String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		DateTime startRangeDateTime;
+		DateTime endRangeDateTime;
+		final DateTime now = new DateTime();
+		
+		if (startRange == 0 && endRange == 0)
+		{
+			//we should use today.
+			startRangeDateTime = new DateTime(DateMidnight.now().getMillis());
+			endRangeDateTime = new DateTime(DateMidnight.now().getMillis()).plusDays(1).minus(1);
+		}
+		else if (startRange > 0 && endRange == 0)
+		{
+			//check to see if start is before now
+			if (startRange > now.getMillis())
+				throw new ValidationException(ValidationCodeEnum.INVALID_DATE_RANGE);
+			
+			//from start to today
+			startRangeDateTime = new DateTime(startRange);
+			endRangeDateTime = new DateTime(DateMidnight.now().getMillis()).plusDays(1).minus(1);
+		}
+		else if (startRange == 0 && endRange > 0)
+		{
+			//check to see that end is after now
+			if (endRange < now.getMillis())
+				throw new ValidationException(ValidationCodeEnum.INVALID_DATE_RANGE);
+			
+			//from today to end
+			startRangeDateTime = new DateTime(DateMidnight.now().getMillis());
+			endRangeDateTime = new DateTime(endRange);
+		}
+		else
+		{
+			if (endRange < startRange)
+				throw new ValidationException(ValidationCodeEnum.INVALID_DATE_RANGE);
+			startRangeDateTime = new DateTime(startRange);
+			endRangeDateTime = new DateTime(endRange);
+		}
+		
+		return taskDao.getTodayTasksForMember(startRangeDateTime, endRangeDateTime, loggedInUserEmail, chunkSize, startIndex);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<CalendarStoreCategory> getCalendarStoreCategoriesTX()
+	{
+		return dao.loadAllObjects(CalendarStoreCategory.class);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<CalendarStoreUserDefinedCategory> getCalendarStoreUserDefiedCategoriesTX(String calendarStoreSubCategoryId, String email)
+	{
+		List<CalendarStoreUserDefinedCategory> categories = taskDao.getCalendarStoreUserDefinedCategory(calendarStoreSubCategoryId);
+		categories.addAll(taskDao.getCalendarStoreUserDefinedCategory(calendarStoreSubCategoryId, email)); 
+		
+		return categories;
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public CalendarStoreUserDefinedCategory createCalendarStoreUserDefinedCategoryTX(CalendarStoreUserDefinedCategory calendarStoreUserDefinedCategory) throws ValidationException
+	{
+		if (calendarStoreUserDefinedCategory.getCalendarStoreSubCategory() == null)
+			throw new ValidationException(ValidationCodeEnum.CALENDAR_STORE_USER_DEFINED_CATEGORY_IS_NULL);
+		
+		if (calendarStoreUserDefinedCategory.getCategoryName() == null || "".equals(calendarStoreUserDefinedCategory.getCategoryName()))
+			throw new ValidationException(ValidationCodeEnum.CALENDAR_STORE_CATEGORY_NAME_IS_NULL);
+		
+		if (calendarStoreUserDefinedCategory.getMember()==null||calendarStoreUserDefinedCategory.getMember().getId()==null)
+			throw new ValidationException(ValidationCodeEnum.MEMBER_ID_IS_NULL);
+		
+		taskValidator.validatePrimaryKeyIsSet(calendarStoreUserDefinedCategory);
+		
+		dao.save(calendarStoreUserDefinedCategory);
+		
+		return calendarStoreUserDefinedCategory;
+	}
+	
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Calendar updateCalendarTX(Calendar calendar, String email) throws ValidationException
+	{
+		return updateCalendar(calendar, email);
+	}
+	
+	public Calendar updateCalendar(Calendar calendar, String email) throws ValidationException
+	{
+		final Calendar calendarFromDB = getCalendarById(calendar.getId());
+		
+		if (calendarFromDB == null)
+			throw new ValidationException(ValidationCodeEnum.CALENDAR_NOT_FOUND);
+
+		if (email==null||!calendarFromDB.getMember().getEmail().equals(email))
+			throw new ValidationException(ValidationCodeEnum.MEMBER_DOES_NOT_HAVE_AUTHORIZATION);
+		
+		//check to see if the modified date from the db is before the one being passed
+		taskValidator.validateSynchronizationUpdate(calendar, calendarFromDB);
+		calendar.setModifiedDateZone(new DateTime());
+		
+		dao.merge(calendar);
+		
+		return calendar;
+	}
+	
+	public List<Task> getTimelessTasksEndingNotCompleted()
+	{ 
+		return taskDao.getTimelessTasksEndingNotCompleted();
+	}
+	
+	public List<Task> getTaskChildren(String taskId)
+	{
+		return taskDao.getTaskChildren(taskId);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<Task> getTasksByStatusAndMemberIdTX(String memberId, int status)
+	{
+		return taskDao.getTasksByStatusAndMemberId(memberId, status);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public TaskTemplate getTaskTemplateByTaskId(String taskId)
+	{
+		return taskDao.getTaskTemplateByTaskId(taskId);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<TaskRepeat> getTaskRepeatsForTaskTX(Task task)
+	{
+		return taskDao.getTaskRepeatsForTask(task);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public RepeatSetup createRepeatSetupTX(RepeatSetup repeatSetup) throws ValidationException
+	{
+		return createRepeatSetup(repeatSetup);
+	}
+	
+	public RepeatSetup createRepeatSetup(RepeatSetup repeatSetup) throws ValidationException
+	{
+		//check to make sure required fields are set
+		taskValidator.validateRepeatSetup(repeatSetup);
+		
+		//need to load the task
+		Task task = getTaskById(repeatSetup.getClonedTask().getId());
+		if (task == null)
+			throw new ValidationException(ValidationCodeEnum.CLONED_TASK_ID_IS_NULL_OR_NOT_FOUND);
+		
+		//now clone the task
+//		repeatSetup.setClondedTaskAsTask(task);
+		
+		TaskTemplate taskTemplate = new TaskTemplate(task);
+		dao.save(taskTemplate);
+		
+		repeatSetup.setClonedTask(taskTemplate);
+		
+		//now we can save the object
+		dao.save(repeatSetup);
+		
+		
+		//check to see if the task has the revese repeat setup attached.  This is done because of how the sync framework sends repeats
+		if (task.getRepeatSetup()==null || !task.getRepeatSetup().getId().equals(repeatSetup.getId()))
+		{
+			task.setRepeatSetup(repeatSetup);
+			dao.merge(task);
+		}
+				
+		return repeatSetup;
+		
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public RepeatSetup updateRepeatSetupTX(RepeatSetup repeatSetup, String profileId) throws ValidationException
+	{
+		//check to make sure required fields are set
+		taskValidator.validateRepeatSetup(repeatSetup);
+		
+		RepeatSetup repeatSetupFromDB = dao.loadByPrimaryKey(RepeatSetup.class, repeatSetup.getId());
+		if (repeatSetupFromDB == null)
+			return createRepeatSetup(repeatSetupFromDB);
+		
+		if (profileId==null || !repeatSetupFromDB.getMember().getEmail().equalsIgnoreCase(profileId))
+			return repeatSetup;
+		
+		taskValidator.validateSynchronizationUpdate(repeatSetup, repeatSetupFromDB);
+		repeatSetup.setModifiedDateZone(new DateTime());
+		
+		dao.merge(repeatSetup);
+		
+		return repeatSetup;
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public void deleteRepeatSetupTX(RepeatSetup repeatSetup, String email)
+	{
+		RepeatSetup repeatSetupFromDB = dao.loadByPrimaryKey(RepeatSetup.class, repeatSetup.getId());
+		if (repeatSetupFromDB==null || !repeatSetupFromDB.getMember().getEmail().equals(email))
+			return;
+		
+		repeatSetupFromDB.setRepeatSetupStatusOrdinal(RepeatSetupStatus.DELETE.ordinal());
+		
+		dao.merge(repeatSetupFromDB);	
+	}
+	
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public List<RepeatSetup> getBulkRepeatSetupTX(String taskDelimiter, String email)
+	{
+		return taskDao.getBulkRepeatSetup(tokenize(taskDelimiter), email);
+	}
+	
+	public void deleteCalendar()
+	{
+		
+	}
+	
+	
+	
+	public List<Task> getTaskForCalendar(Calendar calendar)
+	{
+		return taskDao.getTaskForCalendar(calendar);
+	}
+	
+	public List<String> getTaskIdsForCalendar(Calendar calendar)
+	{
+		return taskDao.getTaskIdsForCalendar(calendar);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<Task> getBulkTasksTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		
+		
+		List<Task> list = new ArrayList<Task>(11);
+		list = taskDao.getTaskByIds(tokenize(taskDelimiter));
+		
+		List<Task> unauthorizedTasks = new ArrayList<Task>();
+		//now we need to loop through the tasks and mark the ones that as shared with the status
+		for (Task task : list)
+		{
+//			task.getTaskCreator().clearAttributes();
+			
+			//check to see if the task has been shared.  This is set for performance
+			if  (task.isHasBeenShared())
+			{
+				//it has been, so we need to check to see if it is a share or not
+				if (task.getTaskCreator().getMember().getEmail().equalsIgnoreCase(loggedInUserEmail))
+				{
+					//task belongs to the owner...so this means it was shared with someone else
+					task.setShareStatus(ShareApprovedStatus.SHARED_TASK.ordinal());
+					
+					List<String> profileIds = taskDao.getTaskWho(task);
+					StringBuilder builder = new StringBuilder();
+					for (String id:profileIds)
+					{
+						Profile profile = userService.loadProfileById(id);
+						if (profile==null||profile.getName()==null||profile.getName().equals(""))
+							continue;
+						
+						builder.append(profile.getName());
+						builder.append(",");
+					}
+					
+					task.setWho(builder.toString());
+				}
+				else
+				{
+					//it doesn't match so it must be a share.  Grab the share.
+					Share share = shareService.getShareForTaskAndEmail(task, loggedInUserEmail);
+					if (share==null)
+					{
+						//the task isn't owned by user and the task isn't shared with user, so don't return it
+						unauthorizedTasks.add(task);
+					}
+					else
+					{
+						task.setShareStatus(share.getShareApprovedStatusOrdinal());
+					}
+				}
+			}
+			else
+			{
+				//task has not been subtasked so the task must be the owner in order for it to be returned.
+				if (!task.getTaskCreator().getMember().getEmail().equalsIgnoreCase(loggedInUserEmail))
+				{
+					//we are going to do an extra check to make sure that the record should be marked as shared.
+					//it doesn't match so it must be a share.  Grab the share.
+					Share share = shareService.getShareForTaskAndEmail(task, loggedInUserEmail);
+					if (share==null)
+					{
+						//the task isn't owned by user and the task isn't shared with user, so don't return it
+						unauthorizedTasks.add(task);
+					}
+					else
+					{
+						task.setShareStatus(share.getShareApprovedStatusOrdinal());
+						
+						//also lets update the task so that it is marked as shared for future use
+						task.setHasBeenShared(true);
+						dao.updateObject(task);
+					}					
+				}
+			}
+		}
+		
+		//check to see if we need to remove any tasks
+		if (!unauthorizedTasks.isEmpty())
+		{
+			list.removeAll(unauthorizedTasks);
+		}
+		
+		return list;
+	}
+	
+	
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public List<Category> getBulkCategoryTX(String taskDelimiter)
+	{
+		return getBulk(Category.class, taskDelimiter);
+		
+	}
+	
+	
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public List<Calendar> getBulkCalendarTX(String taskDelimiter)
+	{
+		return getBulk(Calendar.class, taskDelimiter);
+	}
+	
+	/**
+	 * This will create or update a user defined Calendar.  It will validate the calendar.
+	 * @param calendar
+	 * @see Calendar
+	 * @see CalendarValidator
+	 */
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public void createUserDefinedCalendarTX(Calendar calendar)throws ValidationException
+	{
+		taskValidator.validateCalendar(calendar);
+		
+		Calendar calendFromDd = dao.loadByPrimaryKey(Calendar.class, calendar.getId());
+		if (calendFromDd != null)
+			dao.merge(calendar);
+		else
+			dao.save(calendar);
+
+	}
+	
+	/**
+	 * This will create or update a user defined Calendar.  It will validate the calendar.
+	 * @param calendar
+	 * @see Calendar
+	 * @see CalendarValidator
+	 */
+	@Override
+	
+	@Deprecated
+	public void updateUserDefinedCalendar(Calendar calendar) throws ValidationException
+	{
+		taskValidator.validateCalendar(calendar);
+		
+		
+		Calendar calendarFromDb = dao.loadByPrimaryKey(Calendar.class, calendar.getId());
+		taskValidator.validateSynchronizationUpdate(calendar, calendarFromDb);
+		calendar.setModifiedDateZone(new DateTime());
+		
+		dao.merge(calendar);
+		
+	}
+
+	/**
+	 * This method will call the reminderService to build the ReminderNotification for all the reminders in a task.  If the 
+	 * task is an update, then we need to rebuild the ReminderNotificatin from scratch.  If a task does not have a reminder
+	 * this method will return    
+	 * @param task
+	 * @see ReminderService
+	 */
+	
+	
+	
+	
+	/**
+	 * This method will create a task. 
+	 * @param task
+	 */
+	@Transactional
+	@CollectTimeMetrics
+	public void createTaskTX(Task task) throws ValidationException
+	{
+		prepareTask(task);
+		
+		//check to see if this should be an update instead of a create
+		Task taskFromDB = getTaskById(task.getId());
+		if (taskFromDB != null)
+		{
+			updateTask(taskFromDB, taskFromDB.getTaskCreator().getEmail());
+			return;
+		}
+		
+		if (task.getRepeatSetup()!=null && task.getRepeatSetup().getId()!=null)
+		{
+			RepeatSetup repeatSetup = dao.loadByPrimaryKey(RepeatSetup.class, task.getRepeatSetup().getId());
+			if (repeatSetup != null)
+			{
+				TaskTemplate taskTemplate = repeatSetup.getClonedTask();
+			
+			
+				taskTemplate.setTitle(task.getTitle());
+				taskTemplate.setTaskLocation(task.getTaskLocation());
+				dao.merge(taskTemplate);
+			}
+			else
+			{
+				task.setRepeatSetup(null);
+			}
+		}
+		
+		dao.save(task);
+		
+		//call the email service to add reminders and end date notifications
+		emailService.processNotificationsForTaskCreateOrUpdate(task, false);
+		
+		//we need to check to see if the task has any calendars that are shared
+		shareService.processSharesAddForSharedCalendars(task);
+		
+		//we need to process subtasks
+		shareService.updateSubTaskShareForTaskUpdate(task);
+	}
+	
+	
+	
+	
+	
+
+	/**
+	 * This method will prepare a task.  First it will validate the task to make sure no parameters were missed.  Next
+	 * it will go through and set all the call back references to bi-directional references.  It will also call the validators
+	 * on the sub children
+	 * @param task
+	 * @see TaskValidator
+	 * @see ReminderValidator
+	 * @throws ValidationException
+	 */
+	private void prepareTask(Task task) throws ValidationException
+	{
+		taskValidator.validateTask(task);
+		
+		if (task.getCalendars()!=null)
+		{
+			for (Calendar calendar:task.getCalendars())
+			{
+				taskValidator.validatePrimaryKeyIsSet(calendar);
+				
+				if (dao.loadByPrimaryKey(Calendar.class,calendar.getId())==null)
+					throw new ValidationException(ValidationCodeEnum.CALENDAR_NOT_FOUND);
+
+			}
+		}
+		
+		if (task.getCategories()!=null)
+		{
+			for (Category category:task.getCategories())
+			{
+				taskValidator.validatePrimaryKeyIsSet(category);
+				
+				if (dao.loadByPrimaryKey(Category.class,category.getId())==null)
+					throw new ValidationException(ValidationCodeEnum.CATEGORY_NOT_FOUND);
+				
+			}
+		}
+		
+	}
+	
+	
+	
+	/**
+	 * This will return all the generic Calendars.
+	 * @return public List<Calendar>
+	 */
+	@Override
+	
+	
+	public List<Calendar> getGenericCalendar()
+	{
+		return taskDao.getGenericCalendars();
+	}
+
+	/**
+	 * This will return all the calendars that were created by the passed in member.
+	 * @param member 
+	 * @return List<Calendar>
+	 */
+	@Override
+	
+	
+	public List<Calendar> getUserDefinedCalendars(Member member)
+	{
+		return taskDao.getUserDefinedCalendars(member);
+	}
+
+	/**
+	 * This will create a list of all the Calendars for a member.  This includes the generic plus the user defined ones.
+	 * @param member
+	 * @return Collection<Calendar>
+	 */ 
+	@Override
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public Collection<Calendar> getAllCalendarsForMemberTX(Member member)
+	{
+		List<Calendar> genericCalendars = getGenericCalendar();
+		List<Calendar> userDefinedCalendars = getUserDefinedCalendars(member);
+		Map<String, Calendar> map = new HashMap<String, Calendar>(genericCalendars.size()+userDefinedCalendars.size());
+		for (Calendar calendar:userDefinedCalendars)
+		{
+			map.put(calendar.getCalendarName(), calendar);
+		}
+		
+		for (Calendar calendar:genericCalendars)
+		{
+			if (map.get(calendar.getCalendarName())==null)
+				map.put(calendar.getCalendarName(), calendar);
+		}
+		
+		return map.values();
+	}
+
+	/**
+	 * This will create or update a category.  
+	 * @param category
+	 * @throws ValidationException
+	 */
+	@Transactional
+	@CollectTimeMetrics
+	public void createUserDefinedCategoryTX(Category category) throws ValidationException
+	{
+		taskValidator.validateCategory(category);
+		
+		Category categoryFromDb = dao.loadByPrimaryKey(Category.class, category.getId());
+		if (categoryFromDb != null)
+			dao.merge(category);
+		else
+			dao.save(category);
+		
+		dao.save(category);
+		
+	}
+	
+	/**
+	 * This will create or update a category.  
+	 * @param category
+	 * @throws ValidationException
+	 */
+	
+	
+	public void updateUserDefinedCategory(Category category) throws ValidationException
+	{
+		taskValidator.validateCategory(category);
+		
+		Category categoryFromDb = dao.loadByPrimaryKey(Category.class, category.getId());
+		taskValidator.validateSynchronizationUpdate(category, categoryFromDb);
+		category.setModifiedDateZone(new DateTime());
+		
+		dao.merge(category);
+		
+	}
+	
+	/**
+	 * This will get a list of all the generic categories
+	 * @return List<Category>
+	 */
+	
+	
+	public List<Category> getGenericCategories()
+	{
+		return taskDao.getGenericCategories();
+	}
+	
+	/**
+	 * This will get a list of all the categories that a member created.
+	 * @param member
+	 * @return List<Category>
+	 */
+	
+	
+	public List<Category> getUserDefinedCategories(Member member)
+	{
+		return taskDao.getUserDefinedCategories(member);
+	}
+	
+	/**
+	 * This will return a list of all the categories.  This includes the ones that were created and the generic ones.  
+	 * @param member
+	 * @return Collection<Category>
+	 */
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public Collection<Category> getAllCategoriesForMemberTX(Member member)
+	{
+		List<Category> genericCategories = getGenericCategories();
+		List<Category> userDefinedCategories = getUserDefinedCategories(member);
+		Map<String, Category> map = new HashMap<String, Category>(genericCategories.size()+userDefinedCategories.size());
+		for (Category category:userDefinedCategories)
+		{
+			map.put(category.getCategoryName(), category);
+		}
+		
+		for (Category category:genericCategories)
+		{
+			if (map.get(category.getCategoryName())==null)
+				map.put(category.getCategoryName(), category);
+		}
+		
+		return map.values();
+	}
+
+	/**
+	 * This will return all the tasks for a member.  
+	 * @param profile
+	 * @return List<Task>
+	 */
+	@Override
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	public List<Task> getTasksForMemberTX(Profile profile)
+	{
+		return getTasksForMember(profile);
+	}
+	
+	/**
+	 * This will return all the tasks for a member.  
+	 * @param profile
+	 * @return List<Task>
+	 */
+	public List<Task> getTasksForMember(Profile profile)
+	{
+		return taskDao.getTasksForMember(profile);
+	}
+
+	/**
+	 * This will return all the tasks for a member.  This also takes in a sort order.  The ordinal of the TaskOrderEnum is 
+	 * used to define which sort order to use. 
+	 * @param profile
+	 * @param taskOrder
+	 * @return List<Task>
+	 * @see TaskOrderEnum
+	 */
+	@Transactional(readOnly=true)
+	@CollectTimeMetrics
+	@Override	
+	public List<Task> getTasksForMemberTX(Profile profile, int taskOrder) throws ValidationException
+	{
+		if (taskOrder==TaskOrderEnum.CATEGORY.ordinal())
+			return taskDao.getTasksForMemberOrderByCategory(profile);
+		else if (taskOrder==TaskOrderEnum.DUE_DATE.ordinal())
+			return taskDao.getTasksForMemberOrderByDueDate(profile);
+		else if (taskOrder==TaskOrderEnum.PRIORITY.ordinal())
+			return taskDao.getTasksForMemberOrderByPriority(profile);
+		else if (taskOrder==TaskOrderEnum.START_DATE.ordinal())
+			return taskDao.getTasksForMemberOrderByStartDate(profile);
+		else
+			throw new ValidationException(ValidationCodeEnum.TASK_ORDER_NOT_SUPPORTED);
+	}
+
+	/**
+	 * This will clear all the completed tasks for a member.  So this means that if a task is marked as done, then it will not be 
+	 * shown.  It is up to the client to show or hide the task.  We only suggest it.
+	 * @param profile
+	 */
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public void clearCompletedForMemberTX(Profile profile)
+	{
+		setShowStatus(profile, false);
+	}
+	
+	/**
+	 * This is the business method that handles both show and clear completed tasks.  It will change the status of a task
+	 * if the task is marked as done.
+	 * @param profile
+	 * @param shouldBeShown
+	 * @see ProgressEnum
+	 */
+	private void setShowStatus(Profile profile, boolean shouldBeShown)
+	{
+		List<Task> tasks = getTasksForMember(profile);
+		for (Task task:tasks)
+		{
+			//check to see if the status is done or delete and if so dont show
+			if (task.getProgress()==ProgressEnum.DONE.ordinal())
+			{
+				task.setShow(shouldBeShown);
+				dao.saveOrUpdate(task);
+			}
+		}
+	}
+
+	/**
+	 * This is the opposite of the clearComplete method.  This will show tasks when they are marked as completed.
+	 * @param profile
+	 */
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public void showCompletedForMemberTX(Profile profile)
+	{
+		setShowStatus(profile, true);
+	}
+
+
+//	/**
+//	 * This will complete a task and mark it as done.
+//	 * @param task
+//	 * @see ProgressEnum
+//	 */
+//	@Override
+//	
+//	
+//	public void completeTask(Task task)
+//	{
+//		try
+//		{
+//			task = getTaskById(task.getId());
+//			task.setProgress(ProgressEnum.DONE.ordinal());
+//			dao.merge(task);
+//		}
+//		catch (ValidationException validationException)
+//		{
+//			validationException.printStackTrace();
+//			return;
+//		}
+//		
+//		//cancel the notifications
+//		notificationService.cancelNotification(task);
+//		
+//		//send update alert
+//		sendCancelCompleteNotificationsToShare(task);
+//	}
+
+	/**
+	 * This is to retrieve a task by taskId.
+	 * @param taskId
+	 * @return Task
+	 */
+	@Override
+	public Task getTaskById(String taskId) throws ValidationException
+	{
+		Task task = (Task)dao.loadObject(Task.class, taskId);
+		return task;
+	}
+	
+	
+
+	@Override
+	@Deprecated
+	public void updateTask(Task task) throws ValidationException
+	{
+		updateTask(task, task.getTaskCreator().getMember().getEmail());
+	}
+	
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public Task updateTaskTX(String id, int progress, String loggedInMemberEmail) throws ValidationException
+	{
+		final Task taskFromDB = getTaskById(id);
+		
+		if (taskFromDB == null) 
+			throw new ValidationException(ValidationCodeEnum.TASK_NOT_FOUND);
+		
+		taskFromDB.setProgress(progress);
+		updateTask(taskFromDB, loggedInMemberEmail);
+		
+		return taskFromDB;
+	}
+	
+	/**
+	 * This method will update a task.  There will be a check performed to see if the task is out of date.  It the task
+	 * is out of date, then a validation exception will be thrown.
+	 * @param task
+	 * @throws ValidationException
+	 */
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public void updateTaskTX(Task task, String loggedInMemberEmail) throws ValidationException
+	{
+		updateTask(task, loggedInMemberEmail);
+	}
+	
+	/**
+	 * This method will update a task.  There will be a check performed to see if the task is out of date.  It the task
+	 * is out of date, then a validation exception will be thrown.
+	 * @param task
+	 * @throws ValidationException
+	 */
+	public void updateTask(Task task, String loggedInMemberEmail) throws ValidationException
+	{
+		if (task!=null && task.getProgress()==ProgressEnum.DELETE.ordinal())
+		{
+			cancelTask(task, loggedInMemberEmail);
+			return;
+		}
+		
+		prepareTask(task);
+		
+		final Task taskFromDB = getTaskById(task.getId());
+		
+		boolean statusChanged = false;
+		boolean startDateChanged = false;
+		boolean endDateChanged = false;
+		if (taskFromDB.getProgress()!=task.getProgress())
+			statusChanged=true;
+		
+		if (taskFromDB.getStartTime()!=null && !taskFromDB.getStartTime().equals(taskFromDB.getStartTime()))
+			startDateChanged = true;
+		
+		if (taskFromDB.getEndTime()!=null && !taskFromDB.getEndTime().equals(taskFromDB.getEndTime()))
+			endDateChanged = true;
+		
+		if (taskFromDB == null)
+			throw new ValidationException(ValidationCodeEnum.TASK_NOT_FOUND);
+		
+		//we need to get the old calendars from the task.  We need a new object because of references
+		Set<Calendar> oldListOfCalendars = taskFromDB.getCalendars();
+		List<String> oldCalendarKeys = new ArrayList<String>();
+		if (oldListOfCalendars!=null&&!oldListOfCalendars.isEmpty())
+		{
+			for (Calendar calendar:oldListOfCalendars)
+				oldCalendarKeys.add(calendar.getId());
+		}
+
+		//check to see if the modified date from the db is before the one being passed
+		taskValidator.validateSynchronizationUpdate(task, taskFromDB);
+		task.setModifiedDateZone(new DateTime());
+		
+		if (task.getRepeatSetup()!=null && task.getRepeatSetup().getId()!=null)
+		{
+			RepeatSetup repeatSetup = dao.loadByPrimaryKey(RepeatSetup.class, task.getRepeatSetup().getId());
+			if (repeatSetup != null)
+			{
+				TaskTemplate taskTemplate = repeatSetup.getClonedTask();
+			
+			
+				taskTemplate.setTitle(task.getTitle());
+				taskTemplate.setTaskLocation(task.getTaskLocation());
+				dao.merge(taskTemplate);
+			}
+			else
+			{
+				task.setRepeatSetup(null);
+			}
+			
+		}
+		
+		//update the task in the db
+		dao.merge(task);
+		
+		//need to reload the object from the db
+		task = dao.loadByPrimaryKey(Task.class, task.getId());
+
+		//we need to check to see if the task has any calendars that are shared.  If they are the same, nothing has changed
+		shareService.processSharesUpdateForSharedCalendars(task, oldCalendarKeys);
+		
+		//update the share modified times
+		shareService.updateSharesFromTaskUpdate(task);
+		
+		//we need to process subtasks
+		shareService.updateSubTaskShareForTaskUpdate(task);
+		
+		//check the reminders that are out there and if not valid remove them.  also schedule new ones
+		emailService.processNotificationsForTaskCreateOrUpdate(taskFromDB, true);
+		
+		//notify task owner of the change if the status is delete or done
+		if (task.getProgress()==ProgressEnum.DONE.ordinal())
+		{
+			emailService.sendNotificationForTaskCompleteOrDelete(taskFromDB, NotificationTypeEnum.EMAIL, task.getTaskCreator().getMember().getEmail());
+			
+			//update the subTasksToo for task completion
+			updateSubTasksProgress(taskFromDB, ProgressEnum.DONE);
+		}
+		
+		//handle status changes
+		if (statusChanged)
+		{
+			if (task.getProgress() == ProgressEnum.DONE.ordinal())
+			{
+				emailService.sendTaskStatusChangeNotification(task, loggedInMemberEmail, TaskStatusChangeEvent.Completed);
+			}
+			else if (task.getProgress() == ProgressEnum.STARTED.ordinal())
+			{
+				emailService.sendTaskStatusChangeNotification(task, loggedInMemberEmail, TaskStatusChangeEvent.InProgress);
+			}
+			else if (task.getProgress() == ProgressEnum.ON_HOLD.ordinal())
+			{
+				emailService.sendTaskStatusChangeNotification(task, loggedInMemberEmail, TaskStatusChangeEvent.Waiting);
+			}
+			
+		}
+		else if (startDateChanged)
+		{
+			emailService.sendTaskStatusChangeNotification(task, loggedInMemberEmail, TaskStatusChangeEvent.StartDate);
+		}
+		else if (endDateChanged)
+		{
+			emailService.sendTaskStatusChangeNotification(task, loggedInMemberEmail, TaskStatusChangeEvent.EndDate);
+		}
+	}
+	
+	
+	/**
+	 * This is called to cancel a task.  It does not delete it from the database and only marks it as delete.
+	 * @param task
+	 * @see ProgressEnum
+	 */
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public void cancelTaskTX(Task task, String loggedInMemberEmail) throws ValidationException
+	{
+		cancelTask(task, loggedInMemberEmail);
+	}
+	
+	/**
+	 * This is called to cancel a task.  It does not delete it from the database and only marks it as delete.
+	 * @param task
+	 * @see ProgressEnum
+	 */
+	public void cancelTask(Task task, String loggedInMemberEmail) throws ValidationException
+	{
+		if (loggedInMemberEmail==null||"".equals(loggedInMemberEmail))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		//grab the task
+		Task taskFromDB = getTaskById(task.getId());
+		
+		//if the task is null, throw an error
+		if (taskFromDB == null)
+			throw new ValidationException(ValidationCodeEnum.INVALID_TASK_ID);
+		
+		//check to see if logged in user is the owner
+		if (taskFromDB.getTaskCreator().getMember().getEmail().equalsIgnoreCase(loggedInMemberEmail))
+		{	
+			taskFromDB.setProgress(ProgressEnum.DELETE.ordinal());
+			taskFromDB.setShow(false);
+					
+			//check to see if the modified date from the db is before the one being passed
+			taskValidator.validateSynchronizationUpdate(task, taskFromDB);
+			taskFromDB.setModifiedDateZone(new DateTime());
+			
+			//update the share modified times
+			shareService.updateSharesFromTaskUpdate(task);
+			
+			//update the database
+			dao.merge(taskFromDB);
+			
+			//cancel the notifications for the tasks
+			notificationService.cancelNotification(taskFromDB);
+			
+			//update the subTasksToo
+			updateSubTasksProgress(taskFromDB, ProgressEnum.DELETE);
+			
+			//call email service to cancel the tasks
+			emailService.sendTaskStatusChangeNotification(taskFromDB, loggedInMemberEmail, TaskStatusChangeEvent.Canceled);
+		}
+		//the delete is not the task owner, so we should remove the share instead
+		else
+		{
+			//need to retrieve the orginal share from this delete
+			Share share = shareService.getShareForTaskAndEmail(taskFromDB, loggedInMemberEmail);
+			if (share != null)
+				shareService.deleteShare(share);
+		}
+	}
+
+	private void updateSubTasksProgress(Task parentTask, ProgressEnum progressEnum)
+	{
+		if (!parentTask.isaParent())
+			return;
+		
+		List<Task> subTasks = taskDao.getTasksForSubTasks(parentTask);
+		for (Task subTask : subTasks)
+		{
+			subTask.setProgress(progressEnum.ordinal());
+			dao.merge(subTask);
+		}
+	}
+	
+	
+	public Calendar getCalendarById(String calendarId)
+	{
+		return dao.loadByPrimaryKey(Calendar.class, calendarId);
+	}
+	
+	
+}

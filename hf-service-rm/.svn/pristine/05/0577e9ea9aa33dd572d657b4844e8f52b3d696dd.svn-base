@@ -1,0 +1,35 @@
+package com.homefellas.rm.share;
+
+import java.util.List;
+
+import org.hibernate.Query;
+
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.rm.user.Contact;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public interface IShareDao
+{
+
+	public List<Task> getAcceptedSharedTasksForUser(Member user);
+	public List<Share> getSharesForUser(Member user);
+	public Share getShareForUserAndTask(Task task, Member user);
+	public List<Share> getSharesForTask(Task task);
+	public List<String> getAcceptedSharedTaskIdsForUser(String userId);
+	public Share getShareForTaskAndEmail(Task task, String email);
+	public List<Profile> getInvitedContactsByMemberId(String memberId);
+	public List<Invite> getSentInvitesForMember(String memberId);
+	public List<Invite> getInvitesSharedWithEmail(String memberId);
+	public List<Share> getSharesByIds(List<String>ids);
+	public List<Invite> getInvitesByIds(List<String>ids);
+	public Share getShareById(String id);
+	public ShareCalendar getShareForUserAndCalendar(Calendar calendar, Member user);
+	public List<ShareCalendar> getCalenderShares(Calendar calendar);
+	public List<Member> getMembersFromCalendarShares(List<String> calendarKeys);
+	public ShareCalendar getShareCalendarByCalendarAndMember(Calendar calendar, Member member);
+	public List<Share> getAcceptedSharesForTask(Task task);
+	public Contact getContactByProfileId(String contactId, String ownerId);
+//	public int updateShareStatusForTasks(List<String> taskIds, Member sharee, ShareApprovedStatus shareApprovedStatus);
+}

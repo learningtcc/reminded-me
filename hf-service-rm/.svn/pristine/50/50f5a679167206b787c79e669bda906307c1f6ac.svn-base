@@ -1,0 +1,164 @@
+package com.homefellas.rm;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.joda.time.DateTime;
+
+import com.homefellas.rm.notification.ClientNotification;
+import com.homefellas.rm.reminder.Alarm;
+import com.homefellas.rm.share.Invite;
+import com.homefellas.rm.share.SentShare;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.SynchronizeShare;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.RepeatSetup;
+import com.homefellas.rm.task.Task;
+import com.homefellas.rm.user.Contact;
+
+/**
+ * This is an interface used to mark the list of objects that is returned on a synchonrize.  When an object implements this interface
+ * it must also have a default constructor defined.  To transform an object into a synchronization object you have to complete the following
+ * steps:
+ * 1.  Have the domain object implement either the {@link ISynchronizeable} or the {@link ISynchronizeableFiltered} interface
+ * 2.  Add the domain to the {@link SynchronizeableObject} enum
+ * 3.  Change the parent class of hte service to AbstractSynchronizeService
+ * 4.  change the service method on the domain's update to call the updateSynchonrizedObject method
+ * 5.  Add test cases to the synchronize web service method
+ * 6.  Add bulk methods to the service and web service
+ * @author Tim Delesio
+ *
+ */
+public interface ISynchronizeable
+{
+	public static final String SYSTEM_TIME = "SystemTime";
+	public static final String DEVICE_ID = "DeviceID";
+
+	/**
+	 * This is a list of objects that will be returned from the synchronizeObjects.  
+	 * @author Tim Delesio
+	 *
+	 */
+	public enum SynchronizeableObject 
+	{ 
+		
+		Task(Task.class),
+//		Category(Category.class),
+		Calendar(Calendar.class),
+		SynchronizeShare(SynchronizeShare.class, Task.class),
+		Share(Share.class),
+		Invite(Invite.class),
+		ClientNotification(ClientNotification.class),
+		RepeatSetup(RepeatSetup.class),
+		SentShare(SentShare.class),
+		Alarm(Alarm.class),
+		contact(Contact.class);
+		
+		/**
+		 * The class that should be passed
+		 */
+		private Class<? extends ISynchronizeable> clazz;
+		private Class<? extends ISynchronizeable> mapKeyClass;
+		
+		private SynchronizeableObject(Class<? extends ISynchronizeable> clazz)
+		{
+			this.clazz = clazz;
+			this.mapKeyClass = clazz;
+		}
+		
+		private SynchronizeableObject(Class<? extends ISynchronizeable> clazz, Class<? extends ISynchronizeable> mapKey)
+		{
+			this.clazz = clazz;
+			this.mapKeyClass = mapKey;
+		}
+		
+		public String getClassName()
+		{
+			return clazz.getName();
+		}
+		
+		public String getClassSimpleName()
+		{
+			return clazz.getSimpleName();
+		}
+		
+		public String getMapKeyClass()
+		{
+			return mapKeyClass.getName();
+		}
+		
+
+		/**
+		 * This will create a new instance of the class.  A default constuctor must be defined.
+		 * @return
+		 */
+		public ISynchronizeable getClassInstance()
+		{
+			try
+			{
+				return (ISynchronizeable)Class.forName(getClassName()).newInstance();
+			}
+			catch (ClassNotFoundException classNotFoundException)
+			{
+				classNotFoundException.printStackTrace();
+				return null;
+			}
+			catch (InstantiationException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			catch (IllegalAccessException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		
+		}
+		
+	}
+	/**
+	 * This method define what the primary key should be.  In most instances this should be id.
+	 * @return
+	 */
+	public String getPrimaryKey();
+	
+	/**
+	 * This is the last modified date of the object.  It is required in order to pull the right objects from the data source.
+	 * NOTE:  It is the clients job to set the last modified time.
+	 * @return
+	 */
+	public long getModifiedDate();
+	
+	/**
+	 * This is used to idenfity the type of list that is returned.  This should in most cases be Class.getName which is just the
+	 * simplified class name.
+	 * @return String
+	 */
+	public String getModelName();
+	/**
+	 * This in most case should have no implementation.  The main purpose of this is to satisfy the json conversation
+	 * @param modelName
+	 */
+	public void setModelName(String modelName);
+
+	/**
+	 * This should return the member attribute name.  All implementation of this class should have a member pass.  For instance
+	 * if the class defines an attribute private Member memberName.  Then the implementing classs should return "memberName";
+	 * @return String
+	 */
+	@JsonIgnore
+	public String getMemberAttributeName();
+	
+	public String getLastModifiedDeviceId();
+	public void setLastModifiedDeviceId(String deviceId);
+	public void setModifiedDateZone(DateTime modifiedDateZone);
+	
+	/**
+	 * This should be the select id from the sync object.  In most cases it should just return "id".  This is more for specialized 
+	 * instances where you want to return a sublist like in the instance of share.  Note that if you set something other then id, then
+	 * in the ISynchronizeable interface make sure you map the correct object to the map key.
+	 * @return
+	 */
+	public String getSyncId();
+
+	public DateTime getClientUpdateTimeStamp();
+}

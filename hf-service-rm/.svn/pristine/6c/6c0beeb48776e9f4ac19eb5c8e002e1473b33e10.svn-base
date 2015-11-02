@@ -1,0 +1,8 @@
+package com.homefellas.rm.notification;
+
+import com.homefellas.exception.ValidationException;
+
+public interface IClientNotificationService
+{
+	public ClientNotification createClientNotification(ClientNotification clientNotification) throws ValidationException;
+}

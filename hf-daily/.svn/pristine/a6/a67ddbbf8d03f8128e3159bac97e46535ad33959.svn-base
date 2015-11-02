@@ -1,0 +1,95 @@
+host=localhost
+
+pollTimeInSeconds=5
+
+#db.url=jdbc:mysql://test.homefellas.com/rm
+db.url=jdbc:mysql://localhost/rm
+brochure.db.url=jdbc:mysql://localhost/brochure
+db.username=${notification.db.username}
+db.password=${notification.db.password}
+
+#db.username=dbcreate
+#db.password=db_create
+#db.username=Tim
+#db.password=delesio@hf@hf
+#db.username=root
+#db.password=rage311
+
+#how to test notification locally
+#1.  change db.username and db.password in notification.properties
+#2.  
+#for email services active status
+# values Y or N
+active=Y
+
+#simulation mode indicator
+# values Y or N
+# if set to Y the task will NOT send an email but pause for 10 seconds
+simulationIndicator=N
+
+# when in simulation mode number of seconds to use to simulate the execution time of an EmailTask
+# this only applies when simulationIndicator is set to Y
+# if simulationIndicator is set to Y the task will NOT send an email but
+# pause for simulationTaskPauseTime seconds
+simulationTaskPauseTime=10
+
+#number of tries in case of failed email
+#
+numberOfTries=2
+
+#Number of worker threads that will be consuming EmailTasks
+# WARNING!!!! there could be at thime as many connections to the emailserver
+#   as there are worker threads!!!!
+numberOfWorkerThreads=5
+
+#in case of email server failure, in order to pick up all the failed email set a date here
+#to pick up and retry all failed email since the date entered.
+#if blank it is ignores and rules of numberOfTries is applied
+# NOTE: NOT IMPLEMENTED YET
+pickUpFailedEmailsStartingOn=
+
+
+#number of seconds between each retreive from database
+# this is the time the application will wait before going back to the database to check
+# for emails that need to be sent
+# value must be at least 30
+dbCheckTimer=60
+
+# maximum number of records retrieved from db each time the task wakes up
+# note that this is independent of the number of worker threads
+# if 500 records are retrieved and number of worker threads is set to 20
+# these 500 records will be processed by the 20 threads by order of priority (20 at a time)
+# NOTE value must be between 1 and 500
+dbNumberOfRecordsRetrieved=10
+
+# maximum number of email tasks in memory awaiting execution
+# this number would be hit in case dbNumberOfRecordsRetrieved per unit of time (dbCheckTimer) is greater
+# than the number of emails can be processed during that unit of time
+# which could eventually could cause an out of memory error
+# Once this number is hit, no db load will take place until it's again below threshold
+#
+maxNumberOfTasksInMemory=2
+
+# number of seconds between each reload of the properties file
+# this allow for the app to be shutdown by changing the flag active to N
+# NOTE THAT THE TIMER CANNOT BE CHANGE DURING RUN TIME!!!!
+propertiesLoadTimer=30
+
+
+# iRAC and HCM have seperate schemas now. Table name is EMAIL_QUEUE in both Schemas.
+# DB2INST1.
+# HCMDB.
+dbschemaname=DB2INST1.
+
+taskPauseTime=1
+# thread will sleep for 3 seconds
+
+#Some email clients like gmail do not display the HTML version of the email if the text version is also sent
+#to solve this problem, we will not send text version of the email to these clients alone
+emailClientsReceivingHTMLBody=@GMAIL.COM,@AOL.COM
+
+#apn_keystore=c:\\temp\\iphone_dev.p12
+apn_keystore=${apn_keystore}
+apn_keystore_password=${apn_keystore_password}
+#apn_production_mode=false
+apn_production_mode=true

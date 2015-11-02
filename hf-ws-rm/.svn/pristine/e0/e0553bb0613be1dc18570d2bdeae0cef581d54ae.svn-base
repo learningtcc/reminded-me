@@ -1,0 +1,786 @@
+package com.homefellas.rm.task;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+import com.homefellas.ws.core.AbstractRMWebService;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiError;
+import com.wordnik.swagger.annotations.ApiErrors;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
+@Path("/task")
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+@Api(value="/task", description="These are web service that are assiocated with tasks")
+public class TaskWebService extends AbstractRMWebService {
+
+
+	
+	@POST
+	@Path("/status/{id}/{status}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response updateTaskStatus(@PathParam("id")String id, @PathParam("status")int status)
+	{
+		String profileId = getEmailFromSecurityContext();
+		try
+		{
+			Task task = taskService.updateTaskTX(id, status, profileId);
+			return buildSuccessResponse(task);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/upcoming")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	@ApiOperation(value="Retrieves all tasks in the future", multiValueResponse=true,responseClass="Task")
+	@ApiResponses(value = {
+			@ApiResponse(errors={@ApiError(code = 400, reason = "USER_MUST_BE_LOGGED_IN-The ws is not passing a tgt or the tgt is invalid")})
+	})
+	public Response getUpcomingTasks(
+			@ApiParam(required=false,value="The number of items to return", defaultValue="10")
+			@QueryParam("chunk")
+			@DefaultValue("10")
+				int chunkSize,
+			@ApiParam(required=false,value="The start index for pagination", defaultValue="0")
+			@QueryParam("index")
+			@DefaultValue("0")
+				int startIndex
+		)
+			
+	{
+		try
+		{
+			String loggedInProfileEmail = getEmailFromSecurityContext();
+			return buildSuccessResponse(convertTaskToUI(taskService.getUpcomingTasksTX(loggedInProfileEmail, chunkSize, startIndex)));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/dateless_overdue")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	@ApiOperation(value="Retrieves all tasks in the future", multiValueResponse=true,responseClass="Task")
+	@ApiResponses(value = {
+			@ApiResponse(errors={@ApiError(code = 400, reason = "USER_MUST_BE_LOGGED_IN-The ws is not passing a tgt or the tgt is invalid")})
+	})
+	public Response getDatelessOverdueTasks(
+			@ApiParam(required=false,value="The number of items to return", defaultValue="10")
+			@QueryParam("chunk")
+			@DefaultValue("10")
+				int chunkSize,
+			@ApiParam(required=false,value="The start index for pagination", defaultValue="0")
+			@QueryParam("index")
+			@DefaultValue("0")
+				int startIndex
+		)
+	{
+		try
+		{
+			String loggedInProfileEmail = getEmailFromSecurityContext();
+			return buildSuccessResponse(convertTaskToUI(taskService.getDatelessOverdueTasksTX(loggedInProfileEmail, chunkSize, startIndex)));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/completed_canceled")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	@ApiOperation(value="Retrieves all tasks in the future", multiValueResponse=true,responseClass="Task")
+	@ApiResponses(value = {
+			@ApiResponse(errors={@ApiError(code = 400, reason = "USER_MUST_BE_LOGGED_IN-The ws is not passing a tgt or the tgt is invalid")})
+	})
+	public Response getCompletedCanceledTasks(
+			@ApiParam(required=false,value="The number of items to return", defaultValue="10")
+			@QueryParam("chunk")
+			@DefaultValue("10")
+				int chunkSize, 
+			@ApiParam(required=false,value="The start index for pagination", defaultValue="0")
+			@QueryParam("index")
+			@DefaultValue("0")			
+				int startIndex
+		)
+	{
+		try
+		{
+			String loggedInProfileEmail = getEmailFromSecurityContext();
+			return buildSuccessResponse(convertTaskToUI(taskService.getCompletedCanceledTasksTX(loggedInProfileEmail, chunkSize, startIndex)));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/today")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	@ApiOperation(value="Retrieves all tasks in the future", multiValueResponse=true,responseClass="Task")
+	@ApiResponses(value = {
+			@ApiResponse(errors={@ApiError(code = 400, reason = "USER_MUST_BE_LOGGED_IN-The ws is not passing a tgt or the tgt is invalid")})
+	})
+	public Response getTasksByDate(
+			@ApiParam(required=false,value="The start timestamp in milliseconds.  It 0 or no value is passed, today is used", defaultValue="0")
+			@QueryParam("start")
+			@DefaultValue("0")			
+				int startRange, 
+			@ApiParam(required=false,value="The end timestamp in milliseconds.  It 0 or no value is passed, today is used", defaultValue="0")
+			@QueryParam("end")
+			@DefaultValue("0")			
+				int endRange, 
+			@ApiParam(required=false,value="The number of items to return", defaultValue="10")	
+			@QueryParam("chunk")
+			@DefaultValue("10")			
+				int chunkSize,
+			@ApiParam(required=false,value="The start index for pagination", defaultValue="0")
+			@QueryParam("index")
+			@DefaultValue("0")
+				int startIndex
+		)
+	{
+		try
+		{
+			String loggedInProfileEmail = getEmailFromSecurityContext();
+			return buildSuccessResponse(convertTaskToUI(taskService.getTodayTasksTX(startRange, endRange, loggedInProfileEmail, chunkSize, startIndex)));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	
+	
+	@GET
+	@Path("/calendar/store/categories")
+	public Response getCalendarStoreCategories()
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.getCalendarStoreCategoriesTX());
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/calendar/store/categories/userdefined/{id}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getCalendarStoreUserDefinedCategories(@PathParam("id")String calendarStoreSubCategoryId)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(taskService.getCalendarStoreUserDefiedCategoriesTX(calendarStoreSubCategoryId, loggedInProfileEmail));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/calendar/store/categories/create")
+	public Response createCalendarStoreUserDefinedCategory(CalendarStoreUserDefinedCategory calendarStoreUserDefinedCategory)
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.createCalendarStoreUserDefinedCategoryTX(calendarStoreUserDefinedCategory));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/get/memberid/{id}/status/{status}")
+	@ApiOperation(value="Return all tasks that match a memberId and a status code", responseClass="com.homefellas.rm.task.Task")
+	@ApiErrors(value = { @ApiError(code=404, reason="Bad url entered")})
+	public Response getTasksByStatusAndMemberId(@PathParam("id")String memberId, @PathParam("status")int status)
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.getTasksByStatusAndMemberIdTX(memberId, status));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/repeatsetup/bulk/{ids}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getBulkRepeatSetup(@PathParam("ids")String ids)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(taskService.getBulkRepeatSetupTX(ids, loggedInProfileEmail));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/repeatsetup/update")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response updateRepeatSetup(RepeatSetup repeatSetup) 
+	{
+		String profileId = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(taskService.updateRepeatSetupTX(repeatSetup, profileId));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/repeatsetup/create")
+	public Response createRepeatSetup(RepeatSetup repeatSetup) 
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.createRepeatSetupTX(repeatSetup));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/repeatsetup/delete/{id}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response deleteRepeatSetup(@PathParam("id")String repeatSetupId) 
+	{ 
+		String profileId = getEmailFromSecurityContext();
+		try
+		{
+			RepeatSetup repeatSetup = new RepeatSetup();
+			repeatSetup.setId(repeatSetupId);
+			taskService.deleteRepeatSetupTX(repeatSetup, profileId);
+			return buildSuccessResponse(repeatSetup);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	/**
+	 * This will return a list of categories.    
+	 * @param ids You must pass a comma delimited list of valid category ids.  If an id is not found, it will be skipped.
+	 * @return List<Category>
+	 */
+	@GET
+	@Path("/categories/bulk/{ids}")
+	public Response getBulkCategories(@PathParam("ids")String ids)
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.getBulkCategoryTX(ids));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/calendars/bulk/{ids}")
+	public Response getBulkCalendars(@PathParam("ids")String ids)
+	{
+		try
+		{
+			return buildSuccessResponse(taskService.getBulkCalendarTX(ids));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This will return a list of tasks.    
+	 * @param ids You must pass a comma delimited list of valid task ids.  If an id is not found, it will be skipped.
+	 * @return List<Task>
+	 */
+	@GET
+	@Path("/bulk/{ids}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getBulkTasks(@PathParam("ids")String ids)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(taskService.getBulkTasksTX(ids, loggedInProfileEmail));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	
+	/**
+	 * This method will get calendars for a Member.  You need to pass in member.id at the bare minimum.  
+	 * @param memberId A valid memberId is required
+	 * @return Collection<Calendar> This will return a collection of calendars.
+	 */
+	@GET
+	@Path("/calendars/get/memberid/{memberid}")
+	public Response getCalendarsForMember(@PathParam("memberid")String memberId)
+	{
+		try
+		{
+			Member member = new Member();
+			member.setId(memberId);			
+			return buildSuccessResponse(taskService.getAllCalendarsForMemberTX(member));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/calendars/update/")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response updateCalendar(Calendar calendar)
+	{
+		try
+		{
+			String loggedInProfileEmail = getEmailFromSecurityContext();
+			taskService.updateCalendarTX(calendar, loggedInProfileEmail);
+			return buildSuccessResponse(calendar);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+
+
+
+
+	/**
+	 * This will create a calendar for a member.
+	 * @param calendar <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Calendar.html">API</a> The calendar will generate its own id.  calendarName is required.  member.id is required.
+	 * @return A calendar object will be returned.
+	 */
+	@POST
+	@Path("/calendar/create")	
+	public Response createCalendar(Calendar calendar)
+	{
+		try
+		{
+			taskService.createUserDefinedCalendarTX(calendar);
+			return buildSuccessResponse(calendar);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+		
+	}
+
+
+
+
+
+	/** 
+	 * Returns all the categories for a member (both user created and default).  
+	 * @param memberId A valid memberId is required
+	 * @return This will return a collection of categories for a member
+	 */
+	@GET
+	@Path("/categories/get/memberid/{memberid}")
+	public Response getCategoriesForMember(@PathParam("memberid")String memberId) {
+		try
+		{
+			Member member = new Member();
+			member.setId(memberId);
+			return buildSuccessResponse(taskService.getAllCategoriesForMemberTX(member));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This method is used to create a category. 
+	 * @param category <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Category.html">API</a> categoryName is required.  member.id is required.
+	 * @return Category The created category is returned.
+	 */
+	@POST
+	@Path("/category/create")	
+	public Response createCategory(Category category) {
+		
+		try
+		{
+			taskService.createUserDefinedCategoryTX(category);
+			return buildSuccessResponse(category);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This is used to create a task.  A new (un-used) id must be set in the task.id.  
+	 * @param task <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Task.html">API</a> id is required to be generated by client. task title is required. taskCreator.id is required and valid.  Start time can not be after end time.
+	 * @return Task Returns the created task.
+	 */
+	@POST
+	@Path("/create")
+	public Response createTask(Task task) {
+		
+		try
+		{
+			taskService.createTaskTX(task);			
+			return buildSuccessResponse(task);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (DataIntegrityViolationException dataIntegrityViolationException)
+		{
+			dataIntegrityViolationException.printStackTrace();
+			return handleValidationException(ValidationCodeEnum.CHILD_OBJECT_NOT_SAVED);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	/**
+	 * This method performs the same business logic as createTask except that it performs an update instead of a save.
+	 * @param task <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Task.html">API</a> An valid id is required. title is required. Start time can not be after end time.
+	 * @return Returns the task that was updated. 
+	 */
+	@POST
+	@Path("/update")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response updateTask(Task task) 
+	{
+		String profileId = getEmailFromSecurityContext();
+		try
+		{
+			taskService.updateTaskTX(task, profileId);
+			return buildSuccessResponse(task);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * Return a list of tasks for a profile. NOTE: profile.id is the same as member.id
+	 * @param profileId A valid profile id is required.
+	 * @return A list of tasks that the id passed in created 
+	 */
+	@Path("/get/memberid/{profileId}")
+	@GET
+	public Response getTasksForMember(@PathParam("profileId")String profileId)
+	{
+		try
+		{
+			Profile profile = new Profile();
+			profile.setId(profileId);
+			return buildSuccessResponse(taskService.getTasksForMemberTX(profile));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * Returns a list of tasks for a member.  This method also accepts a parameter to specify the order in which 
+	 * the list will be returned.  The order are listed in the <a href=""http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/TaskOrderEnum.html">TaskOrderEnum</a>.  You must pass the ordinal of this Enum.
+	 * @param profileId a valid profile id is required <a href=""http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/TaskOrderEnum.html">TaskOrderEnum</a> is required.
+	 * @param a valid ordinal from
+	 * @return A list of tasks that where created by the id passed ordered by the ordinal passed. 
+	 * @see TaskOrderEnum
+	 */
+	@Path("/get/memberid/{profileId}/order/{taskOrder}")
+	@GET
+	public Response getTasksForMember(@PathParam("profileId")String profileId, @PathParam("taskOrder")int taskOrder)
+	{
+		Profile profile = new Profile();
+		profile.setId(profileId);
+		try
+		{
+			return buildSuccessResponse(taskService.getTasksForMemberTX(profile, taskOrder));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This will clear (mark invisible) all the completed taskes for the user.  The only way that the tasks will be cleared is if the task status is marked as done.
+	 * @param memberId A valid memberId is required
+	 * @return Return true or false whether or not this operation was successful
+	 */
+	@GET
+	@Path("/clear/memberid/{memberid}")
+	public Response clearCompletedForMember(@PathParam("memberid")String memberId)
+	{
+		try
+		{
+			Profile profile = new Profile();
+			profile.setId(memberId);
+			taskService.clearCompletedForMemberTX(profile);
+			return buildSuccessResponse(true);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This will perform the opposite of clearCompleted.  It will make the task visible when it was invisible.
+	 * @param memberId A valid memberId is required
+	 * @return Return true or false whether or not this operation was successful
+	 */
+	@GET
+	@Path("/show/memberid/{memberid}")
+	public Response showCompletedForMember(@PathParam("memberid")String memberId)
+	{
+		try
+		{
+			Profile profile = new Profile();
+			profile.setId(memberId);
+			taskService.showCompletedForMemberTX(profile);
+			return buildSuccessResponse(true);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This will return a single task based on the task id.  There is no check to see if the task is owned by the 
+	 * caller.  
+	 * @param taskId A valid taskId is required
+	 * @return The task for that passed taskId
+	 */
+	@GET
+	@Path("/get/id/{taskId}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getTaskById(@PathParam("taskId")String taskId)
+	{
+		try
+		{
+			String loggedInUserEmail = getEmailFromSecurityContext();
+			List<Task> tasks = taskService.getBulkTasksTX(taskId, loggedInUserEmail);
+			if (tasks==null||tasks.size()!=1)
+				return handleValidationException(ValidationCodeEnum.INVALID_TASK_ID);
+			else
+			{
+				Task task = tasks.get(0);
+				return buildSuccessResponse(task);
+			}
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+	/**
+	 * This will change the status of a task to delete and mark it as invisible.
+	 * @param taskId A valid taskId is required.
+	 * @return A indicator whether the update was successful or not.
+	 * 
+	 */
+	@GET
+	@Path("/cancel/id/{taskid}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response cancelTask(@PathParam("taskid")String taskId, @Context HttpServletRequest request)
+	{
+//		String profileId = getMemberEmailFromSession(request);
+		String profileId = getEmailFromSecurityContext();
+		try
+		{
+			Task task = new Task();
+			task.setId(taskId);
+			taskService.cancelTaskTX(task, profileId);
+			return buildSuccessResponse(true);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+
+//	/**
+//	 * This will create a new theme.  All values of the theme must be entered.
+//	 * @param theme <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Theme.html">API</a>  A values of the theme are required.
+//	 * @return Returns the created theme.
+//	 */
+//	@POST
+//	@Path("/theme/create")
+//	public Response createTheme(Theme theme)
+//	{
+//		try
+//		{
+//			return buildSuccessResponse(taskService.createThemeTX(theme));
+//		}
+//		catch (ValidationException validationException)
+//		{
+//			return handleValidationException(validationException);
+//		}
+//		catch (Exception exception)
+//		{
+//			return handleException(exception);
+//		}
+//	}
+//
+//	/**
+//	 * This will create a new theme.  All values of the theme must be entered.
+//	 * @param theme <a href="http://test.homefellas.com/api/hf-service-rm/apidocs/com/homefellas/rm/task/Theme.html">API</a>  A values of the theme are required.
+//	 * @return Returns the created theme.
+//	 */
+//	@POST
+//	@Path("/theme/update")
+//	public Response updateTheme(Theme theme)
+//	{
+//		try
+//		{
+//			return buildSuccessResponse(taskService.updateThemeTX(theme));
+//		}
+//		catch (ValidationException validationException)
+//		{
+//			return handleValidationException(validationException);
+//		}
+//		catch (Exception exception)
+//		{
+//			return handleException(exception);
+//		}
+//	}
+
+//	@Path("/httpsession/{name}/{value}")
+//	@GET
+//	public Response setSessionValue(@Context HttpServletRequest request, @PathParam("name")String name, @PathParam("value")String value)
+//	{
+//		HttpSession session = request.getSession();
+//		session.setAttribute(name, value);
+//		
+//		return buildSuccessResponse(true);
+//	}
+	
+
+	
+}

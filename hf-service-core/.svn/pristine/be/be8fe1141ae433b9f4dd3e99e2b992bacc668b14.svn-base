@@ -1,0 +1,7 @@
+package com.homefellas.metrics;
+
+import com.homefellas.dao.hibernate.core.HibernateDao;
+
+public class MetricDao extends HibernateDao implements IMetricDao {
+
+}

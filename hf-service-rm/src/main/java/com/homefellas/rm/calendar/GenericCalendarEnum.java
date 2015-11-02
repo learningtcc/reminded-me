@@ -1,0 +1,38 @@
+package com.homefellas.rm.calendar;
+
+
+public enum GenericCalendarEnum {
+
+	School(new Calendar("Schhol", "1")),
+	Personal(new Calendar("Personal", "2")),
+	Work(new Calendar("Work", "3")),
+	Contacts(new Calendar("Contacts", "4")),
+	Accounts(new Calendar("Accounts", "5")),
+	Shopping(new Calendar("Shopping", "6")),
+	Places(new Calendar("Places", "7")),
+	Website(new Calendar("Website", "8"));
+	
+	private Calendar calendar;
+	
+	private GenericCalendarEnum(Calendar calendar)
+	{
+		this.calendar = calendar;
+	}
+
+	/**
+	 * @return the calendar
+	 */
+	public Calendar getCalendar()
+	{
+		return calendar;
+	}
+	
+	public static boolean isGeneric(Calendar calendar)
+	{
+		for (GenericCalendarEnum calendarEnum : values())
+			if (calendarEnum.getCalendar().getId().equals(calendar.getId()))
+				return true;
+		return false;
+	}
+	
+}

@@ -1,0 +1,97 @@
+package com.homefellas.rm.task;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMValidator;
+import com.homefellas.rm.ValidationCodeEnum;
+
+public class TaskValidator extends AbstractRMValidator implements ITaskValidator {
+
+	public void validateRepeatSetup(RepeatSetup repeatSetup) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validatePrimaryKey(codes, repeatSetup);
+		validateMemberId(codes, repeatSetup.getMember());
+		
+		if (isNullOrBlank(repeatSetup.getRepeatOccurance()))
+			codes.add(ValidationCodeEnum.REPEAT_OCCURANCE_IS_NOT_VALID);
+		
+		if (repeatSetup.getClonedTask()==null || !repeatSetup.getClonedTask().isPrimaryKeySet()) 
+			codes.add(ValidationCodeEnum.CLONED_TASK_ID_IS_NULL_OR_NOT_FOUND);
+		
+		throwException(codes, repeatSetup);
+	}
+	
+	public void validateCategory(Category category) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validateMemberId(codes, category.getMember());
+		validatePrimaryKey(codes, category);
+		
+		if (isNullOrBlank(category.getCategoryName()))
+			codes.add(ValidationCodeEnum.CATEGORY_TITLE_IS_NULL);
+			
+		throwException(codes, category);
+	}
+	
+	public void validateCalendar(Calendar calendar) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validateMemberId(codes, calendar.getMember());
+		validatePrimaryKey(codes, calendar);
+		
+		if (isNullOrBlank(calendar.getCalendarName()))
+			codes.add(ValidationCodeEnum.CALENDAR_TITLE_IS_NULL);
+		
+		throwException(codes, calendar);
+		
+	}
+	
+	public void validateTask(Task task) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		if (task == null)
+		{
+			codes.add(ValidationCodeEnum.TASK_NOT_FOUND);
+			throwException(codes, task);
+			return;
+		}
+		
+		validateMemberId(codes, task.getTaskCreator());
+		validatePrimaryKey(codes, task);
+		
+		
+		//make sure that task has a title
+		if (isNullOrBlank(task.getTitle()))
+			codes.add(ValidationCodeEnum.TASK_TITLE_IS_NULL);
+		
+		//make sure that the end time is after the start time
+		if (task.getStartTime()!=null && task.getEndTime()!=null)
+		{
+			if (task.getEndTime().isBefore(task.getStartTime()))
+				codes.add(ValidationCodeEnum.END_TIME_BEFORE_START_TIME);
+		}
+		
+		if (task.getAppleIOSCalEvent() != null)
+		{
+			try
+			{
+				task.getAppleIOSCalEvent().validate();
+			}
+			catch (ValidationException exception)
+			{
+				codes.addAll(exception.getValidationErrors());
+			}
+		}
+		throwException(codes, task);
+	}
+	
+	
+}

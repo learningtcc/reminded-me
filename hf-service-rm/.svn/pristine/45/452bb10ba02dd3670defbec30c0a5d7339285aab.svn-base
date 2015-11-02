@@ -1,0 +1,46 @@
+package com.homefellas.rm.task;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.context.Theme;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.metrics.CollectTimeMetrics;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+import com.homefellas.user.UserValidationCodeEnum;
+
+public interface ITaskServiceTX extends ITaskService
+{
+	public List<Calendar> getBulkCalendarTX(String taskDelimiter);
+	public List<Category> getBulkCategoryTX(String taskDelimiter);
+	public List<Task> getBulkTasksTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException;
+	public Collection<Category> getAllCategoriesForMemberTX(Member member);
+	public Collection<Calendar> getAllCalendarsForMemberTX(Member member);
+	public void createUserDefinedCalendarTX(Calendar calendar) throws ValidationException;
+	public void createUserDefinedCategoryTX(Category category) throws ValidationException;
+	public void createTaskTX(Task task) throws ValidationException;
+	public void updateTaskTX(Task task, String loggedInMemberEmail) throws ValidationException;
+	public void  clearCompletedForMemberTX(Profile profile);
+	public void showCompletedForMemberTX(Profile profile);
+	public void cancelTaskTX(Task task, String loggedInMemberId) throws ValidationException;
+	public List<Task> getTasksForMemberTX(Profile profile);
+	public List<Task> getTasksForMemberTX(Profile profile,int taskOrder) throws ValidationException;
+	public RepeatSetup createRepeatSetupTX(RepeatSetup repeatSetup) throws ValidationException;
+	public RepeatSetup updateRepeatSetupTX(RepeatSetup repeatSetup, String loggedInEmail) throws ValidationException;
+	public void deleteRepeatSetupTX(RepeatSetup repeatSetup, String email);
+	public List<RepeatSetup> getBulkRepeatSetupTX(String taskDelimiter, String email);
+	public Calendar updateCalendarTX(Calendar calendar, String email) throws ValidationException;
+	public List<CalendarStoreCategory> getCalendarStoreCategoriesTX();
+	public List<CalendarStoreUserDefinedCategory> getCalendarStoreUserDefiedCategoriesTX(String calendarStoreSubCategoryId, String email);
+	public CalendarStoreUserDefinedCategory createCalendarStoreUserDefinedCategoryTX(CalendarStoreUserDefinedCategory calendarStoreUserDefinedCategory) throws ValidationException;
+	public List<Task> getUpcomingTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException;
+	public List<Task> getDatelessOverdueTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException;
+	public List<Task> getCompletedCanceledTasksTX(String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException;
+	public List<Task> getTodayTasksTX(long startRange, long endRange, String loggedInUserEmail, int chunkSize, int startIndex) throws ValidationException;
+	public Task updateTaskTX(String id, int progress, String loggedInMemberEmail) throws ValidationException;
+	public List<TaskRepeat> getTaskRepeatsForTaskTX(Task task);
+}
+

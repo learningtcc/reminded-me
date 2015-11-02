@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<seo>
+	 <pagename name="homepage">
+		<attribute name="title" value="Home Improvement Remodeling Contractors &amp; Service Pro - Repair, DIY Projects"/>
+		<attribute name="meta-keywords" value="home, improvement, magic, remodeling, contractors, service, pro, repair, diy, projects, contractortalk,angies list, local, tips, professionals"/>
+		<attribute name="meta-description" value="HomeFellas.com offers the best free listing &amp; reviews of home improvement remodeling contractors &amp; service pro. Feel the magic of our easy to use listing and bid service."/>
+		<attribute name="header-h1-content" value="Remodeling Contractors, Service Pro, DIY - Repair tips &amp; Home Improvement Advice"/>
+		<!--<attribute name="header-h1-href" value="/blog/alarm-burglar-system.hf"/>-->
+		<!--<attribute name="header-h1-href-title" value="Find Top Contractors, Plumbers, Handyman, Lawn Care Advice, Lawn Care Maintenance Tips, Spring Cleaning Services"/>-->
+		<attribute name="AskAnExpert-href-title" value="Ask an Expert for Free - Any Home Improvement Questions"/>
+		<attribute name="Articles-href-title" value="Home Improvement Tips, Articles and Blogs"/>
+		<attribute name="CustomerFeedback-href-title" value="Have a complaint or a new idea for HomeFellas? Please share"/>
+		<attribute name="login-href-title" value="Login to Enjoy Member Benefits."/>
+		<attribute name="SearchButton-Alt" value="Find the Best Top Rated Plumbers - Electricians - General Contractors - Handyman - Listings + More.."/>
+		<attribute name="Articles1-href-name" value="Winterization - Save Money"/>
+		<attribute name="Articles1-href" value="/blog/winterization-winter-proofing-your-home.hf"/>
+		<attribute name="Articles1-href-title" value="Winterization - Winter proofing - Winterizing your home"/>
+		<attribute name="Articles2-href-name" value="Home Alarm Burglar System"/>
+		<attribute name="Articles2-href" value="/blog/alarm-burglar-system.hf"/>
+		<attribute name="Articles2-href-title" value="Alarm Burglar System - Home Monitoring Wireless"/>
+		<attribute name="Articles3-href-name" value="Fast Growing Trees"/>
+		<attribute name="Articles3-href" value="/blog/fast-growing-trees-earthday.hf"/>
+	 	<attribute name="Articles3-href-title" value="Plant the fastest growing trees on this Earth Day 2010"/>
+		<attribute name="footer-content" value="HomeFellas offers the best listing &amp; reviews of Home Improvement Remodeling Contractors &amp; Service Pro. We also offer Home related news , daily tips and 
+		some of the best and most relevant articles offering advise and information for your home improvement - Repair needs. Ask for free pro advise on our Contractor
+		Talk forums and a professional will get back to you with guidance on your question. Last but not the least we are unveiling a revolutionary new feature that will
+		save you the hassle &amp; time. You can now quickly enter your home improvement - repair project information and we will contact all the matching local contractors
+		- service pro. Within 1-3 business days you will be receiving free estimates - bids to compare from local contractors. No more letting a stranger in your house just
+		to find out the estimates are above your budget. No more taking time off from work just to let a service pro in your house so contractors can provide you with estimates.
+		We have used the power of the internet and the era of social networking to save you time and make home improvement a little bit simpler a day at a time."/>
+	
+		<!-- <attribute name="footer-content" value=" HomeFellas offers top rated listings info for local home services contractors in categories such as 
+		lawn care, plumbers , liquid plumbing, electricians , electrical jobs , insulation , lawn care , handyman, maid services , snow removal by landscapers, 
+		kitchen bathroom remodelling , 	winter spring summer fall carpet cleaning , funiture repairs , fix garage doors , home improvement articles , 
+		environmental pest control , green home inspections, lawn care advice, lawn care austin, lawn care atlanta, lawn care and maintenance, 
+		lawn care and landscaping, Club Gardening forum, lawn care for dummies, Club Gardening florida, lawn care fall, Club Gardening faq, lawn care fungus, 
+		Club Gardening dallas,Club Gardening denver, Club Gardening directory, lawn care do it yourself, Club Gardening business, Club Gardening bids, Club Gardening basics, 
+		Club Gardening company, Club Gardening calendar, Club Gardening charlotte nc, lawn care chemicals, Club Gardening columbus ohio, lawn care equipment, 
+		Club Gardening estimates, Club Gardening estimate, Club Gardening estimating, Club Gardening employment, Club Gardening experts, Club Gardening houston, Club Gardening help, 
+		Club Gardening home remedies, Club Gardening how to &lt;br&gt;&lt;br&gt;"/> -->
+		<attribute name="categoryLink" value="Full Service Categories List"/>
+	</pagename>	
+	<pagename name="category">
+		<attribute name="title" value="Local Home Improvement Remodeling Contractors and Service Pro"></attribute>
+		<attribute name="meta-keywords" value="local contractors, home improvement, service pros, service pro, diy projects"></attribute>
+		<attribute name="meta-description" value="Easy one step away from quickly finding local home improvement remodeling contractors and service pros hassle free.  Our FREE national listing is built to make your search less painful and result a happy one."/> 
+		<attribute name="footer-content" value="Looking to Select Home Improvement Contactors - Service Pros for your project? HomeFellas.com provides Local Home Improvement Remodeling Contractors and Service Pro .
+Easy one step away from quickly finding local home improvement remodeling contractors and service pros hassle free. 
+Our FREE national listing is built to make your search less painful and result a happy one.  Our categories include   "/>
+		<attribute name="footer-content2" value=" etc and more!"/>
+		<!--
+		<attribute name="HF-promoted-categories" value=" Carpet Cleaning | Lawn Care | Landscapers | Landscaping | Spring Cleaning Services |" />
+		-->
+	</pagename>
+	<pagename name="locations_seo">
+		<attribute name="title-pre" value="Best Local "></attribute>
+		<attribute name="title" value=" Services - American "></attribute>
+		<attribute name="meta-keywords" value=", service pro, services, remodeling, home improvement,select, find, locations, homefellas, home fellas"></attribute>
+		<attribute name="meta-description-pre" value="Select a Location to find "></attribute>
+		<attribute name="meta-description" value=" in your local towns and cities across America"></attribute>
+		<!-- <attribute name="footer-content-pre" value="  You are 1 step away from the directory listings page. Liked the listings for "></attribute>
+		<attribute name="footer-content" value="  ? Please review the contractors and join to add your favorite contractors to your profile for future use.
+		 Thank You - HomeFellas Team. "></attribute>
+		 -->
+		 <attribute name="footer-content" value=" Page!"></attribute>
+		 
+	</pagename>
+	<pagename name="Plumber_seo">
+		<attribute name="title" value="Plumbing Contractors &amp; Emergency Plumbers - Clogged Toilet Drain Problems Repair Services"></attribute>
+		<attribute name="h1" value="Find Plumbing Contractors &amp; Emergency Plumbers To Fix Problems. Clogged Toilet &amp; Drain Repair Services"></attribute>
+		<attribute name="title-pre" value=""></attribute>
+		<attribute name="meta-keywords" value=", service pro, services, remodeling, home improvement,select, find, locations, homefellas, home fellas"></attribute>
+		<attribute name="meta-description-pre" value="Select a Location to find "></attribute>
+		<attribute name="meta-description" value=" in your local towns and cities across America"></attribute>
+		 <attribute name="footer-content" value=" Page!"></attribute>
+	</pagename>
+	<pagename name="state">
+		<attribute name="title-pre" value="Select State - Best Local and National "></attribute>
+		<attribute name="title" value=" Listings in America"></attribute>
+		<attribute name="meta-keywords" value=",select, find, states,"></attribute>
+		<attribute name="meta-description-pre" value="Select a state to find "></attribute>
+		<attribute name="meta-description" value=" in your local towns and cities across America"></attribute>
+		<!-- <attribute name="footer-content-pre" value="  You are 1 step away from the directory listings page. Liked the listings for "></attribute>
+		<attribute name="footer-content" value="  ? Please review the contractors and join to add your favorite contractors to your profile for future use.
+		 Thank You - HomeFellas Team. "></attribute>
+		 -->
+		 <attribute name="footer-content" value=" Page!"></attribute>
+		 
+	</pagename>
+	<pagename name="county">
+		<attribute name="title-pre" value=" Choose County for Quality Local "></attribute>
+		<attribute name="meta-keywords" value=",county, services "></attribute>
+		<attribute name="meta-description-pre" value="Choose County for Quality"></attribute>
+		<attribute name="meta-description" value=" and top rated reviews."></attribute>
+		<attribute name="footer-content" value=" Page!"></attribute>
+		<!--  
+		<attribute name="footer-content-pre" value="  If you are not pleased with the results for"></attribute>
+		<attribute name="footer-content" value="  on the upcoming listings page. Please drop us a message using Feedback or Contact Us links at the bottom.
+		 Thank You - HomeFellas Team. "></attribute>
+		-->
+	</pagename>
+	<pagename name="city">
+		<attribute name="title-pre" value="Find Top Rated Quality Local "/>
+		<attribute name="meta-keywords" value=",towns, cities, city , metro areas , services, home improvement"/>
+		<attribute name="meta-description-pre" value="Top rated services for "/>
+		<attribute name="meta-description" value=" with lots of background information. "></attribute>
+		<!-- attribute name="footer-content2" value=" Page!" / -->
+	
+		<attribute name="footer-content-pre" value="  Local Home Improvement Service Listings for"></attribute>
+		<attribute name="footer-content" value="   Please send us a note by clicking on Feedback or Contact Us. "></attribute>
+		 -->
+	</pagename>
+	<pagename name="directory">
+		<attribute name="title-pre" value=""></attribute>
+		<attribute name="meta-description-pre" value=" Find local top quality "></attribute>
+		<attribute name="meta-description" value="  Listings by HomeFellas."></attribute>
+		<attribute name="meta-keywords" value=""></attribute>
+		<attribute name="bottom-bar" value="Need more results for "/>
+		<attribute name="temp_footer-content-pre" value=" Hope you find listings for "/>
+		<attribute name="footer-content-pre" value="HomeFellas "/>
+		<attribute name="temp_footer-content" value="  useful. If we do not have the right information for "/>
+		<attribute name="temp_footer-content2" value=" in your town , city or metro area - "/>
+		<attribute name="temp_footer-content3" value=" , please click on the Feedback button to report a problem or tell us how we could improve our service. Thanks - HomeFellas Team."/>
+		<attribute name="bloglink" value="Looking for Spring Lawn Care Tips ? Click "/>
+	</pagename>
+	<pagename name="companyDetail">
+		<attribute name="title" value=" - HomeFellas"></attribute>
+		<attribute name="meta-keywords" value=""></attribute>
+		<attribute name="meta-description" value="HomeFellas.com puts you directly in contact with "/>
+		<attribute name="meta-description-pre" value="Local quality "/> 
+		<attribute name="footer-content" value="HomeFellas is glad to bring you company detail information on"/>
+		<attribute name="footer-content2" value=" .If you are not satisfied or find a problem with the information. Please click on the feedback link at the bottom and share your thoughts with us."/>
+	</pagename>	
+
+	<!-- <pagename name="homepage">
+		<attribute name="title" value="Home Contractors Services, Reviews, Tips by HomeFellas"/>
+		<attribute name="meta-keywords" value=",plumbers , insulation , lawn care , electricians , handyman , home , local, services"/>
+		<attribute name="meta-description" value=" Find best local Home Service Contractors, Insulation, Lawn Care, Handyman, Maids, Plumbers, Electricians. Articles, Tips, Blogs, Reviews... "/>
+		<attribute name="header-h1-content" value=" Find top quality service directory with local general contractors , handyman , maid services reviews 
+		, plumbers , plumbing , garage doors , kitchen, bathroom,  furniture repairs, insulation , electricians , electrical  spring cleaning , 
+		lawn care landscaping + more . Home improvement articles , tips , blogs , reviews. listings in new york city ny manhattan brooklyn queens long island white plains ny -	
+		los angeles orange county bay area san francisco california ca - houston dallas austin texas tx - chicago il - miami tampa orlando fl - 
+		philadelphia pa. - HomeFellas Team. "/>
+		<attribute name="header-h1-href" value="/plumbers-electricians-insulation-lawn-care/find-service-pros.hf/1/c"/>
+		<attribute name="header-h1-href-title" value="Find Plumbers - Electricians - General Contractors - Handyman - Listings - Home Improvement Project Estimates"/>
+		<attribute name="AskAnExpert-href-title" value="Ask an Expert for Free - Any Home Improvement Questions"/>
+		<attribute name="Articles-href-title" value="Home Improvement Tips, Articles and Blogs"/>
+		<attribute name="CustomerFeedback-href-title" value="Have a complaint or a new idea for HomeFellas? Please share"/>
+		<attribute name="login-href-title" value="Login to Enjoy Member Benefits."/>
+		<attribute name="SearchButton-Alt" value="Find the Best Top Rated Plumbers - Electricians - General Contractors - Handyman - Listings + More.."/>
+		<attribute name="Articles1-href-name" value="Search Made Simple"/>
+		<attribute name="Articles1-href" value="/blog/2009/12/16/1260985436118.html"/>
+		<attribute name="Articles1-href-title" value="Home Fellas Introduction - Service Pro Search Made Simple"/>
+		<attribute name="Articles2-href-name" value="Spring Lawn Care Tips"/>
+		<attribute name="Articles2-href" value="/blog/2009/12/16/1269316950093.html"/>
+		<attribute name="Articles2-href-title" value="Spring Lawn Care Advice and Maintenance Tips - Lawn Care Landscapers"/>
+		<attribute name="Articles3-href-name" value="Cash For Caulkers"/>
+		<attribute name="Articles3-href" value="/blog/2009/12/23/1261596120000.html"/>
+		<attribute name="Articles3-href-title" value="Get Cash from Government Program for homes and businesses Caulking"/>
+		<attribute name="footer-content" value=" HomeFellas offers top rated listings info for local home services contractors in categories such as 
+		plumbers , liquid plumbing, electricians , electrical jobs , insulation , lawn care , handyman, maid services , snow removal by landscapers, kitchen bathroom remodelling , 	winter spring summer fall carpet cleaning , funiture repairs , fix garage doors , home improvement articles , environmental pest control , green home inspections. &lt;br&gt;&lt;br&gt;
+		We cover most local towns , city and  metro areas across America: Hoboken Jersey City Newark Trenton Cherry Hill New Jersey NJ . Metro Area Cincinnati Ohio OH - Boston Massachusetts MA . Baltimore Maryland MD - Richmond Virginia VA - Washington DC . Seattle Redmond Washington WA .Denver Aspen Colorado CO . New York City NY Manhattan 
+		Brooklyn Queens Long Island White Plains NY . Los Angeles Orange County Bay Area San Francisco San Diego California CA . Houston Dallas Austin Texas TX . Chicago IL - Miami Tampa Orlando FL -	Philadelphia PA - Atlanta GA . &lt;br&gt; &lt;br&gt;
+		Find tips on our blogs and forums like hgtv diy network bob the builder etc.. Read reviews of our general directory of contractors. We strive to bring you services that surpass competitors such as super 
+		pages , yellow pages , servicemagic , service magic , dex knows, yelp . Service pros please join HomeFellas for jobs leads , exposure to clieants and many more benefits. Home Residents please join HomeFellas.com for fast contact sharing, email, SMS text, Add contractors to your profile 
+		and many more exciting features coming up in the near future. Keep checking in for useful new features at HomeFellas.com that will save you time in preparing for your Home Improvement Projects. &lt;br&gt;&lt;br&gt;  
+		We will strive to be the best website in the home improvement space	an will bring you new topics such as listing for business , house project job estimates , pros services  jobs , the family my mr ,
+		liquid plummer , building construction license - licensed , union pros and journeyman apprentice , ecologists and environmentally green	home inspectors. - HomeFellas Team"/>
+		
+		<attribute name="categoryLink" value="Full Service Categories List"/>
+	</pagename> -->
+
+
+
+	<pagename name="secondopinion">
+		<attribute name="title" value="Compare Home Remodeling Costs, Get A Free 2nd Opinion On Your Project"></attribute>
+		<attribute name="meta-keywords" value="remodeling, kitchen remodel costs, bathroom remodel costs, construction companies, plumbers, electricians"></attribute>
+		<attribute name="meta-description" value="Expensive constractors and other project bid sites got you down? Compare Remodeling Costs, Get A Free 2nd Opinion On Your Project."/> 
+		<attribute name="footer-content" value="Homefellas.com is proud to bring to you a revoluntionary new free second opinion feature.  Not sure of your contractor bid?  With a few simple steps you can now get estimates from your local service pro to compare in the convience of your home.  No salesman pressuring you and you can decide for yourself."/>
+		<attribute name="footer-content2" value=""/>
+		<attribute name="h1" value="&lt;u&gt;Free&lt;/u&gt; 2nd Opinion For Your Home Remodeling Project.  Compare estimates online."/>
+		<attribute name="picture-paragraph1" value="Not sure about the estimate you have received?"/>
+		<attribute name="picture-paragraph2" value="Don't want to let a stranger in your home just to get an over priced &lt;strong&gt;estimate&lt;/strong&gt;?"/>
+		<attribute name="picture-paragraph3" value="Tired of all the hassle?  Looking for an easier solution?"/>
+		<attribute name="picture-paragraph4" value="Get started now to &lt;strong&gt;compare&lt;/strong&gt; quick and free &lt;strong&gt;service pro&lt;/strong&gt; estimate from your local contractors."/>
+		<attribute name="picture-paragraph5" value="The revolutionary Homefellas.com second opinion feature offers bathroom remodeling, kitchen remodeling, and other home improvement online contractor estimate."/>
+	</pagename>
+	<pagename name="bidlandingpage">
+		<attribute name="title" value="Compare Home Remodeling Costs, Get A Free Bid On Your Project"></attribute>
+		<attribute name="meta-keywords" value="remodeling, construction leads, project bid, independent contractors, builders and contractors, home improvement contractors, general contractors, plumbers, electricians, kitchen remodelers"></attribute>
+		<attribute name="meta-description" value="Expensive constractors and other project bid sites got you down? Compare Remodeling Costs, Get Free Bids On Your Project."/> 
+		<attribute name="footer-content" value="Homefellas.com is thrilled to offer you our brand new absolutly FREE and amazing online bid feature.  You're just a few simple clicks away from receiving free contractor estimates for you to review compare quality repuation and prices before making an educated decision on your next home improvement or remodeling project."/>
+		<attribute name="footer-content2" value=""/>
+		<attribute name="h1" value="Get &lt;u&gt;Free&lt;/u&gt; Bids. Compare Prices and Estimates For Your Home Remodeling Project!"/>
+		<attribute name="picture-paragraph1" value="Looking for &lt;strong&gt;home remodeling&lt;/strong&gt; cost estimates?"/>
+		<attribute name="picture-paragraph2" value="Don't want to let a stranger in your home just to get an over priced &lt;strong&gt;estimate&lt;/strong&gt;?"/>
+		<attribute name="picture-paragraph3" value="Tired of taking time off from work to meet a &lt;strong&gt;contractor&lt;/strong&gt; that doesn't show up?"/>
+		<attribute name="picture-paragraph4" value="Get started now to &lt;strong&gt;compare&lt;/strong&gt; quick and free &lt;strong&gt;service pro&lt;/strong&gt; estimate from your local contractors."/>
+		<attribute name="picture-paragraph5" value="The revolutionary Homefellas.com bid feature offers bathroom remodeling, kitchen remodeling, and other home improvement online contractor estimate."/>
+	</pagename>
+	<pagename name="bid-request">
+		<attribute name="title-pre" value="Get Free "></attribute>
+		<attribute name="title" value=" Estimates &amp; Quick Local "></attribute>
+		<attribute name="title-post" value=" costs"></attribute>
+		<attribute name="meta-keywords" value="remodeling, construction leads, project bid, independent contractors, builders and contractors, home improvement contractors, general contractors, plumbers, electricians, kitchen remodelers"></attribute>
+		<attribute name="meta-description" value="Expensive constractors and other project bid sites got you down? Compare Remodeling Costs, Get Free Bids On Your Project."/> 
+		<attribute name="footer-content" value="Welcome to homefellas.com revolutionary new online bid and second opinion feature.  We allow you to quickly, through a few simple steps, submit your next home improvement or remodeling project for your best local service pro to review.  Within a few hours to a couple of business days you will receive several estimates from matching local contractors to review before you make a smart and educated decision.  We encourage you to submit pictures of your current project location and drawing or information photos of the work you would like the contractor to do for you."/>
+		<attribute name="footer-content2" value=""/>
+		<attribute name="h1" value="Online Bid is here! Compare online FREE contractor estimates."/>
+		<attribute name="step1" value="Step 1 of 3: Tell us about your project."/>
+		<attribute name="requiredText" value="&lt;b&gt;*&lt;/b&gt; These items will be required to complete the form."/>
+		<attribute name="searchthiscontractor1" value="Search "/>
+		<attribute name="searchthiscontractor2" value=" plus others in the area."/>
+		<attribute name="onlycontact" value="I'd like quotes from other similar contractors"/>
+		<attribute name="originalquotedprice" value="Original Quoted Price* "/>
+		<attribute name="originaldescription" value="Original Scope of Work* "/>
+		<attribute name="selectcategory" value="Please select a category* "/>
+		<attribute name="uploadimage" value="Upload Photos of your project. (recommended)"/>
+		<attribute name="aboutbid" value="Tell us what you need, sit back, relax and let us do the dirty work of finding local contractors. We'll bring you many online contractor estimates to choose from. &lt;br/&gt;&lt;br/&gt;"/>		
+	</pagename>
+	<pagename name="default-footer">
+		<attribute name="footer-content" value="HomeFellas is glad to bring you a second opinion."/>
+		<attribute name="footer-content-pre" value=""/>
+		<attribute name="footer-content2" value=""/>
+		<attribute name="footer-content3" value=""/>
+	</pagename>
+	<pagename name="join-partner">
+		<attribute name="title" value="Advertise your business, list FREE and generate sales leads online with Homefellas.com!"></attribute>
+		<attribute name="meta-keywords" value="free listing, local demand, nationwide, online, sales leads, service pro, remodeling, home improvement, join, contractor"></attribute>
+		<attribute name="meta-description" value="List your business and receive local demand for the services you offer.  HomeFellas.com is proud to offer our online sales leads service for FREE.  Why wait, List your Business with HomeFellas.com now!"/> 
+		<attribute name="footer-content" value="No more taking time off from the job site just to let write up estimates.   We have used the  power of the internet and the era of social networking to save you time when offering home improvement and other services a little bit simpler a day at a time.  List your business and receive local demand for the services you offer.  HomeFellas.com is proud to offer our online sales leads service for FREE.  Why wait, list your Business with HomeFellas.com now!"/>
+		<attribute name="footer-content2" value=""/>
+		<attribute name="h1" value="List your business and receive FREE leads."/>
+		<attribute name="why" value="Why list your company with us?"/>
+		<attribute name="step1" value="1. You will receive direct leads from customers who find your business listed on HomeFellas.com. HomeFellas.com is a FREE online community connecting customers with contractors; We are NOT a lead generation company! We will NEVER charge you for connecting you with this customer information and NEVER charge you for listing your business with us."/>
+		<attribute name="step2" value="2. Save your time and money with our fresh online customer screening service."/>
+		<attribute name="step3" value="3. List your business and be visible to millions on local customers."/>
+		<attribute name="step4" value="4. Receive FREE online leads directly from our customers."/>
+		<attribute name="step5" value="5. We'll NEVER charge you per lead like our competitors."/>
+		
+		<attribute name="stepfootnote" value="*Rest assured we will not display your personal contact information with your company listing, nor sell it to a 3rd party."/>
+	</pagename>
+		
+
+</seo>

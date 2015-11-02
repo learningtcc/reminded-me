@@ -1,0 +1,331 @@
+package com.homefellas.notification;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import org.joda.time.DateTime;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import com.homefellas.batch.INotificationService;
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.dao.core.IDao;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.notification.IEmailService;
+import com.homefellas.rm.reminder.IReminderServiceTX;
+import com.homefellas.rm.share.IShareService;
+import com.homefellas.rm.share.Invite;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.task.ITaskServiceTX;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.IUserServiceTX;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+import com.homefellas.user.Role;
+import com.homefellas.user.RoleEnum;
+
+public class QueuePopulator
+{
+
+	public static void main(String[] args)
+	{
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:com/homefellas/context/notification-context.xml");
+//		INotificationLauncherService notificationLauncherService = (INotificationLauncherService)ctx.getBean("notificationLauncherService");
+		final ITaskServiceTX taskService = (ITaskServiceTX)ctx.getBean("taskService");
+		final IReminderServiceTX reminderService = (IReminderServiceTX)ctx.getBean("reminderService");
+		final IUserServiceTX userService = (IUserServiceTX)ctx.getBean("userService");
+		final IShareService shareService = (IShareService)ctx.getBean("shareService");
+		final IEmailService emailService = (IEmailService)ctx.getBean("emailService");
+		final INotificationService notificationService = (INotificationService)ctx.getBean("notificationService");
+		final IDao dao = (IDao)ctx.getBean("dao");
+		
+		PlatformTransactionManager transactionManager = (PlatformTransactionManager)ctx.getBean("transactionManager");
+		
+		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+		   @Override
+		   protected void doInTransactionWithoutResult(TransactionStatus status) {
+		Role roleUser = dao.loadObject(Role.class, RoleEnum.HF_USER_ROLE.getId());
+		
+		Set<Role> userRoles = new HashSet<Role>();
+		userRoles.add(roleUser);
+		String input="";
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		Profile profileBasic = null;
+		System.out.println("Press 1 to create a new member and 2 to use an existing");
+		try {
+			input = br.readLine();
+	      } catch (IOException ioe) {
+	         System.out.println("IO error trying to read your name!");
+	         System.exit(1);
+	      }
+	      
+	    //create a new member  
+	    if ("1".equals(input))
+		{
+	    	br = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("Press 1 to specify the user id and 2 to use a random one");
+			try {
+				input = br.readLine();
+		      } catch (IOException ioe) {
+		         System.out.println("IO error trying to read your name!");
+		         System.exit(1);
+		      }
+		      String email=null;
+		    if ("1".equals(input))  
+		    {
+		    	System.out.println("Enter your email address:");
+		    	br = new BufferedReader(new InputStreamReader(System.in));
+		    	try {
+					email = br.readLine();
+			      } catch (IOException ioe) {
+			         System.out.println("IO error trying to read your name!");
+			         System.exit(1);
+			      }
+		    }
+		    else
+		    {
+		    	email = "basic"+new Random().nextInt()+"@homefellas.com";
+		    }
+			Member basicUser = new Member();
+			basicUser.setRoles(userRoles);
+			basicUser.setEmail(email);
+			basicUser.setPassword(String.valueOf(new Random().nextInt()));
+			basicUser.setTicket(String.valueOf(new Random().nextInt()));
+			
+			profileBasic = new Profile();
+			profileBasic.setName("name");		
+			profileBasic.setMember(basicUser);
+			profileBasic.setMember(basicUser);
+			profileBasic.generateGUIDKey();
+			basicUser.setId(profileBasic.getId());
+			dao.saveOrUpdate(profileBasic);
+		}
+	    //use an existing member
+	    else if ("2".equals(input))
+	    {
+	    	br = new BufferedReader(new InputStreamReader(System.in));
+	    	System.out.println("Please enter the email address of hte user you want to use");
+	    	try {
+				input = br.readLine();
+		      } catch (IOException ioe) {
+		         System.out.println("IO error trying to read your name!");
+		         System.exit(1);
+		      }
+		    
+		    if (input.trim().equals(""))
+		    	input = "tdelesio@gmail.com";
+		    profileBasic = userService.getProfileByEmail(input);
+		    if (profileBasic==null)
+		    {
+		    	System.out.println("Bad user id, Goodbye.");
+		    	System.exit(1);
+		    }
+	    }
+	    else
+		{
+			System.out.println("You didn't pick what I asked...Goodbye.");
+			System.exit(1);
+		}
+		
+		System.out.println("Select how you would like the queue populated...");
+		System.out.println("1)Reminder");
+		System.out.println("2)Email");
+		System.out.println("3)Push");
+		br = new BufferedReader(new InputStreamReader(System.in));
+		
+		try {
+			input = br.readLine();
+	      } catch (IOException ioe) {
+	         System.out.println("IO error trying to read your name!");
+	         System.exit(1);
+	      }
+	    //create a reminder  
+	    if ("1".equals(input))
+	    {
+	    	System.exit(0);
+	    }
+	    //create an email
+		else if ("2".equals(input))
+		{
+			System.out.println("What email would you like to send?");
+			System.out.println("1)Forgot Password");
+			System.out.println("2)Join Confirmation");
+			System.out.println("3)Share Email");
+			System.out.println("4)Task End Time Reached");
+			System.out.println("5)Task End Time Reached with Reup");
+			br = new BufferedReader(new InputStreamReader(System.in));
+			
+			try {
+				input = br.readLine();
+		      } catch (IOException ioe) {
+		         System.out.println("IO error trying to read your name!");
+		         System.exit(1);
+		      }
+		      
+		      //forgot password
+		      if ("1".equals(input))
+			    {
+					try
+					{
+						userService.forgotPasswordTX(profileBasic.getMember().getEmail(), new URL("http://localhost/"));
+					}
+					catch (MalformedURLException e)
+					{
+						e.printStackTrace();
+					}
+					catch (ValidationException e)
+					{
+						e.printStackTrace();
+					}
+			    }
+		      //join email
+		      else if ("2".equals(input))
+		      {
+		    	  userService.sendJoinEmail(profileBasic, Locale.ENGLISH);
+		      }
+		      //share email
+		      else if ("3".equals(input))
+		      {
+		    	  Task task = new Task();
+		    	  task.setTitle("task");
+		    	  task.setTaskCreator(profileBasic);
+		    	  task.generateGUIDKey();
+		    	  Invite invite = new Invite();
+		    	  invite.generateGUIDKey();
+		    	  Map<String, String> emailAddresses = new HashMap<String, String>();
+		    	  emailAddresses.put(profileBasic.getMember().getEmail(), profileBasic.getName());
+		    	  invite.setEmailAddresses(emailAddresses);
+		    	  invite.setInviter(profileBasic.getMember());
+		    	  invite.setMessage(null);
+		    	  invite.setSubject("Subject");
+		    	  invite.setShareClassName(Task.class.getName());
+		    	  invite.setShareId(task.getId());
+		    	  Share share = new Share();
+		    	  share.setTask(task);
+		    	  share.setUser(profileBasic.getMember());
+		    	  share.setInvite(invite);
+		    	  share.generateGUIDKey();
+		    	  try
+				{
+//					shareService.sendIShareNotification(invite, share, profileBasic.getName(), true);
+		    		emailService.sendShareNotificationToSharee(invite, share, NotificationTypeEnum.EMAIL, profileBasic.getName(), true);
+				}
+				catch (ValidationException e)
+				{
+					e.printStackTrace();
+					System.exit(1);
+				}
+				System.exit(1);
+		      }
+		      //reminder email
+		      else if (input.equals("4"))
+		      {
+		    	  System.out.println("Enter number of second from now to mark as end time");
+		    	  br = new BufferedReader(new InputStreamReader(System.in));
+					
+					try {
+						input = br.readLine();
+				      } catch (IOException ioe) {
+				         System.out.println("IO error trying to read your name!");
+				         System.exit(1);
+				      }
+				   DateTime dateTime = new DateTime();
+				   dateTime = dateTime.plusSeconds(Integer.parseInt(input));
+				   System.out.println(dateTime);
+		    	  Task task = new Task();
+		    	  task.setTitle("task");
+		    	  task.setEndTime(dateTime);
+		    	  task.setTaskCreator(profileBasic);
+		    	  task.generateGUIDKey();
+		    	  task.setTaskCreator(profileBasic);
+//		    	  taskService.loadReminderNotifications(task, false);
+		    	  emailService.processNotificationsForTaskCreateOrUpdate(task, task, false);
+		      }
+		      else if (input.equals("5"))
+		      {
+		    	  System.out.println("Enter number of second from now to mark as end time");
+		    	  br = new BufferedReader(new InputStreamReader(System.in));
+					
+					try {
+						input = br.readLine();
+				      } catch (IOException ioe) {
+				         System.out.println("IO error trying to read your name!");
+				         System.exit(1);
+				      }
+				   DateTime dateTime = new DateTime();
+				   dateTime = dateTime.plusSeconds(Integer.parseInt(input));
+				   System.out.println(dateTime);
+		    	  Task task = new Task();
+		    	  task.setTitle("task");
+		    	  task.setEndTime(dateTime);
+		    	  task.setTaskCreator(profileBasic);
+		    	  task.generateGUIDKey();
+		    	  task.setTaskCreator(profileBasic);
+		    	  
+//		    	  Set<TaskRepeat> taskRepeats = new HashSet<TaskRepeat>();
+//		    	  TaskRepeat taskRepeat3 = new TaskRepeat();
+//			  		taskRepeat3.generateGUIDKey();
+//			  		taskRepeat3.setEnabled(true);
+//			  		DateTime repeatTime = dateTime.plusSeconds(Integer.parseInt(input));
+//			  		taskRepeat3.setDatetime(repeatTime);
+//			  		taskRepeats.add(taskRepeat3);
+//			  		taskRepeat3.setTask(task);
+//		    	  
+//			  		task.setTaskRepeats(taskRepeats);
+			  		
+			  		try
+					{
+						taskService.createTaskTX(task);
+					}
+					catch (ValidationException e)
+					{
+						e.printStackTrace();
+						System.exit(1);
+					}
+//		    	  taskService.loadReminderNotifications(task, false);
+//		    	  emailService.processNotificationsForTaskCreateOrUpdate(task, false);
+		      }
+		      else
+		      {
+		    	  System.out.println("You didn't pick what I asked...Goodbye.");
+		    	  System.exit(1);
+		      }
+		}
+		else if ("3".equals(input))
+		{
+			Notification notification = new Notification();
+			notification.setNotificationTypeOrdinal(NotificationTypeEnum.PUSH.ordinal());
+			notification.setPushTypeOrdinal(PushTypeEnum.APPLE.ordinal());
+			notification.setBody("hello from rme");
+			notification.setToSendTime(new DateTime().plusSeconds(30).getMillis());
+			notification.setSendFrom("neverforget@reminded.me");
+			notification.setSendTo("tdelesio@gmail.com");
+			notificationService.scheduleNotification(notification);
+		}
+		else
+		{
+			System.out.println("You didn't pick what I asked...Goodbye.");
+		}
+		   }});
+		
+		System.out.println("Completed");
+		System.exit(1);
+	}
+
+	
+}

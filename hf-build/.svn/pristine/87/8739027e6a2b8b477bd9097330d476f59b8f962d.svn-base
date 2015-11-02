@@ -1,0 +1,26 @@
+#Hibernate
+hibernate.formatSql=false
+hibernate.generateStatistics=false
+cache.use_query_cache = false
+hibernate.cacheProviderClass=net.sf.ehcache.hibernate.EhCacheProvider
+hibernate.cache=false
+hibernate.cache.use_second_level_cache=false
+db.dialect = org.hibernate.dialect.MySQLDialect
+db.unittest.dialect=org.hibernate.dialect.HSQLDialect
+
+
+#Email
+defaultEncoding=UTF-8;
+mail.smtps.host=smtp.gmail.com
+mail.smtps.port=465
+mail.protocol=smtps
+mail.smtps.auth=true
+mail.smtps.starttls.enable=true
+mail.smtps.debug=true
+mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.smtp.socketFactory.fallback=false
+mail.smtp.starttls.enable=true
+
+
+#Cache
+ehcache.configurationResourceName=classpath:main/resource/conf/EhCacheConfiguration.xml

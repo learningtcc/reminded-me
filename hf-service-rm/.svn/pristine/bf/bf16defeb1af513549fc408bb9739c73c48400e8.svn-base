@@ -1,0 +1,13 @@
+package com.homefellas.rm.task;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.IRMValidator;
+
+public interface ITaskValidator extends IRMValidator {
+
+	public void validateCategory(Category category) throws ValidationException;
+	public void validateTask(Task task) throws ValidationException;
+	public void validateCalendar(Calendar calendar) throws ValidationException;
+	public void validateRepeatSetup(RepeatSetup repeatSetup) throws ValidationException;
+
+}

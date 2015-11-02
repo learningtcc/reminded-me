@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        The link to the hibernate-validator parent POM only exists out of convenience since we are creating
+        this archetype from an existing module of the Hibernate Validator code base.
+        If you want to know more about this process check the maven-archetype-plugin documentation
+        http://maven.apache.org/archetype/maven-archetype-plugin, epecially the goal create-from-project
+
+        If you want to use this quick-start project as the base for your own application you should remove the
+        <parent> entry. See also the other pointers in this pom.
+    -->
+    <parent>
+        <artifactId>hf-service-build</artifactId>
+        <groupId>com.homefellas</groupId>
+        <version>1.1.0</version>
+        <relativePath>../hf-service-build/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>hf-service-core</artifactId>
+    <packaging>jar</packaging>
+    <name>hf-service</name>
+	<build>
+	<plugins>
+		<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>jar-test-classes</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            </plugins>
+    </build>        
+    <!-- When removing the parent project configuration you have to explicitly set the dependencies version -->
+    <dependencies>
+
+
+    <dependency>
+    	<groupId>org.apache.cassandra</groupId>
+    	<artifactId>cassandra-thrift</artifactId>
+    </dependency>
+    </dependencies>
+   
+</project>

@@ -1,0 +1,12 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = When are you available?
+template = Scheduler_Customer_AppointmentRequest_en.html
+persist =true 
+bcc=prashanth@homefellas.com
+testmode=false
+testemail=munigala.prashanth@gmail.com
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

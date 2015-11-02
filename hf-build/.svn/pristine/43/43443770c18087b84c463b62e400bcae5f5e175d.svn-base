@@ -1,0 +1,9 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = Welcome to the HomeFellas.com community\!
+template = Join_en.html
+persist =true 
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

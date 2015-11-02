@@ -1,0 +1,123 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>hf-ws-build</artifactId>
+	<packaging>pom</packaging>
+	<name>hf-ws-build</name>
+	<parent>
+		<groupId>com.homefellas</groupId>
+		<artifactId>hf-web-build</artifactId>
+		<version>1.1.0</version>
+		<relativePath>../hf-web-build/pom.xml</relativePath>
+	</parent>
+
+	<modules>
+		<module>../hf-ws-support</module>
+		<module>../hf-ws-rm</module>
+		<module>../hf-ws-core</module>
+		<module>../hf-ws-location</module>
+	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.jersey-test-framework</groupId>
+			<artifactId>jersey-test-framework-grizzly</artifactId>			
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-spring</artifactId>		
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-apache-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+
+				<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty-embedded</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>org.jasig.cas.client</groupId>
+    		<artifactId>cas-client-core</artifactId>
+    	</dependency>
+    	<dependency>
+    		<groupId>com.google.code.gson</groupId>
+    		<artifactId>gson</artifactId>
+    		<scope>provided</scope>
+    	</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.enunciate</groupId>
+			<artifactId>enunciate-docs</artifactId>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId> -->
+<!-- 			<artifactId>oauth-client</artifactId> -->
+<!-- 			<version>1.12</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId> -->
+<!-- 			<artifactId>oauth-signature</artifactId> -->
+<!-- 			<version>1.12</version> -->
+<!-- 		</dependency> -->
+
+	</dependencies>
+
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.8.1</version>
+					<configuration>
+						<doclet>com.lunatech.doclets.jax.jaxrs.JAXRSDoclet</doclet>
+						<docletArtifact>
+							<groupId>com.lunatech.jax-doclets</groupId>
+							<artifactId>doclets</artifactId>
+							<version>0.10.0</version>
+						</docletArtifact>
+						<useStandardDocletOptions>true</useStandardDocletOptions>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

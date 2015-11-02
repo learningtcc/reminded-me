@@ -1,0 +1,38 @@
+package com.homefellas.rm.notification;
+
+import java.util.List;
+
+import org.joda.time.DateTime;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.notification.EmailService.TaskStatusChangeEvent;
+import com.homefellas.rm.reminder.Alarm;
+import com.homefellas.rm.share.IShare;
+import com.homefellas.rm.share.Invite;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.ShareApprovedStatus;
+import com.homefellas.rm.share.ShareCalendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public interface IEmailService
+{
+
+	public Notification sendNotificationForEndDateReached(Task task, String toEmailAddress, long timeToSend, NotificationTypeEnum notificationTypeEnum);
+	public void processNotificationsForTaskCreateOrUpdate(Task task, Task taskFromDB, boolean isUpdate);
+	public void createAndCancelTaskEndTimeNotifications(Task task, Task taskFromDB, String toEmailAddress, boolean isUpdate);
+	public Notification sendNotificationForTaskCompleteOrDelete(Task task, NotificationTypeEnum notificationTypeEnum, String toEmail);
+	public Notification sendNotificationToShareeOnTaskUpdate(Share share, NotificationTypeEnum notificationTypeEnum);
+	public Notification sendShareAcceptOrDeclineNotificationToTaskOwner(Share share, Profile shareeProfile, NotificationTypeEnum notificationTypeEnum, ShareApprovedStatus shareApprovedStatus);
+	public Notification sendShareCalendarAcceptOrDeclineNotificationToTaskOwner(ShareCalendar shareCalendar, Profile profile, NotificationTypeEnum notificationTypeEnum, ShareApprovedStatus shareApprovedStatus);
+	public Notification sendShareNotificationToSharee(Invite invite, IShare iShare, NotificationTypeEnum notificationTypeEnum, String alias, boolean publicTask) throws ValidationException;
+	public Notification sendMessageToSharee(Invite invite, Share share);
+	public Notification sendAlarm(Alarm alarm);
+	public void sendTaskStatusChangeNotification(Task taskBeingChanged, String userMakingChange, String toEmail, TaskStatusChangeEvent taskStatusChangeEvent);
+	public void sendDigestEmail(List<Task> tasks, String toEmail, DateTime toSendTime);
+	public void sendNotificationForSubTaskAdded(Task parentTask, Task subTask, Member memberThatHasBeenSharedWith);
+	public void processNotificationsForTaskStatusChange(Task task, Task taskFromDB, String toEmail, String userChangingTaskEmail);
+}

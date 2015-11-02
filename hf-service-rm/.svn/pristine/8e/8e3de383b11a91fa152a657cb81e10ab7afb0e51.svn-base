@@ -1,0 +1,18 @@
+package com.homefellas.rm.notification;
+
+import java.util.List;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.exception.ValidationException;
+
+public interface IClientNotificationServiceTX extends IClientNotificationService
+{
+
+	public List<ClientNotification> getBulkClientNotificationsTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException;
+	public ClientNotification updateClientNotificationTX(ClientNotification clientNotification, String loggedInUserEmail) throws ValidationException;
+	public ClientNotification createClientNotificationTX(ClientNotification clientNotification) throws ValidationException;
+	public List<Device> getBulkDevicesTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException;
+	public Device createDeviceTX(Device device) throws ValidationException;
+//	public List<Device> getDevicesByEmailTX(String email);
+	public Notification pushAppleNotificationTX(Notification notification);
+}

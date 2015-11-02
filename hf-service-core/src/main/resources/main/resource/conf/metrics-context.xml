@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/aop  http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       ">
+       
+       
+       
+       <bean id="metricCacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+    		<property name="configLocation" value="classpath:main/resource/conf/cache/metrics-ehcache.xml" />
+    	</bean>
+    	
+       <bean id="metricCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="metricCacheManager" />
+			<property name="cacheName" value="metricCache" />
+			<property name="maxElementsInMemory" value="${metrics.maxElementsInMemory}" />
+			<property name="eternal" value="false" />
+			<property name="overflowToDisk" value="false" />
+			<property name="timeToLive" value="${metrics.timeToLiveInSeconds}"/>
+			<property name="memoryStoreEvictionPolicy" value="${metric.evictionPolicy}"></property>
+			<property name="cacheEventListeners">
+				<set>
+					<ref bean="metricSizeExceededCacheEventListener"/>
+				</set>
+			</property>
+		</bean>
+		
+		<bean id="webRequestCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="metricCacheManager" />
+			<property name="cacheName" value="webRequestCache" />
+			<property name="maxElementsInMemory" value="${metrics.maxElementsInMemory}" />
+			<property name="eternal" value="false" />
+			<property name="overflowToDisk" value="false" />
+			<property name="timeToLive" value="${metrics.timeToLiveInSeconds}"/>
+			<property name="memoryStoreEvictionPolicy" value="${metric.evictionPolicy}"></property>
+		</bean>
+
+<!-- 		<aop:aspectj-autoproxy/> -->
+<!-- 		<context:spring-configured/>        -->
+
+<!-- 		<bean id="metricAspect" class="com.homefellas.metrics.AbstractMetricAspect" factory-method="aspectOf"> -->
+<!-- 		  <property name="cache" ref="metricCache"/> -->
+<!-- 		  <property name="metricLevel" value="${metric.level}"/> -->
+<!-- 		</bean> -->
+	
+		
+
+		<bean id="metricService" class="com.homefellas.metrics.MetricService" parent="abstractService">
+			<property name="cache" ref="metricCache"/>
+			<property name="webRequestCache" ref="webRequestCache"/>
+			<property name="responseThreshold" value="${metric.response.threshold}"/>
+			<property name="captureWebMetrics" value="${captureWebMetrics}"/>
+		</bean>
+		
+		<bean id="metricDao" class="com.homefellas.metrics.MetricDao" parent="hibernateDao"/>
+		<!-- 
+		<task:executor id="metricExecutor" pool-size="5"/>
+		 -->
+		
+		<bean id="metricSizeExceededCacheEventListener" class="com.homefellas.metrics.MetricSizeExceededCacheEventListener">
+			<property name="threshold" value="${metrics.flushthreshold}"/>
+			<property name="scheduler" ref="metricScheduler"/>
+			<property name="delayInSeconds" value="${metrics.flushthreshold.seconddelay}"/>
+<!--			
+			<property name="metricService" ref="metricService"></property> 
+			<property name="config">
+			<map>
+				<entry key="metricSizeExceededCacheEventListener">
+					<props>
+						<prop key="metricService">metricService</prop>
+					</props>
+				</entry>
+			</map>
+		</property>
+ -->		
+		</bean>
+		
+		<task:scheduled-tasks scheduler="metricScheduler">
+	    	<task:scheduled ref="metricService" method="flushCache" cron="${metrics.flush.cron}" />
+		</task:scheduled-tasks>
+	
+		<task:scheduler id="metricScheduler" pool-size="${metric.threadpool.size}" />		
+		
+		<bean id="metricCassandraDao" class="com.homefellas.metrics.MetricCassandraDao"/>
+</beans>

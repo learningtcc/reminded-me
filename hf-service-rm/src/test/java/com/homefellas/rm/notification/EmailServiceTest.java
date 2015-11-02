@@ -1,0 +1,204 @@
+package com.homefellas.rm.notification;
+
+import static com.homefellas.rm.RMTestModelBuilder.buildInvite;
+
+import java.util.List;
+import java.util.Locale;
+
+import javax.annotation.Resource;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationService;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.email.core.EmailTemplateEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMTestDao;
+import com.homefellas.rm.calendar.Calendar;
+import com.homefellas.rm.calendar.ICalendarDao;
+import com.homefellas.rm.notification.EmailService.TaskStatusChangeEvent;
+import com.homefellas.rm.share.IShareDao;
+import com.homefellas.rm.share.Invite;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.ShareCalendar;
+import com.homefellas.rm.share.ShareService;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Profile;
+
+public class EmailServiceTest extends AbstractRMTestDao
+{
+	@Resource(name="emailService")
+	private EmailService emailService;
+
+	@Resource(name="notificationService")
+	private NotificationService notificationService;
+	
+	@Resource(name="shareDao")
+	private IShareDao shareDao;
+	
+	@Resource(name="calendarDao")
+	private ICalendarDao calendarDao;
+	
+	@Test 
+	public void sendTaskStatusChangeNotification()
+	{
+		Profile owner = createProfile();
+		Profile sharee1 = createProfile();
+		Profile sharee2 = createGuest();
+		
+		Task task = createTask(owner);
+		
+		Share share1 = createShare(task, sharee1);
+		Share share2 = createShare(task, sharee2);
+		
+		emailService.sendTaskStatusChangeNotification(task, owner.getEmail(), sharee1.getEmail(), TaskStatusChangeEvent.InProgress);
+		
+		List<Notification> notifications = notificationService.getNotificationsForINotificationTX(task);
+		Assert.assertEquals(2, notifications.size());
+		for (Notification notification : notifications)
+		{
+			Assert.assertTrue(notification.getSendTo().equals(sharee1.getEmail()) || notification.getSendTo().equals(sharee2.getEmail()));
+		}
+		
+		emailService.sendTaskStatusChangeNotification(task, sharee1.getEmail(), owner.getEmail(), TaskStatusChangeEvent.InProgress);
+		
+		notifications = notificationService.getNotificationsForINotificationTX(task);
+		Assert.assertEquals(4, notifications.size());
+		for (Notification notification : notifications)
+		{
+			Assert.assertTrue(notification.getSendTo().equals(owner.getEmail()) || notification.getSendTo().equals(sharee1.getEmail()) || notification.getSendTo().equals(sharee2.getEmail()));
+		}
+	}
+	
+	@Test
+	public void buildDynamicFromEmailAddress()
+	{
+		//check correct name
+		Assert.assertEquals("tim.delesio@app.reminded.me", emailService.buildDynamicFromEmailAddress("Tim Delesio", EmailTemplateEnum.SHARE_TASK));  
+		
+		//check blank name
+		Assert.assertEquals(emailService.getEmailFromAddress(EmailTemplateEnum.SHARE_TASK, Locale.ENGLISH), emailService.buildDynamicFromEmailAddress("''", EmailTemplateEnum.SHARE_TASK));
+		Assert.assertEquals(emailService.getEmailFromAddress(EmailTemplateEnum.SHARE_TASK, Locale.ENGLISH), emailService.buildDynamicFromEmailAddress(" ", EmailTemplateEnum.SHARE_TASK));
+		Assert.assertEquals(emailService.getEmailFromAddress(EmailTemplateEnum.SHARE_TASK, Locale.ENGLISH), emailService.buildDynamicFromEmailAddress("", EmailTemplateEnum.SHARE_TASK));
+		
+		//check null name
+		Assert.assertEquals(emailService.getEmailFromAddress(EmailTemplateEnum.SHARE_TASK, Locale.ENGLISH), emailService.buildDynamicFromEmailAddress(null, EmailTemplateEnum.SHARE_TASK));
+		
+		//check single name
+		Assert.assertEquals("tim@app.reminded.me", emailService.buildDynamicFromEmailAddress("Tim", EmailTemplateEnum.SHARE_TASK));
+		
+		return ;
+	}
+	
+	@Test
+	public void buildIShareNotification()
+	{
+		Profile profile1 = createProfile();
+		Profile profile2 = createProfile();
+		Profile profile3Guest1 = createGuest();
+		
+		Task task6 = createTask(profile1);
+		
+		Calendar calendarUserCreated = createCalendar(profile1);
+		
+		Share share1Profile3Task6 = createShare(task6, profile3Guest1);
+		
+		Invite invite1Task6 = buildInvite(true, task6.getId(), Task.class.getName());
+		invite1Task6.setInviter(task6.getTaskCreator().getMember());
+		
+		shareDao.createInvite(invite1Task6);
+		
+		Invite invite3Task1 = buildInvite(true, calendarUserCreated.getId(), Calendar.class.getName());
+		invite3Task1.setInviter(calendarUserCreated.getMember().getMember());
+		shareDao.createInvite(invite3Task1);
+		
+		ShareCalendar shareCalendar1Profile1Calendar1 = new ShareCalendar();
+		shareCalendar1Profile1Calendar1.generateUnquieId();
+		shareCalendar1Profile1Calendar1.setCalendar(calendarUserCreated);
+		shareCalendar1Profile1Calendar1.setUser(profile2.getMember());
+		shareCalendar1Profile1Calendar1.setInvite(invite3Task1);
+		shareDao.createShareCalendar(shareCalendar1Profile1Calendar1);		
+		
+		try
+		{
+			Notification notificationUnderTest = emailService.sendShareNotificationToSharee(invite3Task1, shareCalendar1Profile1Calendar1, NotificationTypeEnum.EMAIL, profile1.getName(), true);
+			Assert.assertEquals(String.valueOf(shareCalendar1Profile1Calendar1.getId()), notificationUnderTest.getiNotificationId());
+
+			notificationUnderTest = emailService.sendShareNotificationToSharee(invite1Task6, share1Profile3Task6, NotificationTypeEnum.EMAIL, profile3Guest1.getName(), true);
+			Assert.assertEquals(String.valueOf(share1Profile3Task6.getId()), notificationUnderTest.getiNotificationId());
+			
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void buildCalendarShareNotification()
+	{
+		Profile profile1 = createProfile();
+		Profile profile2 = createProfile();
+		
+		Calendar calendarUserCreated = createCalendar(profile1);
+		
+		Invite invite3Task1 = buildInvite(true, calendarUserCreated.getId(), Calendar.class.getName());
+		invite3Task1.setInviter(calendarUserCreated.getMember().getMember());
+		
+		shareDao.createInvite(invite3Task1);
+		
+		ShareCalendar shareCalendar1Profile1Calendar1 = new ShareCalendar();
+		shareCalendar1Profile1Calendar1.generateUnquieId();
+		shareCalendar1Profile1Calendar1.setCalendar(calendarUserCreated);
+		shareCalendar1Profile1Calendar1.setUser(profile2.getMember());
+		shareCalendar1Profile1Calendar1.setInvite(invite3Task1);
+		shareDao.createShareCalendar(shareCalendar1Profile1Calendar1);		
+		
+		Notification notificationUnderTest = emailService.buildCalendarShareNotification(invite3Task1, shareCalendar1Profile1Calendar1, NotificationTypeEnum.EMAIL, profile1.getName(), true);
+		Assert.assertEquals(String.valueOf(shareCalendar1Profile1Calendar1.getId()), notificationUnderTest.getiNotificationId());
+	}
+	
+	@Test
+	public void buildTaskShareNotification()
+	{
+		Profile profile1 = createProfile();
+		Profile profile3Guest1 = createGuest();
+		
+		Task task6 = createTask(profile1);
+		
+		Share share1Profile3Task6 = createShare(task6, profile3Guest1);
+			
+		Invite invite1Task6 = buildInvite(true, task6.getId(), Task.class.getName());
+		invite1Task6.setInviter(task6.getTaskCreator().getMember());
+		
+		shareDao.createInvite(invite1Task6);
+		
+		Notification notificationUnderTest = emailService.buildTaskShareNotification(invite1Task6, share1Profile3Task6, NotificationTypeEnum.EMAIL, profile3Guest1.getName(), true);
+		Assert.assertEquals(share1Profile3Task6.getId(), notificationUnderTest.getiNotificationId());
+		
+	}
+	
+	@Test
+	public void buildNotification()
+	{
+		Profile profile1 = createProfile();
+		Profile profile3Guest1 = createGuest();
+		
+		Task task6 = createTask(profile1);
+		
+		Share share1Profile3Task6 = createShare(task6, profile3Guest1);
+			
+		Invite invite1Task6 = buildInvite(true, task6.getId(), Task.class.getName());
+		invite1Task6.setInviter(task6.getTaskCreator().getMember());
+		
+		shareDao.createInvite(invite1Task6);
+		
+		Notification notification = emailService.buildTaskShareNotification(invite1Task6, share1Profile3Task6, NotificationTypeEnum.EMAIL, "dsdkfjsdfd", true);
+		Assert.assertFalse(notification.getBody().contains("&email="));
+		
+		notification = emailService.buildTaskShareNotification(invite1Task6, share1Profile3Task6, NotificationTypeEnum.EMAIL, "dsdkfjsdfd", false);
+		
+	}
+}

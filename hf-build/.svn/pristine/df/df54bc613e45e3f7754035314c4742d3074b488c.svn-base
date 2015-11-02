@@ -1,0 +1,9 @@
+# Email
+displayname=
+from = neverforget@reminded.me
+#subject = Welcome to the Reminded.me community\!
+template = CancelCompleteTask_en.html
+persist =true 
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

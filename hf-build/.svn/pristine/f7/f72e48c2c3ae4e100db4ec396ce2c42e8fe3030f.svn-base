@@ -1,0 +1,28 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+Welcome ${userTO.name},<br>
+<br>
+Thank you for joining Reminded.me!&nbsp; We are
+dedicated to bringing you more value everyday and building the best life organizer available on the Internet.
+<br>
+<br>
+<span style="text-decoration: underline;">Your Account Information</span><br>
+<div style="margin-left: 40px;">User ID:  ${userTO.member.email}<br>
+</div>
+<br>
+At Reminded.me our mission is to make your life's task easy to manage. &nbsp; If you think of
+anything we could do better please drop a
+note to support@reminded.me.&nbsp; Again, Thanks for joining!<br>
+<br>
+<font size="2"> <i>If you received this in error, and would like to reset you password you can do so <a href="${passwordReset}">here</a>. </i> </font>
+<br>
+<br>
+Sincerely,
+<br>
+Reminded.Me Support
+</body>
+</html>

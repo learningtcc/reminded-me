@@ -1,0 +1,367 @@
+package com.homefellas.rm.reminder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.batch.INotifiable;
+import com.homefellas.batch.INotifiableCallbackService;
+import com.homefellas.batch.INotificationService;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.metrics.CollectTimeMetrics;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.notification.IEmailService;
+import com.homefellas.rm.task.ITaskService;
+import com.homefellas.rm.task.Task;
+import com.homefellas.service.core.AbstractService;
+import com.homefellas.user.Member;
+import com.homefellas.user.UserValidationCodeEnum;
+
+public class ReminderService extends AbstractService implements IReminderServiceTX, INotifiableCallbackService
+{
+	private IReminderDao reminderDao;
+	private IReminderValidator reminderValidator;
+	private ITaskService taskService;
+	private INotificationService notificationService;
+	
+	int defaulltNotificationQueueSize=2;
+	private String sendFromEmailAddress;
+	
+	@Autowired
+	private IEmailService emailService;
+	
+	
+	public void setSendFromEmailAddress(String sendFromEmailAddress)
+	{
+		this.sendFromEmailAddress = sendFromEmailAddress;
+	}
+
+	/**
+	 * @param reminderDao the reminderDao to set
+	 */
+	public void setReminderDao(IReminderDao reminderDao)
+	{
+		this.reminderDao = reminderDao;
+	}
+
+	/**
+	 * @param taskService the taskService to set
+	 */
+	public void setTaskService(ITaskService taskService)
+	{
+		this.taskService = taskService;
+	}
+
+	/**
+	 * @param reminderValidator the reminderValidator to set
+	 */
+	public void setReminderValidator(IReminderValidator reminderValidator)
+	{
+		this.reminderValidator = reminderValidator;
+	}
+
+	
+	public void setDefaulltNotificationQueueSize(int defaulltNotificationQueueSize)
+	{
+		this.defaulltNotificationQueueSize = defaulltNotificationQueueSize;
+	}
+	
+	public void setNotificationService(INotificationService notificationService)
+	{
+		this.notificationService = notificationService;
+	}
+	
+	/*
+	 * ***********************************************
+	 * *          Start Business Methods
+	 * ***********************************************
+	 */
+
+	
+	public void scheduleAlarm(Alarm alarm)
+	{
+		if (alarm.getNotificationType()== NotificationTypeEnum.NONE.ordinal())
+			return;
+		
+		if (alarm.getAlarmTime().isBeforeNow())
+			return;
+			
+		emailService.sendAlarm(alarm);
+		
+	}
+		
+	@Override
+	public INotifiable reupNotifications(INotifiable notifiable)
+	{
+		return notifiable;
+	}
+
+	public void unScheduleAlarm(Alarm alarm)
+	{
+		notificationService.cancelNotification(alarm);
+	}
+	
+	@Transactional
+	public List<Alarm> getAlarmByTaskAndMemberTX(Task task, Member member)
+	{
+		return reminderDao.getAlarmByTaskAndMember(task, member);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<Alarm> getAlarmdsyTaskTX(Task task)
+	{
+		return getAlarmdsyTask(task);
+	}
+	
+	
+	public List<Alarm> getAlarmdsyTask(Task task)
+	{
+		return reminderDao.getAlarmdsyTask(task);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Alarm createAlarmTX(Alarm alarm) throws ValidationException
+	{
+		return createAlarm(alarm, null);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Alarm createAlarmTX(Alarm alarm, Member member) throws ValidationException
+	{
+		return createAlarm(alarm, member);
+	}
+		
+	public Alarm createAlarm(Alarm alarm, Member member) throws ValidationException
+	{
+		reminderValidator.validateAlarm(alarm);
+		
+		Task task = taskService.getTaskById(alarm.getTask().getId());
+		if (task == null)
+			throw new ValidationException(ValidationCodeEnum.TASK_NOT_FOUND);
+		alarm.setTask(task);
+		
+		if (member == null)
+			alarm.setMember(task.getTaskCreator().getMember());
+		else
+			alarm.setMember(member);
+	
+		dao.merge(alarm);
+		
+		scheduleAlarm(alarm);
+		
+		return alarm;
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Alarm updateAlarmTX(Alarm alarm) throws ValidationException
+	{
+		reminderValidator.validateAlarm(alarm);
+		
+		Alarm alarmFromDB = dao.loadByPrimaryKey(Alarm.class, alarm.getId());
+		if (alarmFromDB == null)
+			throw new ValidationException(ValidationCodeEnum.ALARM_NOT_FOUND);
+
+		Task task = taskService.getTaskById(alarm.getTask().getId());
+		if (task == null)
+			throw new ValidationException(ValidationCodeEnum.TASK_NOT_FOUND);
+		alarm.setTask(task);
+		
+		//check to see if the modified date from the db is before the one being passed
+		reminderValidator.validateSynchronizationUpdate(alarm, alarmFromDB);
+		alarm.setModifiedDateZone(new DateTime());
+		
+		if (alarm.getMember()==null)
+			alarm.setMember(task.getTaskCreator().getMember());
+		
+		//there is too much varration of the notifcations so we need to remove them all and readd them
+		unScheduleAlarm(alarm);
+		
+		//add the reminder to the list
+		dao.merge(alarm);
+		
+		scheduleAlarm(alarm);
+		
+		return alarm;
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public void deleteAlarmTX(String id) throws ValidationException
+	{
+		Alarm alarmFromDB = dao.loadByPrimaryKey(Alarm.class, id);
+		if (alarmFromDB == null)
+			throw new ValidationException(ValidationCodeEnum.ALARM_NOT_FOUND);
+		
+		//we need to mark it as inactive
+		alarmFromDB.setActiveReminder(false);
+		alarmFromDB.setAlarmStatus(ReminderStatusEnum.DELETED.ordinal());
+		
+//		
+//		reminderDao.deleteReminderNotificationsByReminder(reminder);
+		
+		dao.merge(alarmFromDB);
+		
+		unScheduleAlarm(alarmFromDB);
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public List<Alarm> getBulkAlarmsTX(String alarmDelimiter, String loggedInUserEmail) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		List<Alarm> list = new ArrayList<Alarm>(11);
+		list = reminderDao.getBulkAlarms(tokenize(alarmDelimiter), loggedInUserEmail);
+		
+		return list;
+	}
+	
+	
+	
+	
+//	
+//	
+//	/**
+//	 * This method should is used to build a list of ReminderNotifications.  It does not do anythign other then generate the list.
+//	 * @param reminder
+//	 * @return List<ReminderNotification>
+//	 * @see Reminder
+//	 * @see ReminderNotification
+//	 */
+//	
+//	
+//	public List<Notification> buildNotifications(IRepeatSetup reminder, int queueSize)
+//	{
+//		List<Notification> notifications = new ArrayList<Notification>();
+//		DateTime notificationTime = reminder.getStartsRepeatingOn();
+//		
+//		//check to see if we should use current time as start
+//		 
+//			
+////		int stopCounter=defaulltNotificationQueueSize;
+//		
+//		if (reminder.isUsingEndsAfterOccurance())
+//			queueSize = reminder.getEndsAfterOccurance();
+//		
+//		//take care of the first start time outside the loop only if it is after today
+//		if (notificationTime.isAfter(new DateTime()))
+//		{
+//			notifications.add(buildNotification(reminder, reminder.getStartsRepeatingOn()));
+//		}
+//			
+//		
+//		if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.NONE)
+//			return notifications;
+//		int counter=0;
+//		int infititeLoopDetection=0;
+//		while (counter<queueSize-1)
+//		{
+//			infititeLoopDetection++;
+//			//check to see if we went past the end time...if we have break
+//			if (reminder.getEndsRepeatingOn()!=null&&notificationTime.isAfter(reminder.getEndsRepeatingOn()))
+//				break;
+//			
+//			//get the next increment
+//			if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.minute)
+//			{
+//				notificationTime = notificationTime.plusMinutes(reminder.getRepeatsEvery());
+//			}
+//			else if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.hour)
+//			{
+//				notificationTime = notificationTime.plusHours(reminder.getRepeatsEvery());
+//			}
+//			else if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.day)
+//			{
+//				notificationTime = notificationTime.plusDays(reminder.getRepeatsEvery());
+//			}
+//			else if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.week)
+//			{
+//				notificationTime = notificationTime.plusWeeks(reminder.getRepeatsEvery());
+//			}
+//			else if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.month)
+//			{
+//				notificationTime = notificationTime.plusMonths(reminder.getRepeatsEvery());
+//			}
+//			else if (reminder.getRepeatOccuranceInterval()==RepeatOccurance.custom)
+//			{
+//				//do nothing cause notificationTime is right
+//			}	
+//			else
+//			{
+//				//this should never happen cause we will block it in the loop
+//				notificationTime=null;
+//			}
+//			 
+//			//check to see if we should ignore the time
+//			if (!ignoreNotification(notificationTime, reminder))
+//			{
+//				//we're good, so lets create an instance
+//				notifications.add(buildNotification(reminder, notificationTime));
+//				counter++;
+//			}
+//			
+//			if (infititeLoopDetection>100)
+//				return notifications;
+//		}
+//		
+//		return notifications;
+//		
+//	}
+	
+	/**
+	 * This method desides whether or not to ignore the notification based on the parmaters passed in the reminder.  This is
+	 * a helper mehod and should only be called inside the package.
+	 * @param notificationTime
+	 * @param reminder
+	 * @return boolean
+	 */
+	boolean ignoreNotification(DateTime notificationTime, IRepeatSetup reminder)
+	{
+		if (notificationTime.isBefore(new DateTime()))
+			return true;
+			
+		//check to see if the time has passed the ending date
+		if (reminder.getEndsRepeatingOn()!=null&&notificationTime.isAfter(reminder.getEndsRepeatingOn()))
+			return true;
+		
+		//check to see if the except times are set
+		if (reminder.shouldIgnoreTime(notificationTime))
+			return true;
+		
+		//need to check the days of the week
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.MONDAY && !reminder.isRepeatsOnMonday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.TUESDAY && !reminder.isRepeatsOnTuesday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.WEDNESDAY && !reminder.isRepeatsOnWednesday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.THURSDAY && !reminder.isRepeatsOnThursday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.FRIDAY && !reminder.isRepeatsOnFriday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.SATURDAY && !reminder.isRepeatsOnSaturday())
+			return true;
+		
+		if (notificationTime.getDayOfWeek()==DateTimeConstants.SUNDAY && !reminder.isRepeatsOnSunday())
+			return true;
+		
+		
+		return false;
+		
+	}
+}

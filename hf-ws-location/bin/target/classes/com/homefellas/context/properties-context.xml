@@ -1,0 +1,29 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+xmlns:util="http://www.springframework.org/schema/util"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<property name="basePropertiesHome" value="C:/workspace/eclipse/rm ws/hf-build/properties/"/>
+		<property name="locations">
+			<list>
+				<value>core.properties</value>
+				<value>location.properties</value>
+				<value>metrics.properties</value>
+				<value>login.properties</value>
+			</list>
+		</property>
+		<property name="properties">
+			<value>
+			cas.securityContext.serviceProperties.service="http://localhost/sso/services/j_acegi_cas_security_check
+			cas.securityContext.casProcessingFilterEntryPoint.loginUrl=http://localhost/sso/login
+			cas.securityContext.ticketValidator.casServerUrlPrefix=http://localhost/sso
+			casAppBaseUrl=https://localhost/sso
+			</value>
+		</property>
+	</bean>
+</beans>	
+	

@@ -1,0 +1,130 @@
+package com.homefellas.rm.notification;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.ws.core.AbstractRMWebService;
+
+@Path("/clientnotification")
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+public class ClientNotificationWebService extends AbstractRMWebService
+{
+
+	@Autowired
+	private IClientNotificationServiceTX clientNotificationService;
+	
+	@POST
+	@Path("/push/apple")
+	public Response pushAppleNotification(Notification notification)
+	{
+		return buildSuccessResponse(clientNotificationService.pushAppleNotificationTX(notification));
+	}
+	
+	@GET
+	@Path("/bulk/{ids}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getBulkClientNotifications(@PathParam("ids")String ids)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(clientNotificationService.getBulkClientNotificationsTX(ids, loggedInProfileEmail));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/update")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response updateClientNotifications(ClientNotification clientNotification)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(clientNotificationService.updateClientNotificationTX(clientNotification, loggedInProfileEmail));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/create")
+	public Response createClientNotifications(ClientNotification clientNotification)
+	{
+		try
+		{
+			return buildSuccessResponse(clientNotificationService.createClientNotificationTX(clientNotification));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/device/create")
+	public Response createDevice(Device device)
+	{
+		try
+		{
+			return buildSuccessResponse(clientNotificationService.createDevice(device));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/device/bulk/{ids}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getBulkDevices(@PathParam("ids")String ids)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(clientNotificationService.getBulkDevicesTX(ids, loggedInProfileEmail));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+}

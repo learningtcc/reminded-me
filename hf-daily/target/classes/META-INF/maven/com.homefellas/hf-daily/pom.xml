@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>hf-service-build</artifactId>
+		<groupId>com.homefellas</groupId>
+		<version>1.1.0</version>
+		<relativePath>../hf-service-build/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>hf-daily</artifactId>
+	<packaging>jar</packaging>
+	<name>hf-daily</name>
+
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-rm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-rm</artifactId>
+			<classifier>tests</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-core</artifactId>
+			<classifier>tests</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-login</artifactId>
+			<classifier>tests</classifier>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.batch</groupId> -->
+		<!-- <artifactId>spring-batch-core</artifactId> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.opensymphony.quartz</groupId>
+			<artifactId>quartz</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springmodules</groupId>
+			<artifactId>spring-modules-validation</artifactId>
+			<version>0.8</version>
+			<exclusions>
+				<exclusion>
+					<groupId>rhino</groupId>
+					<artifactId>js</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-validator</groupId>
+					<artifactId>commons-validator</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-lang</groupId>
+					<artifactId>commons-lang</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-beanutils</groupId>
+					<artifactId>commons-beanutils</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-digester</groupId>
+					<artifactId>commons-digester</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>antlr</groupId>
+					<artifactId>antlr</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-core</artifactId>
+			<version>2.2.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-test</artifactId>
+			<version>2.2.0.RELEASE</version>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+                			<shadedClassifierName>stand-alone</shadedClassifierName>
+			                <filters>
+			                    <filter>
+			                        <!--
+			                            Exclude files that sign a jar
+			                            (one or multiple of the dependencies).
+			                            One may not repack a signed jar without
+			                            this, or you will get a
+			                            SecurityException at program start.
+			                        -->
+			                        <artifact>*:*</artifact>
+			                        <excludes>
+			                            <exclude>META-INF/*.SF</exclude>
+			                            <exclude>META-INF/*.RSA</exclude>
+			                            <exclude>META-INF/*.INF</exclude> <!-- This one may not be required -->
+			                        </excludes>
+			                    </filter>
+			                </filters>
+							
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<!-- Main class -->
+									<mainClass>org.springframework.batch.core.launch.support.CommandLineJobRunner</mainClass>
+								</transformer>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/spring.handlers</resource>
+								</transformer>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/spring.schemas</resource>
+								</transformer>
+
+								
+							</transformers>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<!-- configures the suffix name for the executable jar here it will 
+								be '<project.artifact>-<project.version>-executable.jar' -->
+							<shadedClassifierName>executable</shadedClassifierName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+<!-- 			<plugin> -->
+<!--                <artifactId>maven-assembly-plugin</artifactId> -->
+<!--                <version>2.2-beta-2</version> -->
+<!--                <configuration> -->
+<!--                    <descriptors> -->
+<!--                        <descriptor>src/main/assembly/descriptor.xml</descriptor> -->
+<!--                    </descriptors> -->
+<!--                </configuration> -->
+<!--                <executions> -->
+<!--                    <execution> -->
+<!--                        <id>make-distribution</id> -->
+<!--                        <phase>package</phase> -->
+<!--                        <goals> -->
+<!--                            <goal>single</goal> -->
+<!--                        </goals> -->
+<!--                    </execution> -->
+<!--                </executions> -->
+<!--            </plugin> -->
+		</plugins>
+	</build>
+
+</project>

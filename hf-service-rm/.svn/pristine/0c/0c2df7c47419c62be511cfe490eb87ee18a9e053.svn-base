@@ -1,0 +1,10 @@
+package com.homefellas.rm.notification;
+
+import java.util.List;
+
+public interface IClientNotificationDao
+{
+
+	public List<ClientNotification> getClientNotificationByIds(List<String> ids);
+	public List<Device> getBulkDevices(List<String> ids, String email);
+}

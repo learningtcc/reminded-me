@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true" package="com.homefellas.model.location">
+	<class name="LocationAlias" table="location_alias" >
+		<cache usage="read-write"/>
+		<id name="id" column="id" type="long" unsaved-value="0">
+   			<generator class="identity"/>
+  		</id>
+		
+		<property name="context" column="context" length="20"/>
+		<property name="alias" column="alias" length="50"/>
+		<property name="value" column="value" length="20"/>
+		<property name="importance" column="importance" type="java.lang.Integer"/>
+	</class>
+</hibernate-mapping>
+	

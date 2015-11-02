@@ -1,0 +1,29 @@
+package com.homefellas.rm.task;
+
+import java.util.List;
+
+import com.homefellas.batch.INotifiableCallbackService;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public interface ITaskService {
+
+	
+	public List<Category> getGenericCategories();
+	public List<Category> getUserDefinedCategories(Member member);
+	public List<Calendar> getGenericCalendar();
+	public List<Calendar> getUserDefinedCalendars(Member member);
+	public void updateUserDefinedCategory(Category category) throws ValidationException;
+	public void updateUserDefinedCalendar(Calendar calendar) throws ValidationException;
+	public void updateTask(Task task) throws ValidationException;
+	public Task getTaskById(String taskId) throws ValidationException;
+	public Calendar getCalendarById(String calendarId);
+	public List<Task> getTaskForCalendar(Calendar calendar);
+	public List<String> getTaskIdsForCalendar(Calendar calendar);
+	public List<Task> getTasksByStatusAndMemberIdTX(String memberId, int status);
+	public List<Task> getTaskChildren(String taskId);
+	public List<Task> getTimelessTasksEnding();
+	public List<Task> getTimelessTasksEndingNotCompleted();
+	public Calendar updateCalendar(Calendar calendar, String email) throws ValidationException;
+}

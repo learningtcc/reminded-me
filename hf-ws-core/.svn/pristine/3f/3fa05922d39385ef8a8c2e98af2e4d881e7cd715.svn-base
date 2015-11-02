@@ -1,0 +1,154 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>ws-core</artifactId>
+    <packaging>war</packaging>
+    <name>hf-ws-core</name>
+	<parent>
+    	<groupId>com.homefellas</groupId>
+    	<artifactId>hf-ws-build</artifactId>
+    	<version>1.1.0</version>
+    	<relativePath>../hf-ws-build/pom.xml</relativePath>
+    </parent>
+    
+    <properties>
+        	<web-context>ws-core</web-context>
+        	<eclipse.dependency>true</eclipse.dependency>
+    </properties>
+    
+    <repositories>
+    	<repository>
+  			<id>spring-snapshost</id>
+  			<name>Spring Framework Maven Snapshot Repository</name>
+  			<url>http://maven.springframework.org/snapshot</url>
+		</repository>
+    </repositories>
+    
+    <dependencies>
+    	<dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-service-core</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-web-support</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-service-rm</artifactId>
+        </dependency>
+         <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-ws-support</artifactId>
+        </dependency>
+        <dependency>
+        	<groupId>com.homefellas</groupId>
+        	<artifactId>hf-ws-support</artifactId>
+        	<scope>test</scope>
+        	<classifier>tests</classifier>
+        </dependency>
+         <dependency>
+    		<groupId>com.homefellas</groupId>
+    		<artifactId>hf-service-core</artifactId>
+    		<classifier>tests</classifier>
+    		<scope>test</scope>
+    	</dependency>
+         
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-login</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.homefellas</groupId>
+			<artifactId>hf-service-login</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>   
+  
+  	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<configuration>
+					<container>
+						<containerId>tomcat6x</containerId>
+						<home>${tomcat.home}</home>
+					</container>
+					<configuration>
+						<home>${tomcat.webapps.home}</home>
+						<type>standalone</type>
+						<deployables>
+							<deployable>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<type>war</type>
+								<properties>
+									<context>${web-context}</context>
+								</properties>
+							</deployable>
+						</deployables>
+						<properties>
+							<cargo.tomcat.webappsDirectory>${tomcat.webappsDirectory}</cargo.tomcat.webappsDirectory>
+						</properties>
+					</configuration>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.enunciate</groupId>
+				<artifactId>maven-enunciate-plugin</artifactId>
+				<!-- check for the latest version -->
+				<version>1.25</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>docs</goal>
+						</goals>
+						<configuration>
+							<!-- the directory where to put the docs -->
+							<docsDir>${project.build.directory}/docs</docsDir>
+
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.enunciate
+										</groupId>
+										<artifactId>
+											maven-enunciate-plugin
+										</artifactId>
+										<versionRange>
+											[1.17,)
+										</versionRange>
+										<goals>
+											<goal>docs</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>   
+</project>

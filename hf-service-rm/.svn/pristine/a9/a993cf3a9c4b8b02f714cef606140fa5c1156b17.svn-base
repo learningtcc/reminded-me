@@ -1,0 +1,851 @@
+package com.homefellas.rm.notification;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.velocity.VelocityEngineUtils;
+
+import com.homefellas.batch.INotifiable;
+import com.homefellas.batch.INotificationService;
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.email.core.EmailTemplateEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.notification.ClientNotification.ClientNotificationTypeEnum;
+import com.homefellas.rm.reminder.Alarm;
+import com.homefellas.rm.reminder.IReminderServiceTX;
+import com.homefellas.rm.share.IShare;
+import com.homefellas.rm.share.IShareService;
+import com.homefellas.rm.share.Invite;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.ShareApprovedStatus;
+import com.homefellas.rm.share.ShareCalendar;
+import com.homefellas.rm.task.AbstractTask.ProgressEnum;
+import com.homefellas.rm.task.Task;
+import com.homefellas.service.core.AbstractService;
+import com.homefellas.user.IUserService;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public class EmailService extends AbstractService implements IEmailService
+{
+
+	private String taskLandingPage;
+	private INotificationService notificationService;
+	private IReminderServiceTX reminderService;
+	
+	@Autowired
+	private IUserService userService;
+	
+	@Autowired
+	private IShareService shareService;
+	
+	@Autowired
+	private IClientNotificationService clientNotificationService;
+	
+	public void setTaskLandingPage(String taskLandingPage)
+	{
+		this.taskLandingPage = taskLandingPage;
+	}
+	
+	
+	public void setReminderService(IReminderServiceTX reminderService)
+	{
+		this.reminderService = reminderService;
+	}
+
+
+	public void setNotificationService(INotificationService notificationService)
+	{
+		this.notificationService = notificationService;
+	}
+	
+	public enum TaskStatusChangeEvent {
+		InProgress("started working on "), Waiting("is waiting on "), Canceled("canceled "), Completed("completed "), EndDate("rescheduled "), StartDate("rescheduled ");
+		
+		private String message;
+		
+		private TaskStatusChangeEvent(String m)
+		{
+			this.message = m;
+		}
+
+		public String getMessage()
+		{
+			return message;
+		}
+		
+		
+	};
+	
+	public void sendDigestEmail(List<Task> tasks, String toEmail, DateTime toSendTime)
+	{
+		StringBuilder body = new StringBuilder("All the reminders on your list for today:<br/><br/>");
+	
+		for (Task task : tasks)
+		{
+			body.append(buildTaskLink(task, task.getTaskCreator().getEmail()));
+			body.append("<br/>");
+		}
+		
+		body.append("<br/>");
+		body.append("<br/>");
+		body.append("Sincerely,<br/>");
+		body.append("Your Never Forget Companion,<br/>");
+		body.append("Reminded.me <br/>");
+		
+	
+		Notification notification = new Notification();
+		notification.setBody(body.toString());
+		notification.setSubject("My Daily Digest "+toSendTime.toString("MM/dd/yyyy"));
+		notification.setSendFrom("neverforget@reminded.me");		
+		notification.setNotificationTypeOrdinal(NotificationTypeEnum.EMAIL.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(toEmail);
+		notification.setToSendTime(toSendTime.getMillis());
+		
+		
+		
+	}
+	
+	public void sendTaskStatusChangeNotification(Task taskBeingChanged, String userEmailMakingStatusChange, TaskStatusChangeEvent taskStatusChangeEvent)
+	{
+		Profile profile = userService.getProfileByEmail(userEmailMakingStatusChange);
+	
+		if (profile == null)
+			return;
+		
+		List<Notification> notifications = new ArrayList<Notification>();
+		
+		//check to see if owner is making change
+		if (!taskBeingChanged.getTaskCreator().getId().equals(profile.getId()))
+		{
+			//user is not changing, so notify
+			notifications.add(buildTaskStatusChangeNotification(taskBeingChanged, taskBeingChanged.getTaskCreator(), profile, NotificationTypeEnum.EMAIL, taskStatusChangeEvent));
+			notifications.add(buildTaskStatusChangeNotification(taskBeingChanged, taskBeingChanged.getTaskCreator(), profile, NotificationTypeEnum.PUSH, taskStatusChangeEvent));
+		}	
+		
+		List<Share> shares = Collections.EMPTY_LIST;
+		if (taskBeingChanged.isHasBeenShared())
+		{
+			shares = shareService.getSharesForTask(taskBeingChanged);
+			for (Share share : shares)
+			{
+				if (share.getUser().getId().equals(profile.getId()))
+				{
+					//don't notify the user making the change
+					continue;
+				}
+				Profile toProfile = userService.loadProfileById(share.getUser().getId());
+				notifications.add(buildTaskStatusChangeNotification(taskBeingChanged, toProfile, profile, NotificationTypeEnum.EMAIL, taskStatusChangeEvent));
+				notifications.add(buildTaskStatusChangeNotification(taskBeingChanged, toProfile, profile, NotificationTypeEnum.PUSH, taskStatusChangeEvent));
+					
+			}
+		}
+		
+		if (!notifications.isEmpty())
+		{
+			scheduleNotifications(notifications);
+		}
+	}
+	
+	private Notification buildTaskStatusChangeNotification(Task taskThatChanged, Profile toUser, Profile userChangingStatus, NotificationTypeEnum notificationTypeEnum, TaskStatusChangeEvent taskStatusChangeEvent)
+	{
+		StringBuilder message = new StringBuilder();
+		message.append(userChangingStatus.getName());
+		message.append(" ");
+		message.append(taskStatusChangeEvent.getMessage());
+		if (notificationTypeEnum.equals(NotificationTypeEnum.EMAIL))
+		{
+			message.append("<a href=\"");
+			message.append(buildTaskLink(taskThatChanged, toUser.getEmail()));
+			message.append("\">");
+			message.append(taskThatChanged.getTitle());
+			message.append("</a>");
+		}
+		else
+		{	
+			message.append(taskThatChanged.getTitle());
+		}
+		if (taskStatusChangeEvent.equals(TaskStatusChangeEvent.StartDate) || taskStatusChangeEvent.equals(TaskStatusChangeEvent.EndDate))
+		{ 
+			if (taskThatChanged.getStartTime() != null)
+			{
+				message.append("to starting ");
+				message.append(taskThatChanged.getStartTime().toString());
+				message.append(" ");
+			} 
+			if (taskThatChanged.getEndTime() != null)
+			{
+				message.append("ending ");
+				message.append(taskThatChanged.getEndTime().toString());
+			} 
+		}
+		
+		
+		Notification notification = new Notification();
+		notification.setBody(message.toString());
+		notification.setSubject(taskThatChanged.getTitle()+" has changed");
+		notification.setSendFrom(buildDynamicFromEmailAddress(userChangingStatus.getName(), "neverforget@reminded.me"));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.APPLE.ordinal());
+		
+		notification.setSendTo(toUser.getEmail());
+		notification.setSendFromAlias(userChangingStatus.getName());
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(taskThatChanged);
+		
+		notification.setFromProfileId(userChangingStatus.getId());
+		notification.setToProfileId(toUser.getId());
+		
+		//set the clientnotifications
+		if (taskStatusChangeEvent.equals(TaskStatusChangeEvent.Canceled))
+			notification.setClientNotificationType(ClientNotificationTypeEnum.taskCancelled.toString());
+		else	
+			notification.setClientNotificationType(ClientNotificationTypeEnum.taskUpdated.toString());
+		notification.setFromProfileId(toUser.getId());
+		notification.setToProfileId(taskThatChanged.getTaskCreator().getId());
+		return notification;
+	}
+	
+	private void createClientNotification(String profileId, Notification notification, boolean senderNotification)
+	{
+		if (notification.getNotificationTypeOrdinal()!=NotificationTypeEnum.EMAIL.ordinal())
+			return;
+		
+		if (profileId != null)
+		{
+			Profile profile = userService.loadProfileById(profileId);
+			if (profile != null)
+			{
+				ClientNotification clientNotification = new ClientNotification();
+				clientNotification.generateGUIDKey();
+				clientNotification.setMember(profile.getMember());
+				clientNotification.setReferenceClassName(notification.getiNotificationClassName());
+				clientNotification.setReferenceId(notification.getiNotificationId());
+				clientNotification.setNotification(notification);
+				clientNotification.setSentNotification(senderNotification);
+				clientNotification.setNotificationType(notification.getClientNotificationType());
+				try
+				{
+					clientNotificationService.createClientNotification(clientNotification);
+				}
+				catch (ValidationException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		
+	}
+	
+	private void scheduleNotifications(List<Notification> notifications)
+	{
+		for (Notification notification : notifications)
+		{
+			scheduleNotification(notification);
+		}
+	}
+	
+	private void scheduleNotification(Notification notification)
+	{
+		notificationService.scheduleNotification(notification);
+		
+		createClientNotification(notification.getToProfileId(), notification, false);
+		createClientNotification(notification.getFromProfileId(), notification, true);
+		
+		
+	}
+		
+	/**
+	 * This is the notification that gets send out when a task is either completed or canceled.  
+	 * @param Task
+	 * @param notificationTypeEnum
+	 * @param toEmail 
+	 * @return Notification
+	 */
+	public Notification sendNotificationForTaskCompleteOrDelete(Task task, NotificationTypeEnum notificationTypeEnum, String toEmail)
+	{		
+		
+		final Map<String,Object> model = new HashMap<String, Object>();
+		String event;
+		if (task.getProgress()==ProgressEnum.DELETE.ordinal()) 
+			event = "Canceled"; 
+		else if (task.getProgress()==ProgressEnum.DONE.ordinal())
+			event = "Completed";
+		else
+			return null;
+			//task.getProgress()==ProgressEnum.DELETE.ordinal() ? "Canceled" : "Completed";
+		model.put("event", event);
+		model.put("task", task);
+		model.put("link", buildTaskLink(task, toEmail));
+		
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.CANCEL_COMPLETE_TASK, Locale.ENGLISH), model);
+
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject("Task "+task.getTitle()+" "+event);
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.CANCEL_COMPLETE_TASK, Locale.ENGLISH));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(toEmail);
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(task);
+		
+		scheduleNotification(notification);
+		return notification;
+	
+	
+	}
+	public void processNotificationsForTaskCreateOrUpdate(Task task, boolean isUpdate)
+	{
+		processNotificationsForTaskCreateOrUpdate(task, task.getTaskCreator().getEmail(), isUpdate);
+	}
+	
+	
+	
+	/**
+	 * This will cancel and re-add/add notifications for a task.  It will do baseed on end date as 
+	 * well as the reminders that have been passed as part of the task.  There is a flag called isUpdate
+	 * that must be set to true if there was an update processed.
+	 * @param task
+	 * @param isUpdate
+	 */
+	public void processNotificationsForTaskCreateOrUpdate(Task task, String toEmailAddress, boolean isUpdate)
+	{
+		long timeToSend;
+		//handle end time of a task
+		if (task.getEndTime()!=null && task.getEndTime().isAfter(new DateTime()))
+		{
+			//skip this if the task is timeless.
+			if (task.isTimeLessTask())
+				return;
+			
+			if (task.getStartTime()!=null)
+			{
+				timeToSend = task.getStartTime().getMillis();
+			}
+			else
+			{
+				timeToSend = task.getEndTime().getMillis();
+			}
+			
+			if (isUpdate)
+			{
+				notificationService.cancelNotification(task);
+			}
+			
+			sendNotificationForEndDateReached(task, toEmailAddress, timeToSend, NotificationTypeEnum.EMAIL);			
+		}
+		
+		//handle reminders
+		List<Alarm> alarms = reminderService.getAlarmdsyTaskTX(task);
+		if (alarms!=null&&!alarms.isEmpty())
+		{
+			for (Alarm alarm:alarms)
+			{
+				if (isUpdate)
+				{
+					reminderService.unScheduleAlarm(alarm);
+				}
+//					reminderDao.deleteReminderNotificationsByReminder(reminder);
+//				List<ReminderNotification> reminderNotifications = reminderService.getReminderNotifications(reminder);
+//				reminder.setReminderNotifications(reminderNotifications);
+				reminderService.scheduleAlarm(alarm);
+			}
+		}
+	}
+	
+	/**
+	 * This will send notifications when an end date (task is due) reached.  There is no business logic
+	 * processed here to see if an end date is eligble to be send and this method just sends out the email so
+	 * the end date must be checked prior to calling this.  NOTE:  It is the responsiblity of the caller to make
+	 * sure that the shares are also notified of the change.
+	 * @return Notification
+	 * @param task
+	 * @param notificationTypeEnum  
+	 */
+	public Notification sendNotificationForEndDateReached(Task task, String toEmailAddress, long timeToSend, NotificationTypeEnum notificationTypeEnum)
+	{
+		//check to see if task creation is null or the task is timeless
+		if (task.getTaskCreator() == null || task.getTaskCreator().getId()==null || "".equals(task.getTaskCreator().getId())||task.isTimeLessTask())
+			return null;
+		
+//		String email;
+		String fromAlias;
+		if (task.getTaskCreator().getMember()==null || task.getTaskCreator().getMember().getEmail()==null || "".equals(task.getTaskCreator().getMember().getEmail()))
+		{
+			Profile profile = dao.loadByPrimaryKey(Profile.class, task.getTaskCreator().getId());
+			if (toEmailAddress == null)
+				toEmailAddress = profile.getMember().getEmail();
+			fromAlias = profile.getName();
+			task.setTaskCreator(profile);
+		}
+		else
+		{
+//			email = task.getTaskCreator().getMember().getEmail();
+			if (toEmailAddress == null)
+				toEmailAddress = task.getTaskCreator().getMember().getEmail();
+			fromAlias = task.getTaskCreator().getName();
+		}
+		
+		final Map<String,Object> model = new HashMap<String, Object>();
+		model.put("task", task);
+		model.put("link", buildTaskLink(task, toEmailAddress));
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.TASK_ENDDATE_REACHED, Locale.ENGLISH), model);
+//System.out.println(task.getFormatedEndDate());		
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject(task.getTitle());
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.TASK_ENDDATE_REACHED, Locale.ENGLISH));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(toEmailAddress);
+		notification.setSendFromAlias(fromAlias);
+//		notification.setToSendTime(task.getEndTimeMilli());
+		notification.setToSendTime(timeToSend);
+		notification.setINotification(task);
+		
+//		notification.setToProfileId(task.getTaskCreator().getId());
+//		notification.setClientNotificationType(ClientNotificationTypeEnum.taskIsDue.toString());
+		scheduleNotification(notification);
+
+		return notification;
+	
+	}
+	
+	/**
+	 * This method will build the task implemenation of Ishare.  Note that this method does not actually send the
+	 * message, but instead just builds it.
+	 * @param invite
+	 * @param share
+	 * @param notificationTypeEnum
+	 * @param emailAlias
+	 * @param isPublic
+	 * @return Notification
+	 */
+	Notification buildTaskShareNotification(Invite invite, Share share, NotificationTypeEnum notificationTypeEnum, String emailAlias, boolean isPublic)
+	{
+		String shareLink; 
+		if (invite.getDirectLink()==null)
+			shareLink = buildTaskLink(share.getTask(), share.getUser().getEmail());
+		else	
+			shareLink = buildTaskLink(invite.getDirectLink().toString(), share.getTask(), share.getUser().getEmail(), !isPublic);
+//		if (invite.getDirectLink()==null)
+//			shareLink = new StringBuffer(taskLandingPage);
+//		else	
+//			shareLink = new StringBuffer(invite.getDirectLink().toString());
+//		shareLink.append("?taskid=");
+//		shareLink.append(share.getTask().getId());
+//		if (!isPublic)
+//		{
+//			shareLink.append("&email=");
+//			shareLink.append(share.getUser().getEmail());
+//		}
+		
+		final Map<String,Object> model = new HashMap<String, Object>();
+		model.put("invite", invite);
+		model.put("share", share);
+		if (emailAlias!=null&&!emailAlias.equals(""))
+			model.put("toAlias", emailAlias);
+		else
+			model.put("toAlias", share.getUser().getEmail());	
+		model.put("link", shareLink);
+				
+		String body = invite.getMessage();
+		if (body!=null)
+		{
+			body = body.replace("${link}", shareLink);
+		}
+		model.put("body", body);
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.SHARE_TASK, Locale.ENGLISH), model);
+		
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject(invite.getSubject());
+		
+		//build the send from dynamicly so it looks like fname.lname.app@reminded.me
+		notification.setSendFrom(buildDynamicFromEmailAddress(share.getTask().getTaskCreator().getName(), EmailTemplateEnum.SHARE_TASK));
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(share.getUser().getEmail());
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(share);
+		notification.setReplyTo(share.getTask().getTaskCreator().getMember().getEmail());
+		
+		//for client notificaiton
+		notification.setFromProfileId(share.getTask().getTaskCreator().getId());
+		notification.setToProfileId(share.getUser().getId());
+		
+		if (share.getTask().getSubTasksCount()>0)
+			notification.setClientNotificationType(ClientNotificationTypeEnum.sublistShareRecieved.toString());
+		else
+			notification.setClientNotificationType(ClientNotificationTypeEnum.taskShareRecieved.toString());
+		return notification;
+	}
+	
+	/**
+	 * This will build the notification that gets sent for ShareCalendars.  Note that this method does not actually
+	 * send the notification, and only builds it.
+	 * @param invite
+	 * @param shareCalendar
+	 * @param notificationTypeEnum
+	 * @param emailAlias
+	 * @param isPublic
+	 * @return notification
+	 */
+	Notification buildCalendarShareNotification(Invite invite, ShareCalendar shareCalendar, NotificationTypeEnum notificationTypeEnum, String emailAlias, boolean isPublic)
+	{
+		StringBuffer shareLink = new StringBuffer(invite.getDirectLink().toString());
+		shareLink.append("?listid=");
+		shareLink.append(shareCalendar.getId());
+		if (!isPublic)
+		{
+			shareLink.append("&email=");
+			shareLink.append(shareCalendar.getUser().getEmail());
+		}
+		
+		final Map<String,Object> model = new HashMap<String, Object>();
+		model.put("invite", invite);
+		model.put("share", shareCalendar);
+		model.put("toAlias", emailAlias);
+		model.put("link", shareLink);
+		
+		
+		String body = invite.getMessage();
+		if (body!=null)
+		{
+			body = body.replace("${link}", shareLink);
+		}
+		model.put("body", body);
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.SHARE_CALENDAR, Locale.ENGLISH), model);
+		
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject(invite.getSubject());
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.SHARE_CALENDAR, Locale.ENGLISH));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(shareCalendar.getUser().getEmail());
+		notification.setSendFromAlias(shareCalendar.getCalendar().getMember().getEmail());
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(shareCalendar);
+		
+		//client notification
+		notification.setFromProfileId(shareCalendar.getCalendar().getMember().getId());
+		notification.setToProfileId(shareCalendar.getUser().getId());
+		notification.setClientNotificationType(ClientNotificationTypeEnum.listShare.toString());
+		return notification;
+	}
+	
+	/**
+	 * This method builds the from address to be that of the name of the user.  It will replace all the
+	 * spaces with . and will covert it to lower case.  The from address will be like first.last@app.reminded.me.  
+	 * @param name
+	 * @param fallbackFrom
+	 * @return String
+	 */
+	String buildDynamicFromEmailAddress(String name, EmailTemplateEnum fallbackFrom)
+	{
+		if (name==null || name.trim().equals("") || name.equals("''"))
+			return getEmailFromAddress(fallbackFrom, Locale.ENGLISH);
+		
+		StringBuffer buffer = new StringBuffer(name.trim().replaceAll(" ", ".").toLowerCase());
+		buffer.append("@app.reminded.me");
+		
+		String dynamicEmai= buffer.toString().toLowerCase();
+		
+		try
+		{
+			InternetAddress.parse(dynamicEmai);
+			return dynamicEmai;
+		}
+		catch (AddressException exception)
+		{
+			return getEmailFromAddress(fallbackFrom, Locale.ENGLISH);
+		}
+		
+	}	
+	
+	String buildDynamicFromEmailAddress(String name, String fallbackFrom)
+	{
+		if (name==null || name.trim().equals("") || name.equals("''"))
+			return fallbackFrom;
+		
+		StringBuffer buffer = new StringBuffer(name.trim().replaceAll(" ", ".").toLowerCase());
+		buffer.append("@app.reminded.me");
+		
+		String dynamicEmai= buffer.toString().toLowerCase();
+		
+		try
+		{
+			InternetAddress.parse(dynamicEmai);
+			return dynamicEmai;
+		}
+		catch (AddressException exception)
+		{
+			return fallbackFrom;
+		}
+		
+	}	
+	
+	/**
+	 * This will send a message to the sharee that a ishare has been shared with the sharee.  This method will
+	 * check the instance of the ishare and call the matching implementation.  If no implementation is found
+	 * an error will be thrown.  The public flag is used to generate the link to the share.  If it is public
+	 * it will not pass the email address.
+	 * @param invite
+	 * @param iShare
+	 * @param notificationTypeEnum
+	 * @param alias
+	 * @param publicTask
+	 * @return Notification
+	 * @throws ValidationException
+	 */
+	public Notification sendShareNotificationToSharee(Invite invite, IShare iShare, NotificationTypeEnum notificationTypeEnum, String alias, boolean publicTask) throws ValidationException
+	{
+		Notification notification;
+		if (iShare instanceof Share)
+		{
+			notification = buildTaskShareNotification(invite, (Share)iShare, notificationTypeEnum, alias, publicTask);
+		}
+		else if (iShare instanceof ShareCalendar)
+		{
+			notification = buildCalendarShareNotification(invite, (ShareCalendar)iShare, notificationTypeEnum, alias, publicTask);
+		}
+		else
+		{
+			throw new ValidationException(ValidationCodeEnum.NOT_IMPLEMENTED_ISHAREABLE);
+		}
+		
+		scheduleNotification(notification);
+		return notification;
+	}
+	
+	/**
+	 * This method will send a notification out to the sharee that is passed.  The message contents should
+	 * be in the invite.
+	 * @param invite
+	 * @param share
+	 * @return Notification
+	 */
+	public Notification sendMessageToSharee(Invite invite, Share share)
+	{
+	
+		Notification notification = new Notification();
+		notification.setBody(invite.getMessage());
+		notification.setSubject(invite.getSubject());
+		
+		//build the send from dynamicly so it looks like fname.lname.app@reminded.me
+		notification.setSendFrom(buildDynamicFromEmailAddress(share.getTask().getTaskCreator().getName(), EmailTemplateEnum.SHARE_TASK));
+		notification.setNotificationTypeOrdinal(NotificationTypeEnum.EMAIL.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(share.getUser().getEmail());
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(share);
+		notification.setReplyTo(share.getTask().getTaskCreator().getMember().getEmail());
+		
+		scheduleNotification(notification);
+		return notification;
+	}
+	
+	public Notification sendShareCalendarAcceptOrDeclineNotificationToTaskOwner(ShareCalendar shareCalendar, Profile profile, NotificationTypeEnum notificationTypeEnum, ShareApprovedStatus shareApprovedStatus)
+	{
+		String name;
+		if (profile == null)
+			name = shareCalendar.getUser().getEmail();
+		else
+			name = profile.getName();
+		
+		return sendShareAcceptOrDeclineNotificationToTaskOwner(shareCalendar, shareCalendar.getCalendar().getMember(), shareCalendar.getCalendar().getCalendarName(), name, notificationTypeEnum, shareApprovedStatus);
+	}
+	
+	public Notification sendShareAcceptOrDeclineNotificationToTaskOwner(Share share, Profile profile, NotificationTypeEnum notificationTypeEnum, ShareApprovedStatus shareApprovedStatus)
+	{
+		String name;
+		if (profile == null)
+			name = share.getUser().getEmail();
+		else
+			name = profile.getName();
+		
+		String title = share.getTask().getTitle();
+		
+		return sendShareAcceptOrDeclineNotificationToTaskOwner(share, share.getTask().getTaskCreator().getMember(), title, name, notificationTypeEnum, shareApprovedStatus);
+	}
+	
+	/**
+	 * This will send out a notification to the task owner when a share has been declined by the sharee.
+	 * @param share
+	 * @param notificationTypeEnum
+	 * @param event
+	 * @return
+	 */
+	private Notification sendShareAcceptOrDeclineNotificationToTaskOwner(INotifiable notifiable, Member toMember, String title, String name, NotificationTypeEnum notificationTypeEnum, ShareApprovedStatus shareApprovedStatus)
+	{
+//		Profile profile = userService.getProfileByEmail(share.getUser().getEmail());
+		
+		
+		final Map<String,Object> model = new HashMap<String, Object>();
+		model.put("title", title);
+		model.put("event", shareApprovedStatus.getEmailMessage());
+		model.put("name", name);
+//		model.put("link", link);
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.ACCEPT_DECLINE_NOTIFICATION, Locale.ENGLISH), model);
+				
+		String subject = name+" has "+shareApprovedStatus.getEmailMessage()+" "+title; 
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject(subject);
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.ACCEPT_DECLINE_NOTIFICATION, Locale.ENGLISH));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(toMember.getEmail());
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(notifiable);
+		
+		scheduleNotification(notification);
+		
+		//client notification
+		if (notifiable instanceof Share)
+		{
+			if (((Share)notifiable).getTask().isHasBeenSubTasked())
+			{
+				if (shareApprovedStatus.equals(ShareApprovedStatus.APPROVED))
+					notification.setClientNotificationType(ClientNotificationTypeEnum.sublistShareAccepted.toString());
+				else if (shareApprovedStatus.equals(ShareApprovedStatus.DECLINED))
+					notification.setClientNotificationType(ClientNotificationTypeEnum.sublistShareDeclined.toString());
+			}
+			else
+			{
+				if (shareApprovedStatus.equals(ShareApprovedStatus.APPROVED))
+					notification.setClientNotificationType(ClientNotificationTypeEnum.taskShareAccepted.toString());
+				else if (shareApprovedStatus.equals(ShareApprovedStatus.DECLINED))
+					notification.setClientNotificationType(ClientNotificationTypeEnum.taskShareDeclined.toString());
+			}
+		}
+		else if (notifiable instanceof ShareCalendar)
+		{
+			if (shareApprovedStatus.equals(ShareApprovedStatus.APPROVED))
+				notification.setClientNotificationType(ClientNotificationTypeEnum.listShareAccepted.toString());
+			else if (shareApprovedStatus.equals(ShareApprovedStatus.DECLINED))
+				notification.setClientNotificationType(ClientNotificationTypeEnum.listShareDeclined.toString());
+		}
+		notification.setToProfileId(toMember.getId());
+		
+		return notification;
+	}
+	
+	public Notification sendAlarm(Alarm alarm)
+	{
+		Notification notification = new Notification();
+		notification.setBody(alarm.getMessage());
+		notification.setNotificationTypeOrdinal(alarm.getNotificationType());
+		notification.setPushTypeOrdinal(alarm.getPushType());
+		notification.setSendTo(alarm.getMember().getEmail());
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.ALARM, Locale.ENGLISH));
+		notification.setToSendTime(alarm.getAlarmTime().getMillis());
+		notification.setSubject(alarm.getMessage()+" is due shortly...");
+		notification.setINotification(alarm);
+		
+		scheduleNotification(notification);
+		
+		return notification;
+	}
+	
+	
+	/**
+	 * This is the notification that goes out to the share owner when a task update is completed to alert them of 
+	 * a change
+	 * @param task
+	 * @param notificationTypeEnum
+	 * @param toEmail
+	 * @return
+	 */
+	public Notification sendNotificationToShareeOnTaskUpdate(Share share, NotificationTypeEnum notificationTypeEnum)
+	{		
+		Task task = share.getTask();
+		String toEmail = share.getUser().getEmail();
+		final Map<String,Object> model = new HashMap<String, Object>();
+		String event;
+		if (task.getProgress()==ProgressEnum.DELETE.ordinal()) 
+			event = "Canceled"; 
+		else if (task.getProgress()==ProgressEnum.DONE.ordinal())
+			event = "Completed";
+		else
+			return null;
+			//task.getProgress()==ProgressEnum.DELETE.ordinal() ? "Canceled" : "Completed";
+		model.put("event", event);
+		model.put("task", task);
+		model.put("link", buildTaskLink(task, toEmail));
+		
+		
+		String emailBody = VelocityEngineUtils.mergeTemplateIntoString(getVelocityEngine(), getEmailTemplate(EmailTemplateEnum.CANCEL_COMPLETE_TASK, Locale.ENGLISH), model);
+
+		Notification notification = new Notification();
+		notification.setBody(emailBody);
+		notification.setSubject("Task "+task.getTitle()+" "+event);
+		notification.setSendFrom(getEmailFromAddress(EmailTemplateEnum.CANCEL_COMPLETE_TASK, Locale.ENGLISH));		
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(PushTypeEnum.NONE.ordinal());
+		
+		notification.setSendTo(toEmail);
+		notification.setToSendTime(System.currentTimeMillis());
+		notification.setINotification(share);
+		
+		scheduleNotification(notification);
+		
+		return notification;
+	
+	
+	}
+	
+	/**
+	 * This method will build a link to task.  It requires the taskLandingPage to be injected into the service.
+	 * @param task
+	 * @param shareEmail
+	 * @return link to the task
+	 */
+	private String buildTaskLink(Task task, String shareEmail)
+	{
+		return buildTaskLink(taskLandingPage, task, shareEmail, task.isPublicTask());
+	}
+	
+	private String buildTaskLink(String landingPage, Task task, String shareEmail, boolean isPublic)
+	{
+		StringBuffer taskLink = new StringBuffer(landingPage);
+		taskLink.append("?taskid=");
+		taskLink.append(task.getId());
+		if (isPublic)
+		{
+			taskLink.append("&email=");
+			taskLink.append(shareEmail);
+		}
+		
+		taskLink.append("#/invite");
+		return taskLink.toString();
+	}
+	
+}

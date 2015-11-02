@@ -1,0 +1,11 @@
+package com.homefellas.rm.share;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.IRMValidator;
+
+public interface IShareValidator extends IRMValidator
+{
+
+	public void validateInvite(Invite invite) throws ValidationException;
+	public void validateShare(Share share) throws ValidationException;
+}

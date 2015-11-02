@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true">
+	<class name="com.homefellas.user.Member" table="rm_members">
+		<cache usage="read-write"/>
+		
+		<id name="id" column="memberId" type="long">
+			<generator class="identity"/>  
+		</id>
+		
+		<property name="name" lazy="false" not-null="true"/>
+		<many-to-one name="authenication" class="com.homefellas.user.Authenication" fetch="join" lazy="false" cascade="all"/>
+		 
+	</class>
+	
+
+</hibernate-mapping>
+	

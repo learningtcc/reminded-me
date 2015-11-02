@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration
+    PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration >
+	<session-factory >
+	<!-- 
+		<mapping resource="main/resource/conf/hibernate/hbm/AuthorizationTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/MemberTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/ListUserLevelsTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/ListUserTypesTO.hbm.xml"/>
+		<mapping resource="main/resource/conf/hibernate/hbm/Member.hbm.xml"/>
+ -->
+ 		
+ 		<mapping class="com.homefellas.rm.task.Category"/>
+<!--  		<mapping class="com.homefellas.rm.task.Goal"/> -->
+ 		<mapping class="com.homefellas.rm.task.Task"/>
+ 		<mapping class="com.homefellas.rm.task.TaskTemplate"/>
+ 		<mapping class="com.homefellas.rm.task.TaskRepeat"/>
+<!--  		<mapping class="com.homefellas.rm.task.TaskComment"/> -->
+<!--  		<mapping class="com.homefellas.rm.task.Theme"/> -->
+<!--  		<mapping class="com.homefellas.rm.task.SubTask"/> -->
+ 		<mapping class="com.homefellas.rm.task.Calendar"/>
+ 		<mapping class="com.homefellas.rm.task.RepeatSetup"/>
+ 		<mapping class="com.homefellas.rm.task.SkipTime"/>
+ 		<mapping class="com.homefellas.rm.task.TimelessTaskStat"/>
+ 		<mapping class="com.homefellas.rm.task.CalendarStoreCategory"/>
+ 		<mapping class="com.homefellas.rm.task.CalendarStoreSubCategory"/>
+ 		<mapping class="com.homefellas.rm.task.CalendarStoreUserDefinedCategory"/>
+<!--  		<mapping class="com.homefellas.rm.reminder.ReminderComment"/> -->
+<!--  		<mapping class="com.homefellas.rm.reminder.Reminder"/> -->
+ 		<mapping class="com.homefellas.rm.reminder.Alarm"/>
+ 		
+<!--  		<mapping class="com.homefellas.rm.note.Note"/> -->
+<!--  		<mapping class="com.homefellas.rm.note.Attachment"/> -->
+<!--  		<mapping class="com.homefellas.rm.note.AttachmentMetaData"/> -->
+<!--  		<mapping class="com.homefellas.rm.note.Tag"/> -->
+ 		
+ 		<mapping class="com.homefellas.rm.share.Share"/>
+ 		<mapping class="com.homefellas.rm.share.ShareCalendar"/>
+ 		<mapping class="com.homefellas.rm.share.Invite"/>
+ 		
+ 		<mapping class="com.homefellas.rm.notification.ClientNotification"/>
+ 		<mapping class="com.homefellas.rm.notification.Device"/>
+ 		
+ 		<mapping class="com.homefellas.rm.user.Contact"/>
+ 		<mapping class="com.homefellas.rm.user.GroupContact"/>
+ 		<mapping class="com.homefellas.rm.user.PersonalPointScore"/>
+ 		<mapping class="com.homefellas.rm.user.PersonalPointScoreAttribute"/>
+	</session-factory>
+</hibernate-configuration>
+

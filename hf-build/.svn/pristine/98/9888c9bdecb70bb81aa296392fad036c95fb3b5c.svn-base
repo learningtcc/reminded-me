@@ -1,0 +1,10 @@
+# Email
+displayname=
+from = neverforget@reminded.me
+to = can@reminded.me
+subject = Want to be first in line for Reminded.me? 
+template = FriendInvite_en.html
+persist =true 
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

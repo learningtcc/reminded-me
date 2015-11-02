@@ -1,0 +1,8 @@
+Build:
+1.  run mvn package
+2.
+
+Execute:
+#java -jar hf-notification-0.0.1-SNAPSHOT-executable "C:\workspace\eclipse\rm ws\hf-build\properties\notification.properties"
+or
+java -jar hf-notification-0.0.1-SNAPSHOT-executable 

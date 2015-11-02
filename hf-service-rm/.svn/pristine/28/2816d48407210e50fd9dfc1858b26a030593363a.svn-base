@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/jee 
+http://www.springframework.org/schema/jee/spring-jee-2.0.xsd
+http://www.springframework.org/schema/context 
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+  	
+ 	<bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<property name="basePropertiesHome" value="${properties_home}"/>
+		<property name="locations">
+			<list>
+				<value>core.properties</value>
+				<value>location.properties</value>
+				<value>metrics.properties</value>
+				<value>rm.properties</value>
+			</list>
+		</property>
+	</bean>
+ 	
+ 	
+ 	<import resource="classpath:main/resource/conf/core-context.xml"/>
+ 	<import resource="classpath:main/resource/conf/batch-context.xml"/>
+ 	<import resource="classpath:com/homefellas/context/user-context.xml"/>
+ 	<import resource="classpath:main/resource/conf/metrics-context.xml"/>
+ 	<import resource="classpath:com/homefellas/context/rm-service-context.xml"/>
+ 	
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+			<property name="url" value="jdbc:hsqldb:mem:mydb;sql.enforce_strict_size=false;ifxeists=true" />
+			
+			<property name="username" value="sa" />
+			<property name="password" value="" />
+		</bean>
+
+<!-- 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"> -->
+<!-- 			<property name="driverClassName" value="com.mysql.jdbc.Driver" /> -->
+<!-- 			<property name="url" value="jdbc:mysql://localhost/rm" /> -->
+			
+<!-- 			<property name="username" value="root" /> -->
+<!-- 			<property name="password" value="rage311" /> -->
+<!-- 		</bean> -->
+		
+		
+ 	<bean id="brochureDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+			<property name="url" value="jdbc:hsqldb:mem:brochure;sql.enforce_strict_size=false;ifxeists=true" />
+			
+			<property name="username" value="sa" />
+			<property name="password" value="" />
+		</bean>
+		
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref local="dataSource"/>
+		</property>
+		<property name="configLocations">
+            <list>
+                <!-- <value>classpath*:main/resource/conf/hibernate/*.cfg.xml</value> -->
+                <value>classpath*:main/resource/conf/hibernate/login.cfg.xml</value>
+                <value>classpath*:main/resource/conf/hibernate/metric.cfg.xml</value>
+                <value>classpath*:main/resource/conf/hibernate/rm.cfg.xml</value>
+                <value>classpath*:com/homefellas/conf/hibernate/user.cfg.xml</value>
+                <value>classpath*:main/resource/conf/hibernate/batch.cfg.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${db.unittest.dialect}</prop>
+<!-- 				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> -->
+
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>		
+        		<prop key="hibernate.show_sql">false</prop>
+				<!-- Botlist default for format_sql should be 'false' -->
+				<prop key="hibernate.format_sql">${hibernate.formatSql}</prop>
+				<prop key="hibernate.generate_statistics">${hibernate.generateStatistics}</prop>
+				<!-- ============================================= -->
+
+				<!-- Caching Properties -->
+				<prop key="hibernate.cache">${hibernate.cache}</prop>
+				<prop key="hibernate.cache.use_query_cache">${cache.use_query_cache}</prop>
+				
+				<prop key="hibernate.cache.provider_class">${hibernate.cacheProviderClass}</prop>
+				<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
+			<!--	
+			
+			<prop key="hibernate.cache.provider_class">${cache.provider_class}</prop> 
+			-->
+
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="brochureSessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref local="brochureDataSource"/>
+		</property>
+		<property name="configLocations">
+            <list>
+                <!-- <value>classpath*:main/resource/conf/hibernate/*.cfg.xml</value> -->
+                <value>classpath*:main/resource/conf/hibernate/brochure.cfg.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${db.unittest.dialect}</prop>
+<!-- 				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> -->
+
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>		
+        		<prop key="hibernate.show_sql">${hibernate.showSql}</prop>
+				<!-- Botlist default for format_sql should be 'false' -->
+				<prop key="hibernate.format_sql">${hibernate.formatSql}</prop>
+				<prop key="hibernate.generate_statistics">${hibernate.generateStatistics}</prop>
+				<!-- ============================================= -->
+
+				<!-- Caching Properties -->
+				<prop key="hibernate.cache">${hibernate.cache}</prop>
+				<prop key="hibernate.cache.use_query_cache">${cache.use_query_cache}</prop>
+				
+				<prop key="hibernate.cache.provider_class">${hibernate.cacheProviderClass}</prop>
+				<prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
+			<!--	
+			
+			<prop key="hibernate.cache.provider_class">${cache.provider_class}</prop> 
+			-->
+
+			</props>
+		</property>
+	</bean>
+ 				
+</beans>

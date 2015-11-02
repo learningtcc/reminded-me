@@ -1,0 +1,12 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = We have sent your Schedules to the customer.
+template = Scheduler_Contractor_AppointmentRequestCopy_en.html
+persist =true 
+bcc=prashanth@homefellas.com
+testmode=false
+testemail=munigala.prashanth@gmail.com
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

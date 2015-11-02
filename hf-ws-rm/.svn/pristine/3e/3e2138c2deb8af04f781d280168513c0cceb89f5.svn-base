@@ -1,0 +1,566 @@
+package com.homefellas.rm.user;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import junit.framework.Assert;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import com.homefellas.batch.NotificationService;
+import com.homefellas.dao.core.IDao;
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.RMTestModelBuilder;
+import com.homefellas.rm.RemindedMeService;
+import com.homefellas.rm.RemindedMeWebService;
+import com.homefellas.rm.notification.ClientNotification;
+import com.homefellas.rm.share.Share;
+import com.homefellas.rm.share.ShareService;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.ExtendedProfile;
+import com.homefellas.user.FriendEmail;
+import com.homefellas.user.Interest;
+import com.homefellas.user.Member;
+import com.homefellas.user.OAuthModel;
+import com.homefellas.user.Profile;
+import com.homefellas.user.UserAttribute;
+import com.homefellas.user.UserService;
+import com.homefellas.user.UserTestModelBuilder;
+import com.homefellas.user.UserValidationCodeEnum;
+import com.homefellas.user.ExtendedProfile.HowDidYouHearAboutUsEnum;
+import com.homefellas.user.ExtendedProfile.PersonTypeEnum;
+import com.homefellas.util.FileHelper;
+import com.homefellas.ws.core.AbstractTestRMWebService;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.GenericType;
+
+public class UserWebServiceTest extends AbstractTestRMWebService {
+
+	private ContactService contactService;
+	
+	@Before
+	public void setupDefaultDatabaseValues()
+	{
+		super.setupDefaultDatabaseValues();
+		
+		dao = (IDao)getServer().getSpringBean("dao");
+		transactionManager = (PlatformTransactionManager)getServer().getSpringBean("transactionManager");
+		contactService = (ContactService)getServer().getSpringBean("contactService");
+
+		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+		transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+		   @Override
+		   protected void doInTransactionWithoutResult(TransactionStatus status) {
+			   
+		   }});
+	}
+	
+	@After
+	public void deleteIndexFile()
+	{
+		String fileName = ((ContactService) contactService)
+		.getAllUsersIndexFile();
+
+		FileHelper.deleteFolder(fileName);
+
+	}
+	
+	@Test
+	public void misspelledContacts()
+	{ 
+		
+		Profile owner = RMTestModelBuilder.profile("ltulsidas@gmail.com");
+		owner.setName("Luv Tulsidas");
+		owner = createAndRetrieveProfile(owner);
+		
+		Profile sharee = createAndRetrieveProfile("sharee@reminded.me");
+		Profile boringUser = createAndRetrieveProfile("sharon@reminded.me");
+		
+		Task task = createAndRetrieveTask(owner);
+		
+		Share share = createAndRetrieveShares(task, sharee);
+		
+		List<Contact> contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "lov tul"), owner.getEmail());
+//		Assert.assertEquals(owner.getId(), contacts.get(0).getContact().getId());
+		
+		Assert.assertNull(contacts.get(0).getContact().getMember().getPassword());
+
+	}
+	
+	@Test
+	public void importContactExistingUsers()
+	{
+		Profile owner = createAndRetrieveProfile();
+		Profile existingUser = createAndRetrieveProfile("existing@reminded.me");
+		
+		Contact contact1 = new Contact();
+		contact1.setContact(existingUser);
+		contact1.setSource("facebook");
+		
+		List<Contact> contacts = new ArrayList<Contact>();
+		contacts.add(contact1);
+		
+		ClientResponse response = callSecuredWebService(UserWebService.class, "importContacts", ClientResponse.class, contacts, owner.getEmail());
+		Assert.assertEquals(200, response.getStatus());
+		
+		contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "existing"), owner.getEmail());
+		Assert.assertTrue(contacts.size()==1);
+		Assert.assertTrue(contacts.get(0).isaContact());
+	}
+	@Test
+	public void importContacts()
+	{
+		Profile owner = createAndRetrieveProfile();
+		
+		Contact contact1 = new Contact();
+		contact1.setContact(new Profile());
+		contact1.getContact().setMember(new Member());
+		contact1.getContact().getMember().setEmail("facebook@reminded.me");
+		contact1.setSource("facebook");
+		
+		Contact contact2 = new Contact();
+		contact2.setContact(new Profile());
+		contact2.getContact().setMember(new Member());
+		contact2.getContact().getMember().setEmail("gmail@reminded.me"); 
+		contact2.getContact().setName("gmail");
+		contact2.setSource("gmail");
+		
+		List<Contact> contacts = new ArrayList<Contact>();
+		contacts.add(contact1);
+		contacts.add(contact2);
+		
+		ClientResponse response = callSecuredWebService(UserWebService.class, "importContacts", ClientResponse.class, contacts, owner.getEmail());
+		Assert.assertEquals(200, response.getStatus());
+		
+		contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "face"), owner.getEmail());
+		Assert.assertTrue(contacts.size()>1);
+		
+		contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "gma"), owner.getEmail());
+		Assert.assertTrue(contacts.size()>1);
+	}
+	
+	
+	@Test
+	public void dublicatePPSDate()
+	{
+		Profile owner = createAndRetrieveProfile();
+		
+		PersonalPointScore personalPointScore1 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().minusDays(2));
+		PersonalPointScore personalPointScore2 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().minusDays(2));
+		
+		String path = "pps";
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = "";
+		try
+		{
+			personalPointScore1 = createGeneric(PersonalPointScore.class, personalPointScore1, path);
+			
+			json = objectMapper.writeValueAsString(personalPointScore2);
+			
+			ClientResponse response = callWebService(RemindedMeWebService.class, "create", ClientResponse.class, buildPathParms("{model}", path), json);
+			
+			Assert.assertEquals(500, response.getStatus());
+		}
+		catch (Exception exception)
+		{
+			Assert.fail(exception.getMessage());
+		}
+					
+		
+	}
+	@Test
+	public void filterTestAccounts()
+	{
+		Profile owner = createAndRetrieveProfile();
+		Profile profile1 = createAndRetrieveProfile("sharee+asd@reminded.me");		
+		Profile profile2 = RMTestModelBuilder.profile("shareetest122@reminded.me");
+		profile2.setName("test");
+		profile2 = createAndRetrieveProfile(profile2);
+		
+		Profile profile3 = RMTestModelBuilder.profile("shareeeeeee@reminded.me");
+		profile2.setName("test");
+		profile3.setSearchable(false);
+		profile3 = createAndRetrieveProfile(profile3);
+		
+		List<Contact> contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "shar"), owner.getEmail());
+		Assert.assertTrue(contacts.isEmpty()); 
+	}
+	
+	@Test
+	public void isAContact()
+	{
+		Profile owner = createAndRetrieveProfile();
+		Profile sharee = createAndRetrieveProfile("sharee@reminded.me");
+		Profile boringUser = createAndRetrieveProfile("sharon@reminded.me");
+		
+		Task task = createAndRetrieveTask(owner);
+		
+		Share share = createAndRetrieveShares(task, sharee);
+		
+		List<Contact> contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "shar"), owner.getEmail());
+		Assert.assertEquals(sharee.getId(), contacts.get(0).getContact().getId());
+		
+		Assert.assertTrue(contacts.get(0).isaContact());
+		
+//		Assert.assertEquals(boringUser.getEmail(), contacts.get(1).getEmail());
+		
+//		Assert.assertFalse(contacts.get(1).isaContact());
+		
+//		Assert.assertNull(contacts.get(0).getContact().getMember().getPassword());
+//		Assert.assertNull(contacts.get(0).getContactOwner().getPassword());
+	}
+	
+	
+	@Test
+	public void pps()
+	{
+		Profile owner = createAndRetrieveProfile();
+		
+		PersonalPointScore personalPointScore1 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().minusDays(2));
+		PersonalPointScore personalPointScore2 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().minusDays(1));
+		PersonalPointScore personalPointScore3 = RMTestModelBuilder.pps(owner.getMember(), new DateTime());
+		PersonalPointScore personalPointScore4 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().plusDays(1));
+		PersonalPointScore personalPointScore5 = RMTestModelBuilder.pps(owner.getMember(), new DateTime().plusDays(2));
+		
+		String path = "pps";
+		personalPointScore1 = createGeneric(PersonalPointScore.class, personalPointScore1, path);
+		personalPointScore2 = createGeneric(PersonalPointScore.class, personalPointScore2, path);
+		personalPointScore3 = createGeneric(PersonalPointScore.class, personalPointScore3, path);
+		personalPointScore4 = createGeneric(PersonalPointScore.class, personalPointScore4, path);
+		personalPointScore5 = createGeneric(PersonalPointScore.class, personalPointScore5, path);
+		
+		List<PersonalPointScore> pps = callSecuredWebService(UserWebService.class, "lastestPPS", new GenericType<List<PersonalPointScore>>(){}, null, owner.getEmail());
+		Assert.assertTrue(pps.contains(personalPointScore3));
+//		Assert.assertTrue(ppss.contains(personalPointScore3));
+		
+		
+	}
+	
+	
+	@Test
+	public void popular()
+	{
+		Profile tim = createAndRetrieveProfile();
+		Profile jodie = createAndRetrieveProfile("jodie@reminded.me");
+		Profile luv = createAndRetrieveProfile("luv@reminded.me");
+		Profile bijal = createAndRetrieveProfile("bijal@reminded.me");
+		
+		Task task1 = createAndRetrieveTask(tim);
+		Task task2 = createAndRetrieveTask(tim);
+		Share share1 = createAndRetrieveShares(task1, jodie);
+		Share share2 = createAndRetrieveShares(task2, jodie);
+		Share share3 = createAndRetrieveShares(task1, luv);
+		Share share4 = createAndRetrieveShares(task2, bijal);
+		
+		List<Contact> contacts = callSecuredWebService(UserWebService.class, "getPopularContactsForUser", new GenericType<List<Contact>>(){}, buildPathParms("{max_results}", "0"), tim.getEmail());
+		Assert.assertEquals(jodie.getId(), contacts.get(0).getContact().getId());
+		Assert.assertEquals(bijal.getId(), contacts.get(1).getContact().getId());
+		Assert.assertEquals(luv.getId(), contacts.get(2).getContact().getId());
+	}
+	
+
+	
+	@Test
+	public void faceBookTest()
+	{
+		OAuthModel model = new OAuthModel();
+		model.setEmail("facebook@reminded.me");
+		model.setFirstName("Tim");
+		model.setId("123456789");
+		Profile profile = callWebService(UserWebService.class, "getProfileOrRegisterFaceBookUser", Profile.class, model);
+		
+		String id = profile.getId();
+		Assert.assertTrue(profile.isPrimaryKeySet());
+		
+		profile = callWebService(UserWebService.class, "getProfileOrRegisterFaceBookUser", Profile.class, model);
+		Assert.assertEquals(id, profile.getId());
+	}
+	@Test
+	public void updateProfile()
+	{
+		Profile profile = createAndRetrieveProfile();
+		
+		Set<UserAttribute> userAttributes = new HashSet<UserAttribute>();
+		UserAttribute userAttribute1 = new UserAttribute();
+		String location = "location";
+		String zip1 = "19805";
+		userAttribute1.setName(location);
+		userAttribute1.setValue(zip1);
+		userAttributes.add(userAttribute1);
+		profile.setUserAttributes(userAttributes);
+		
+		profile = callWebService(UserWebService.class, "updateProfile", Profile.class, profile);
+		
+		Map<String, String> pathParms = new HashMap<String, String>(2);
+		pathParms.put("{profileid}", profile.getId());
+		Profile classUnderTest = callWebService(UserWebService.class, "getProfile", Profile.class, pathParms);
+		userAttributes = classUnderTest.getUserAttributes();
+		for (UserAttribute attribute : userAttributes)
+		{
+			Assert.assertEquals(location, attribute.getName());
+			Assert.assertEquals(zip1, attribute.getValue());
+		}
+		
+		
+		userAttributes = new HashSet<UserAttribute>();
+		userAttribute1 = new UserAttribute();
+		userAttribute1.setName(location);
+		String zip2 = "07834";
+		userAttribute1.setValue(zip2);
+		userAttributes.add(userAttribute1);
+		
+		UserAttribute userAttribute2 = new UserAttribute();
+		String state = "state";
+		String de = "DE";
+		userAttribute1.setName(state);
+		userAttribute1.setValue(de);
+		userAttributes.add(userAttribute2);
+		profile.setUserAttributes(userAttributes);
+		
+		profile = callWebService(UserWebService.class, "updateProfile", Profile.class, profile);
+		
+		pathParms = new HashMap<String, String>(2);
+		pathParms.put("{profileid}", profile.getId());
+		classUnderTest = callWebService(UserWebService.class, "getProfile", Profile.class, pathParms);
+		
+		userAttributes = classUnderTest.getUserAttributes();
+		for (UserAttribute attribute : userAttributes)
+		{
+			
+			Assert.assertTrue((attribute.getName().equals(location)||attribute.getName().equals(state)));
+			Assert.assertTrue((attribute.getValue().equals(zip2)||attribute.getValue().equals(de)));
+		}
+		
+	}
+	@Test
+	public void testResetPassword()
+	{
+		Profile profile = createAndRetrieveProfile();
+		
+//		Map<String, String> pathParms = new HashMap<String, String>(2);
+//		pathParms.put("{email}", profile.getMember().getEmail());
+//		pathParms.put("{resetBaseUrl}", "http://reminded.me/pr");
+		String wsPath = "/users/forgot/password";
+		URI uri = UriBuilder.fromPath(getContextRoot()+getJerseyMapping()+wsPath).build();
+		
+		ClientResponse response = createClient().resource(getServer().uri()).path(uri.getPath()).queryParam("email", profile.getMember().getEmail()).queryParam("resetBaseUrl", "http://reminded.me/pr").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+		
+//		ClientResponse response = callWebService(UserWebService.class, "forgetPassword", ClientResponse.class, pathParms);
+		
+		Assert.assertTrue(response.getStatus()==200);
+		String ticket = response.getEntity(String.class);
+		
+		Member member = new Member();
+		member.setEmail(profile.getMember().getEmail());
+		member.setPassword("newPassword");
+		member.setTicket(ticket);
+		response = callWebService(UserWebService.class, "resetPassword", ClientResponse.class, member);
+		
+		Assert.assertTrue(response.getStatus()==200);
+	}
+	
+	@Test
+	public void getProfile()
+	{
+		Profile profile = createAndRetrieveProfile();
+		
+		Map<String, String> pathParms = new HashMap<String, String>(2);
+		pathParms.put("{profileid}", profile.getId());
+		Profile classUnderTest = callWebService(UserWebService.class, "getProfile", Profile.class, pathParms);
+		Assert.assertEquals(profile, classUnderTest);
+	}
+
+	@Test
+	public void testRegisterMember()
+	{
+		//test 1 success
+		Profile profile = UserTestModelBuilder.buildBasicMember(true,"user@homefellas.com",passwordEncoder);
+		ClientResponse response = callWebService(UserWebService.class, "registerMember", ClientResponse.class, profile);
+		
+		Assert.assertEquals(ClientResponse.Status.OK.getStatusCode(), response.getStatus());
+		
+		profile=response.getEntity(Profile.class);
+		assertTrue(profile.isPrimaryKeySet());
+		
+		//test 2 id already taken
+		response = callWebService(UserWebService.class, "registerMember", ClientResponse.class, profile);
+		
+//		List<IValidationCode> codes = response.getEntity(List.class);
+//		assertTrue(codes.contains(UserValidationCodeEnum.MEMBER_ID_TAKEN.toString()));
+		assertValidationError(response, UserValidationCodeEnum.MEMBER_ID_TAKEN);
+		Assert.assertEquals(400, response.getStatus());
+//		try
+//		{
+//			member = registerProfile(member);
+//		}
+//		catch (Exception exception)
+//		{hah
+//			exception.printStackTrace();
+//		}
+//		catch (WebApplicationException webServiceValidationException)
+//		{
+//			System.out.println(webServiceValidationException.getMessage());
+//		}
+		
+		//test 3 null values
+		profile = UserTestModelBuilder.buildBasicMember(true,"user@homefellas.com",passwordEncoder);
+		profile.getMember().setTicket(null);
+		profile.getMember().setEmail("");
+		profile.getMember().setPassword(null);
+		
+//		response = postToWebservice("/register", ClientResponse.class, profile);
+//		response = postToWebService(UserWebService.class, "registerMember", ClientResponse.class, profile);
+		response = callWebService(UserWebService.class, "registerMember", ClientResponse.class, profile);
+		Assert.assertEquals(400, response.getStatus());
+//		codes = response.getEntity(List.class);
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		codes.add(UserValidationCodeEnum.EMAIL_NULL);
+		codes.add(UserValidationCodeEnum.PASSWORD_NULL);
+//		codes.add(UserValidationCodeEnum.NO_TICKET_SET);
+		
+		assertValidationErrors(response, codes);
+//		assertTrue(codes.contains(UserValidationCodeEnum.EMAIL_NULL.toString()));
+//		assertTrue(codes.contains(UserValidationCodeEnum.PASSWORD_NULL.toString()));
+//		assertTrue(codes.contains(UserValidationCodeEnum.NO_TICKET_SET.toString()));
+//		try
+//		{
+//			member = registerProfile(member);
+//		}
+//		catch (Exception serviceValidationException)
+//		{
+//			serviceValidationException.printStackTrace();
+//		}
+		
+	}
+	
+	@Test
+	public void testCreateUpdateExtendedProfile()
+	{
+		Profile profile = createAndRetrieveProfile();
+		
+		ExtendedProfile extendedProfile = new ExtendedProfile();
+		String affilication = "University of Delaware";
+		extendedProfile.setAffiliation(affilication);
+		
+		//step 2 in join process, create the extended profile and add one friend
+		Set<Interest> interests = new HashSet<Interest>();
+		Interest skiing = new Interest();
+		skiing.setInterestName("Skiing");
+		Interest softball = new Interest();
+		softball.setInterestName("Softball");
+		interests.add(skiing);
+		interests.add(softball);
+		extendedProfile.addFriendEmail("test2222@homefellas.com");
+		extendedProfile.setHowDidYouHearAboutUs(HowDidYouHearAboutUsEnum.FRIEND_TOLD_ME.ordinal());
+		extendedProfile.setInterests(interests);
+		extendedProfile.setPersonType(PersonTypeEnum.OTHER.ordinal());
+		extendedProfile.setProfile(profile);
+		
+		int friendCounter=1;
+		extendedProfile = executeWebServiceCall(UserWebService.class, "createUpdateExtendProfile", extendedProfile).getEntity(ExtendedProfile.class); 
+		
+		long id = extendedProfile.getId();
+		Assert.assertTrue(id>0);
+		
+		//step 3, add more friends.  
+		extendedProfile = new ExtendedProfile();
+		extendedProfile.setId(id);
+		extendedProfile.setProfile(profile);
+		extendedProfile.addFriendEmail("test123@homefellas.com");
+		extendedProfile.addFriendEmail("test345@homefellas.com");
+		extendedProfile.addFriendEmail("test678@homefellas.com");
+		friendCounter+=3;
+		extendedProfile = executeWebServiceCall(UserWebService.class, "addFriendsEmailToExtendProfile", extendedProfile).getEntity(ExtendedProfile.class);
+		
+		assertEquals(affilication, extendedProfile.getAffiliation());
+		assertEquals(id, extendedProfile.getId());
+		
+		//step 4 add comments
+		extendedProfile = new ExtendedProfile();
+		extendedProfile.setId(id);
+		extendedProfile.setProfile(profile);
+		String userComments = "This is the best product I've ever seen.  When will this be live?";
+		extendedProfile.setUserComments(userComments);
+		extendedProfile = executeWebServiceCall(UserWebService.class, "addUserCommentsToExtendProfile", extendedProfile).getEntity(ExtendedProfile.class);
+		
+		assertEquals(2, extendedProfile.getInterests().size());
+		assertEquals(friendCounter, extendedProfile.getFriendEmails().size());
+		assertEquals(userComments, extendedProfile.getUserComments());
+		assertEquals(id, extendedProfile.getId());
+	}
+	
+//	@Test
+//	public void testRegisterMember()
+//	{
+//		
+//		WebResource webResource = resource();
+//		
+//		Profile member = TestModelBuilder.buildBasicMember(true,"user@homefellas.com");
+//		Response response = registerMember(member);
+//		
+//		Assert.assertEquals(ResponseStatus.SUCCESS, response.getStatus());
+//		
+//		response = webResource.path("users/register").type(MediaType.APPLICATION_JSON).post(Response.class, gson.toJson(member));	
+//		response = webResource.path("users/register").type(MediaType.APPLICATION_JSON).post(Response.class, gson.toJson(member));
+//		Assert.assertEquals(ResponseStatus.VALIDATION, response.getStatus());
+//		Assert.assertTrue(response.getValidationCodes().contains(ValidationCodeEnum.MEMBER_ID_TAKEN.ordinal()));
+//		
+//		member = TestModelBuilder.buildBasicMember(true,"user@homefellas.com");
+//		member.getMember().setTicket(null);
+//		member.getMember().setEmail("");
+//		member.getMember().setPassword(null);
+////		response = webResource.path("users/register").type(MediaType.APPLICATION_JSON).post(Response.class, gson.toJson(member));
+//		response = registerMember(member);
+//		
+//		Assert.assertEquals(ResponseStatus.VALIDATION, response.getStatus());
+//		Assert.assertTrue(response.getValidationCodes().contains(ValidationCodeEnum.NO_TICKET_SET.ordinal()));
+//		Assert.assertTrue(response.getValidationCodes().contains(ValidationCodeEnum.EMAIL_NULL.ordinal()));
+//		Assert.assertTrue(response.getValidationCodes().contains(ValidationCodeEnum.PASSWORD_NULL.ordinal()));
+//	}
+	
+	@Test
+	public void searchTest()
+	{
+		Profile tim = createAndRetrieveProfile();
+		Profile jodie = createAndRetrieveProfile("jodie@reminded.me");
+		Profile luv = createAndRetrieveProfile("luv@reminded.me");
+		Profile bijal = createAndRetrieveProfile("bijal@reminded.me");
+		
+		Task task1 = createAndRetrieveTask(tim);
+		Task task2 = createAndRetrieveTask(tim);
+		Share share1 = createAndRetrieveShares(task1, jodie);
+		Share share2 = createAndRetrieveShares(task2, jodie);
+		Share share3 = createAndRetrieveShares(task1, luv);
+		Share share4 = createAndRetrieveShares(task2, bijal);
+		
+		List<Contact> contacts = callSecuredWebService(UserWebService.class, "searchForContacts", new GenericType<List<Contact>>(){}, buildPathParms("{term}", "bij"), tim.getEmail());
+		Assert.assertEquals(bijal.getId(), contacts.get(0).getContact().getId());
+		Assert.assertEquals(jodie.getId(), contacts.get(1).getContact().getId());
+		Assert.assertEquals(luv.getId(), contacts.get(2).getContact().getId());
+	}
+}

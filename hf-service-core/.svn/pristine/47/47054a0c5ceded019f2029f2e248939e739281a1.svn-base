@@ -1,0 +1,79 @@
+package com.homefellas.batch;
+
+import java.util.List;
+
+import org.hibernate.Query;
+
+import com.homefellas.dao.hibernate.core.HibernateDao;
+
+public class NotificationDao extends HibernateDao implements INotificationDao
+{
+
+	public List<String> getDeviceIdsForDailyDYKNotification(PushTypeEnum pushTypeEnum)
+	{
+		Query query = getQuery("select d.id from Device d where profile.dailyDYKNotification = true and d.pushTypeOrdinal="+pushTypeEnum.ordinal());
+		
+		return query.list();
+	}
+	
+	public List<String> getDeviceIdsByEmail(String email)
+	{
+		Query query = getQuery("select d.id from Device d where profile.member.email = ?");
+		query.setString(0, email);
+		
+		return query.list();
+	}
+	
+	public List<Notification> getNotificationsForINotification(INotifiable notification)
+	{
+		Query query = getQuery("from Notification n where n.iNotificationId=? and n.iNotificationClassName=? and n.sentStatusOrdinal=?");
+
+		query.setString(0, (String)notification.getNotificationId());
+		query.setString(1, notification.getClassName());
+		query.setInteger(2, NotificationStatusEnum.QUEUED.ordinal());
+		
+		return query.list();
+	}
+	
+	public List<Notification> getNotificationsForINotification(INotifiable notification, String toEmail)
+	{
+		Query query = getQuery("from Notification n where n.iNotificationId=? and n.iNotificationClassName=? and n.sentStatusOrdinal=? and n.sendTo=?");
+
+		query.setString(0, (String)notification.getNotificationId());
+		query.setString(1, notification.getClassName());
+		query.setInteger(2, NotificationStatusEnum.QUEUED.ordinal());
+		query.setString(3, toEmail);
+		
+		return query.list();
+	}
+	
+	public Notification getNotificationToBeSent(long pollTime)
+	{
+		Query query = getQuery("from Notification n where (n.sentStatusOrdinal=? or n.sentStatusOrdinal=?) and n.toSendTime <= ? order by n.priority, n.toSendTime, n.id");
+		query.setInteger(0, NotificationStatusEnum.QUEUED.ordinal());
+		query.setInteger(1, NotificationStatusEnum.FAILED.ordinal());
+		query.setLong(2, pollTime);
+		query.setMaxResults(1);
+		return (Notification)query.uniqueResult();
+	}
+	
+	public List<Notification> getNotificationsToBeSent(long pollTime, int maxResults)
+	{
+		Query query = getQuery("from Notification n where (n.sentStatusOrdinal=? or n.sentStatusOrdinal=?) and n.toSendTime <= ? order by n.priority, n.toSendTime, n.id");
+		query.setInteger(0, NotificationStatusEnum.QUEUED.ordinal());
+		query.setInteger(1, NotificationStatusEnum.FAILED.ordinal());
+		query.setLong(2, pollTime);
+		query.setMaxResults(maxResults);
+		return query.list();
+	}
+	
+	public List<Notification> getNotificationsToEmail(String toEmail)
+	{
+		Query query = getQuery("from Notification n where n.sentStatusOrdinal=? and n.sendTo=?");
+
+		query.setInteger(0, NotificationStatusEnum.QUEUED.ordinal());
+		query.setString(1, toEmail);
+		
+		return query.list();
+	}
+}

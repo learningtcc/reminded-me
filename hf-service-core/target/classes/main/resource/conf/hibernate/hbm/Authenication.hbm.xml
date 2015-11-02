@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true">
+	<class name="com.homefellas.user.Authenication" table="authenications">
+		<cache usage="read-write"/>
+		
+		<id name="id" column="authenicationId" type="long">
+			<generator class="identity"/>  
+		</id>
+		
+		<property name="password" column="password" length="50" not-null="false" lazy="false" type="string" />
+		<property name="email" column="email" length="75" not-null="true" lazy="false" type="string" unique="true" />
+	
+		<set name="roles" table="authorizations" lazy="false" fetch="join" cascade="all">
+		 	<key column="authenicationId" not-null="true"/>
+		 	<many-to-many class="com.homefellas.user.Role" column="roleId"/>		 
+		 </set>
+<!--
+		<list name="images" table="bidprojectimagepaths" lazy="false" fetch="join" cascade="all">
+		 	<key column="bidProjectId" not-null="false"/>
+		 	<list-index column="bidChoicesIndex"/>
+		 	<many-to-many class="BidProjectImagePath" column="imagePathId"/>		 
+		 </list>
+		 
+		 <list name="roles" table="authorizations" lazy="false" fetch="join" cascade="all">
+		 	<key column="bidProjectId" not-null="false"/>
+		 	<list-index column="bidChoicesIndex"/>
+		 	<many-to-many class="BidProjectImagePath" column="imagePathId"/>		 
+		 </list>
+-->		 
+	</class>
+	
+
+</hibernate-mapping>
+	

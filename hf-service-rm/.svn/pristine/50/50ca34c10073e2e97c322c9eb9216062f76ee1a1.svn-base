@@ -1,0 +1,38 @@
+package com.homefellas.rm.reminder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMValidator;
+import com.homefellas.rm.ValidationCodeEnum;
+
+public class ReminderValidator extends AbstractRMValidator implements IReminderValidator
+{
+
+	public void validateAlarm(Alarm alarm) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validatePrimaryKey(codes, alarm);
+		if (alarm.getTask()==null || alarm.getTask().getId()==null || "".equals(alarm.getTask().getId()))
+			throw new ValidationException(ValidationCodeEnum.TASK_ID_IS_NULL);
+		
+		if ((alarm.getNotificationType()==NotificationTypeEnum.EMAIL_PUSH.ordinal()
+				||alarm.getNotificationType()==NotificationTypeEnum.SMS_PUSH.ordinal()
+				||alarm.getNotificationType()==NotificationTypeEnum.ALL.ordinal()
+				||alarm.getNotificationType()==NotificationTypeEnum.PUSH.ordinal()
+				)&&alarm.getPushType()==PushTypeEnum.NONE.ordinal())
+				codes.add(ValidationCodeEnum.PUSH_TYPE_IS_NULL);
+		
+		throwException(codes, alarm);
+	}
+	
+	
+	
+
+}
+

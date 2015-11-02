@@ -1,0 +1,33 @@
+package com.homefellas.rm.share;
+
+import java.util.List;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.ISynchronizeable.SynchronizeableObject;
+import com.homefellas.rm.reminder.Alarm;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public interface IShareService
+{
+
+	public List<Task> getAcceptedSharedTasksForUser(Member user);
+	public List<Task> getAcceptedSharedTasksForUser(String userId);
+	public List getSyncShareIdsForMember(SynchronizeableObject synchronizeableObject, String memberId);
+	public List<String> getAcceptedSharedTaskIdsForUser(String userId);
+	public Share getShareForTaskAndEmail(Task task, String email);
+	public Share createShareOnRegister(Profile profile) throws ValidationException;
+	public void updateSharesFromTaskUpdate(Task task, String userMakingChangeEmail) throws ValidationException;
+	public List<ShareCalendar> getCalenderShares(Calendar calendar);
+	public void processSharesUpdateForSharedCalendars(Task task, List<String> oldCalendarKeys) throws ValidationException;
+	public void processSharesAddForSharedCalendars(Task task) throws ValidationException;
+	public void deleteShare(Share share);
+	public ShareCalendar getShareCalendarByCalendarAndMember(Calendar calendar, Member member);
+	public List<Share> getAcceptedSharesForTask(Task task);
+	public List<Task> getTasksByCalendarDirectLinkTX(String calendarId, String email) throws ValidationException;
+	public List<Share> getSharesForTask(Task task);
+	public void updateSubTaskShareForTaskUpdate(Task subTask, String userMakingChangeEmail) throws ValidationException;
+	public void processSharesForAlarms(Alarm alarm, Alarm alarmFromDB);
+}

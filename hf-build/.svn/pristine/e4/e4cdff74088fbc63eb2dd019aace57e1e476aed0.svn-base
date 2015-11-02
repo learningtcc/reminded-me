@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Shared Task</title>
+</head>
+<body>
+#if ($body)
+<b>${body}</b>
+#else
+Hey ${toAlias},<br/>
+<br/>
+I'd like to invite you to...<br/>
+<br/>
+<b>${share.task.title}</b><br/>
+#if ($share.task.startDateNull)
+From/on ${share.task.formatedStartDate}<br/>
+#end
+#if ($share.task.endDateNull)
+to ${share.task.formatedEndDate}<br/>
+#end
+#if ($share.task.taskLocation)
+at ${share.task.taskLocation}<br/>
+#end
+Sent by: ${share.task.taskCreator.name} (${share.task.taskCreator.member.email})<br/>
+<br/>
+<a href="${link}">CLICK HERE</a> to see more detail & to let me know if you are IN or OUT!
+<br/>
+Shared by ${share.task.taskCreator.name} via <a href="http://reminded.me">REMINDED.me</a>  They wanted me to pass along this message to you:<br/>
+<br/>
+#end
+</body>
+</html>

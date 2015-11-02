@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+       
+
+	<!-- SERVICES -->	
+	<bean id="metricAspect" class="com.homefellas.rm.aspects.MetricAspect" factory-method="aspectOf">
+		  <property name="cache" ref="metricCache"/>
+		  <property name="metricLevel" value="${metric.level}"/>
+		</bean>
+	
+	<bean id="contactService" class="com.homefellas.rm.user.ContactService" parent="abstractService">
+		<property name="allUsersIndexFile" value="${allusers.luecene.index.home}"/>
+	</bean>
+	
+	<bean id="userService" class="com.homefellas.rm.user.RMUserService" parent="abstractService">
+			<property name="userDao" ref="userDao"/>	
+			<property name="passwordEncoder" ref="passwordEncoder"/>	
+			<property name="userValidator" ref="userValidator"/>
+			<property name="notificationService" ref="notificationService"/>
+			<property name="roleCache" ref="roleCache"/>
+			<property name="shareService" ref="shareService"/>
+		</bean> 
+		
+	<bean id="taskService" class="com.homefellas.rm.task.TaskService" parent="abstractService">
+		<property name="taskDao" ref="taskDao"/>
+		<property name="taskValidator" ref="taskValidator"/>
+		<property name="reminderValidator" ref="reminderValidator"/>
+		<property name="notificationService" ref="notificationService"/>
+		<property name="shareService" ref="shareService"/>
+		<property name="emailService" ref="emailService"/>
+	</bean>
+	
+	<bean id="shareService" class="com.homefellas.rm.share.ShareService" parent="abstractService">
+		<property name="shareDao" ref="shareDao"/>
+		<property name="shareValidator" ref="shareValidator"/>
+		<property name="userService" ref="userService"/>
+		<property name="taskService" ref="taskService"/>
+		<property name="emailService" ref="emailService"/>
+	</bean>
+	
+	<bean id="emailService" class="com.homefellas.rm.notification.EmailService" parent="abstractService">
+		<property name="taskLandingPage" value="${task.landing.root}"/>
+		<property name="notificationService" ref="notificationService"/>
+		<property name="reminderService" ref="reminderService"/>
+	</bean>
+	<bean id="reminderService" class="com.homefellas.rm.reminder.ReminderService" parent="abstractService">
+		<property name="reminderValidator" ref="reminderValidator"/>
+		<property name="taskService" ref="taskService"/>
+		<property name="defaulltNotificationQueueSize" value="${defaulltNotificationQueueSize}"/>
+		<property name="sendFromEmailAddress" value="${sendFromEmailAddress}"/>
+		<property name="reminderDao" ref="reminderDao"/>
+		<property name="notificationService" ref="notificationService"/>
+	</bean>
+	
+	<bean id="remindedMeService" class="com.homefellas.rm.RemindedMeService" parent="abstractService">
+		<property name="remindedMeDao" ref="remindedMeDao"/>
+		<property name="userService" ref="userService"/>
+		<property name="shareService" ref="shareService"/>
+	</bean>
+	
+	<bean id="didYouKnowService" class="com.homefellas.rm.dyk.DidYouKnowService" parent="abstractService">
+		<property name="didYouKnowDao" ref="didYouKnowDao"/>
+	</bean>
+	
+	<bean id="clientNotificationService" class="com.homefellas.rm.notification.ClientNotificationService" parent="abstractService"/>
+	
+	<bean id="personalPointService" class="com.homefellas.rm.user.PersonalPointScoreService" parent="abstractService"/>
+	
+	<!-- DAOS -->
+	<bean id="shareDao" class="com.homefellas.rm.share.ShareDao" parent="abstractDao"/>
+	
+	<bean id="taskDao" class="com.homefellas.rm.task.TaskDao" parent="abstractDao"/>
+	
+	<bean id="remindedMeDao" class="com.homefellas.rm.RemindedMeDao" parent="abstractDao"/>
+	
+	<bean id="reminderDao" class="com.homefellas.rm.reminder.ReminderDao" parent="abstractDao"/>
+		
+	<bean id="didYouKnowDao" class="com.homefellas.rm.dyk.DidYouKnowDao" parent="abstractDao"/>
+	
+	<bean id="clientNotificationDao" class="com.homefellas.rm.notification.ClientNotificationDao" parent="abstractDao"/>
+	
+	<bean id="contactDao" class="com.homefellas.rm.user.ContactDao" parent="abstractDao"/>
+	
+	<bean id="personalPointScoreDao" class="com.homefellas.rm.user.PersonalPointScoreDao" parent="abstractDao"/>
+	<!-- VALIDATORS -->
+	<bean id="reminderValidator" class="com.homefellas.rm.reminder.ReminderValidator"/>
+
+	<bean id="taskValidator" class="com.homefellas.rm.task.TaskValidator"/>
+	
+	<bean id="shareValidator" class="com.homefellas.rm.share.ShareValidator"/>
+	
+	<bean id="clientNotificationValidator" class="com.homefellas.rm.notification.ClientNotificationValidator"/>
+	
+	<bean id="userCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="cacheManager"/>
+			<property name="cacheName" value="userCache"/>
+	</bean>
+</beans>

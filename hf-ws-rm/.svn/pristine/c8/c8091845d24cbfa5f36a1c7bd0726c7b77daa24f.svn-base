@@ -1,0 +1,298 @@
+package com.homefellas.rm;
+
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.metrics.WebRequestMetric;
+import com.homefellas.ws.core.AbstractRMWebService;
+
+@Path("/rm")
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+public class RemindedMeWebService extends AbstractRMWebService
+{
+
+	@Autowired
+	private IRemindedMeService remindedMeService;
+	
+	@GET
+	@Path("/history/{tgt}")
+	public Response getHistory(@PathParam("tgt")String tgt)
+	{
+		try
+		{
+			List<WebRequestMetric> webRequestMetrics = remindedMeService.getHistory(tgt);
+			
+			StringBuilder entity = new StringBuilder("<html><body><table border=\"1\">");
+			entity.append("<tr><th>Method</th><th>ip</th><th>Request URI</th><th>Request Payload</th><th>Status</th><th>Response Payload</th></tr>");
+			for (WebRequestMetric metric : webRequestMetrics)
+			{
+				entity.append("<tr>");
+				entity.append("<td>");
+				entity.append(metric.getOperation());
+				entity.append("</td>");
+				entity.append("<td>");
+				entity.append(metric.getIpAddress());
+				entity.append("</td>");
+				entity.append("<td>");
+				entity.append(metric.getRequestURI());
+				entity.append("</td>");
+				entity.append("<td>");
+				entity.append(metric.getRequestPayload());
+				entity.append("</td>");
+				entity.append("<td>");
+				entity.append(metric.getStatus());
+				entity.append("</td>");
+				entity.append("<td>");
+				entity.append(metric.getResponsePayload());
+				entity.append("</td>");				
+				entity.append("</tr>");
+				
+			}
+			return Response.ok().entity(entity.toString()).type(MediaType.TEXT_HTML).build();
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/create/{model}")
+	public Response create(@PathParam("model")String modelPath, String json)
+	{
+		try
+		{
+			return buildSuccessResponse(remindedMeService.createTX(json, modelPath));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/bulk/{model}/{ids}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response getBulk(@PathParam("model")String model, @PathParam("ids")String ids)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(remindedMeService.getBulkTX(ids, loggedInProfileEmail, model));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@POST
+	@Path("/update/{model}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response update(@PathParam("model")String modelPath, String json)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			return buildSuccessResponse(remindedMeService.updateTX(json, modelPath, loggedInProfileEmail));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/delete/{model}/{id}")
+	@PreAuthorize("hasRole('ROLE_HF_USER')")
+	public Response delete(@PathParam("model")String modelPath, @PathParam("id")String id)
+	{
+		String loggedInProfileEmail = getEmailFromSecurityContext();
+		try
+		{
+			remindedMeService.deleteTX(id, modelPath, loggedInProfileEmail);
+			return buildSuccessResponse(true);
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+
+	@GET
+	@Path("/version")
+	public Response version()
+	{
+		return buildSuccessResponse("1.2.2");
+	}
+
+	/**
+	 * This will retrieve all the objects that have no been synchronized since the last modified time.  If this is the first time
+	 * and you want all the objects, then you should pass a lastModifiedTime of 0. 
+	 * @param memberId A valid memberId is required
+	 * @param modifiedTime The ISO string format for DateTime
+	 * @return Returns a Map<String, List<Object>> where the key to the map is the FQP of the class and the value is a list of the primary keys of that type
+	 */
+	@GET
+	@Path("/sync/{memberId}/{lastModifiedTime}")
+	public Response synchronizeObjects(@PathParam("memberId")String memberId, @DefaultValue("0")@PathParam("lastModifiedTime")String modifiedTime)
+	{
+		try
+		{
+			DateTime dateTime;
+			if (modifiedTime==null||"0".equals(modifiedTime))
+				dateTime = null;
+			else	
+				dateTime = new DateTime(Long.parseLong(modifiedTime));
+			return buildSuccessResponse(remindedMeService.synchronizeObjects(memberId, null, dateTime));
+
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/sync/initial/{memberId}")
+	public Response initialSynchronize(@PathParam("memberId")String memberId)
+	{
+		try
+		{
+			return buildSuccessResponse(remindedMeService.synchronizeInitialize(memberId));
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	/**
+	 * This will retrieve all the objects that have no been synchronized since the last modified time.  If this is the first time
+	 * and you want all the objects, then you should pass a lastModifiedTime of 0. 
+	 * @param memberId A valid memberId is required
+	 * @param endModifiedTime The ISO string format for DateTime
+	 * @return Returns a Map<String, List<Object>> where the key to the map is the FQP of the class and the value is a list of the primary keys of that type
+	 */
+	@GET
+	@Path("/sync/{memberId}/modified/{modifiedTime}/start/{firstModifiedTime}/end/{lastModifiedTime}/{deviceid}")
+	public Response synchronizeObjectsInBetween(@PathParam("memberId")String memberId, @DefaultValue("0")@PathParam("modifiedTime")String modifiedTime, @DefaultValue("0")@PathParam("firstModifiedTime")String startModifiedTime, @DefaultValue("0")@PathParam("lastModifiedTime")String endModifiedTime, @PathParam("deviceid")String deviceId)
+	{
+		try
+		{
+			DateTime modifiedDateTime;
+			if (modifiedTime==null||"0".equals(modifiedTime))
+				modifiedDateTime = null;
+			else	
+				modifiedDateTime = new DateTime(Long.parseLong(modifiedTime));
+			
+			DateTime endTime;
+			if (endModifiedTime==null||"0".equals(endModifiedTime))
+				endTime = null;
+			else	
+				endTime = new DateTime(Long.parseLong(endModifiedTime));
+			
+			DateTime startTime;
+			if (startModifiedTime==null|"0".equals(startModifiedTime))
+				startTime = null;
+			else
+				startTime = new DateTime(Long.parseLong(startModifiedTime));
+			
+			return buildSuccessResponse(remindedMeService.synchronizeFilteredDateRangeTX(memberId, deviceId, modifiedDateTime, startTime, endTime));
+
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	/**
+	 * This will retrieve all the objects that have no been synchronized since the last modified time.  If this is the first time
+	 * and you want all the objects, then you should pass a lastModifiedTime of 0. 
+	 * @param memberId A valid memberId is required
+	 * @param modifiedTime The ISO string format for DateTime
+	 * @return Returns a Map<String, List<Object>> where the key to the map is the FQP of the class and the value is a list of the primary keys of that type
+	 */
+	@GET
+	@Path("/sync/{memberId}/{lastModifiedTime}/{deviceid}")
+	public Response synchronizeObjects(@PathParam("memberId")String memberId, @DefaultValue("0")@PathParam("lastModifiedTime")String modifiedTime, @PathParam("deviceid")String deviceId)
+	{
+		try
+		{
+			DateTime dateTime;
+			if (modifiedTime==null||"0".equals(modifiedTime))
+				dateTime = null;
+			else	
+				dateTime = new DateTime(Long.parseLong(modifiedTime));
+			return buildSuccessResponse(remindedMeService.synchronizeObjects(memberId, deviceId, dateTime));
+
+		}
+		catch (ValidationException validationException)
+		{
+			return handleValidationException(validationException);
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+	
+	@GET
+	@Path("/get/model/{fqcn}/id/{id}")
+	public Response getModel(@PathParam("fqcn")String fqClassName, @PathParam("id")String id)
+	{
+		try
+		{
+			return buildSuccessResponse(remindedMeService.getModel(fqClassName, id));
+		}
+		catch (Exception exception)
+		{
+			return handleException(exception);
+		}
+	}
+}

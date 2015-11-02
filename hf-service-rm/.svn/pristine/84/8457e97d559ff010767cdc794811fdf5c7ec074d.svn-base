@@ -1,0 +1,174 @@
+package com.homefellas.rm.share;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+
+import com.homefellas.batch.INotifiable;
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.rm.ISynchronizeable;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.user.Member;
+
+@Entity
+@Table(name="s_calendarshares")
+@Proxy(lazy=false)
+@XmlRootElement
+public class ShareCalendar extends AbstractGUIDModel implements IShare, INotifiable, ISynchronizeable
+{
+
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="calendarId")
+	@Index(name="shareCalendarIndex")
+	private Calendar calendar;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="sharedUserId")
+	@Index(name="shareCalendarUserIndex")
+	private Member user;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="inviteId")
+	@JsonBackReference("invite-shares")
+	private Invite invite;
+	
+	@Column(nullable=false)
+	private int shareApprovedStatusOrdinal = ShareApprovedStatus.NO_ACTION.ordinal();
+	
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+	@Column(nullable=false)
+	private boolean viewed=false;
+	
+	public ShareCalendar()
+	{
+		this.id=generateUnquieId();
+		
+	}
+	
+	public boolean isViewed()
+	{
+		return viewed;
+	}
+
+	public void setViewed(boolean viewed)
+	{
+		this.viewed = viewed;
+	}
+	
+	@Override
+	@JsonIgnore
+	public void setIShareable(IShareable iShareable)
+	{
+		this.calendar = (Calendar)iShareable;
+	}
+
+	public Calendar getCalendar()
+	{
+		return calendar;
+	}
+
+	public void setCalendar(Calendar calendar)
+	{
+		this.calendar = calendar;
+	}
+
+	public Member getUser()
+	{
+		return user;
+	}
+
+	public void setUser(Member user)
+	{
+		this.user = user;
+	}
+
+	public Invite getInvite()
+	{
+		return invite;
+	}
+
+	public void setInvite(Invite invite)
+	{
+		this.invite = invite;
+	}
+
+	public int getShareApprovedStatusOrdinal()
+	{
+		return shareApprovedStatusOrdinal;
+	}
+
+	public void setShareApprovedStatusOrdinal(int shareApprovedStatusOrdinal)
+	{
+		this.shareApprovedStatusOrdinal = shareApprovedStatusOrdinal;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getNotificationId()
+	{
+		return String.valueOf(id);
+	}
+
+	@Override
+	@JsonIgnore
+	public String getClassName()
+	{
+		return getClass().getName();
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isCallBack()
+	{
+		return false;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isPublic()
+	{
+		return calendar.isPublicList();
+	}
+
+	@JsonIgnore
+	@Override
+	public String getMemberAttributeName()
+	{
+		return "user";
+	}
+
+	@Override
+	@JsonIgnore
+	public String getLastModifiedDeviceId()
+	{
+		return lastModifiedDeviceId;
+	}
+
+	@Override
+	@JsonIgnore
+	public void setLastModifiedDeviceId(String deviceId)
+	{
+		this.lastModifiedDeviceId = deviceId;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getSyncId()
+	{
+		return id;
+	}
+	
+	
+	
+}

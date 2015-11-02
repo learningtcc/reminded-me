@@ -1,0 +1,29 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+xmlns:util="http://www.springframework.org/schema/util"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<property name="basePropertiesHome" value="${properties_home}"/>
+		<property name="locations">
+			<list>
+				<value>core.properties</value>
+				<value>location.properties</value>
+				<value>metrics.properties</value>
+				<value>login.properties</value>
+			</list>
+		</property>
+		<property name="properties">
+			<value>
+			cas.securityContext.serviceProperties.service=${cas.securityContext.serviceProperties.service}
+			cas.securityContext.casProcessingFilterEntryPoint.loginUrl=${cas.securityContext.casProcessingFilterEntryPoint.loginUrl}
+			cas.securityContext.ticketValidator.casServerUrlPrefix=${cas.securityContext.ticketValidator.casServerUrlPrefix}
+			casAppBaseUrl=${casAppBaseUrl}
+			</value>
+		</property>
+	</bean>
+</beans>	
+	

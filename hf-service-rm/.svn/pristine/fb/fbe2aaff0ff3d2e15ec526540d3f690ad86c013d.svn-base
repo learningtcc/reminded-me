@@ -1,0 +1,26 @@
+package com.homefellas.rm;
+
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.DateTime;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.model.core.AbstractModel;
+import com.homefellas.model.core.IGenericSynchroinzedLifeCycle;
+
+public interface IRemindedMeService
+{
+
+	public void createDefaultDatabaseEntries();
+	public Map<String, List> synchronizeObjects(String memberId, String deviceId, DateTime modifiedTime) throws ValidationException;
+//	public Map<String, List> synchronizeObjects(String memberId, String deviceId, DateTime modifiedTime, DateTime startTime, DateTime endTime) throws ValidationException;
+	public Map<String, List> synchronizeFilteredDateRangeTX(String memberId, String deviceId, DateTime modifiedDateTime, DateTime startTimeStamp, DateTime endTimeStamp) throws ValidationException;
+	public AbstractGUIDModel getModel(String fqClassName, String id) throws ValidationException;
+	public Map<String, List> synchronizeInitialize(String memberId) throws ValidationException;
+	public List<? extends AbstractModel> getBulkTX(String taskDelimiter, String loggedInUserEmail, String modelPath) throws ValidationException;
+	public IGenericSynchroinzedLifeCycle createTX(String json, String modelPath) throws ValidationException;
+	public IGenericSynchroinzedLifeCycle updateTX(String json, String modelPath, String loggedInUserEmail) throws ValidationException;
+	public void deleteTX(String id, String modelPath, String loggedInUserEmail) throws ValidationException;
+}

@@ -1,0 +1,315 @@
+package com.homefellas.rm.task;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.rm.ISynchronizeableInitialized;
+import com.homefellas.rm.share.IShareable;
+import com.homefellas.rm.share.ShareCalendar;
+import com.homefellas.user.Member;
+
+@Entity
+@Table(name="t_calendars")
+@Proxy(lazy=false)
+@XmlRootElement
+public class Calendar extends AbstractGUIDModel implements IShareable, ISynchronizeableInitialized
+{
+	@Column(nullable=false)
+	private String calendarName;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=true)
+	@JoinColumn(name="memberId")
+	@Index(name="memberIndex")
+	private Member member;
+
+	/**
+	 * This flag marks whether or not a calendar should be generic.  It should be never changed by the client.
+	 */
+	@Column(nullable=false)
+//	@Index(name="genericIndex")
+	private boolean generic=false;
+	
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+	@Column(nullable=false)
+	private boolean publicList=true;
+		
+	private boolean publishToAppStore=false;
+	private double appleStorePrice=0.00;
+	
+	private int approvalStatusOrdinal=CalendarApprovalStatusEnum.NOT_APPROVED.ordinal();
+	private int pushTypeOrdinal = PushTypeEnum.APPLE.ordinal();
+	
+	@Column(nullable=true)
+	private String title;
+	
+	@Column(nullable=true)
+	private String description;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=true)
+	@JoinColumn(name="calendarStoreUserDefinedCategoryId")
+	private CalendarStoreUserDefinedCategory calendarStoreUserDefinedCategory;
+	
+	public enum CalendarApprovalStatusEnum { NOT_APPROVED, UNDER_REVIEW, APPROVED };
+	public Calendar()
+	{
+		this.id = generateUnquieId();
+	}
+	
+	public Calendar(String id)
+	{
+		this.id=id;
+	}
+	
+	
+	public Calendar(String calendarName, String id)
+	{
+//		generateGUIDKey();
+		this.id = id;
+		this.calendarName = calendarName;
+		generic=true;
+	}
+	
+	
+	
+	/**
+	 * This is not used by the client.  It's required for any object that needs to be synchronized.  It's default value is the Class Name.
+	 * @return className
+	 */
+	@Override
+	public String getModelName()
+	{
+		return  getClass().getSimpleName();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.homefellas.rm.task.ISynchronizeable#setModelName(java.lang.String)
+	 */
+	@Override
+	public void setModelName(String modelName)
+	{
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.homefellas.rm.task.ISynchronizeable#getMemberAttributeName()
+	 */
+	@Override
+	public String getMemberAttributeName()
+	{
+		return "member";
+	}
+
+	/**
+	 * This is used to identify whether or not a Calednar entry is generic or not.  This should NEVER be set by the client.  If it is set to true, all users
+	 * will be able to see the calendar
+	 * @return the generic
+	 */
+	public boolean isGeneric()
+	{
+		return generic;
+	}
+
+	/**
+	 * @param generic the generic to set
+	 */
+	public void setGeneric(boolean generic)
+	{
+		this.generic = generic;
+	}
+
+	/**
+	 * This is the name of the calendar so that a user can identify it.
+	 * @return calendarName
+	 */
+	public String getCalendarName()
+	{
+		return calendarName;
+	}
+
+	public void setCalendarName(String calendarName)
+	{
+		this.calendarName = calendarName;
+	}
+
+	/**
+	 * This is the member that the calendar belongs to.  The only value that needs to be set is member.id.  A valid member id is required.
+	 * @return member
+	 * @see Member
+	 */
+	public Member getMember()
+	{
+		return member;
+	}
+
+	public void setMember(Member member)
+	{
+		this.member = member;
+	}
+	
+	public void setMemberId(String memberId)
+	{
+		if (member==null)
+			member = new Member();
+		member.setId(memberId);
+	}
+	
+	
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((calendarName == null) ? 0 : calendarName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Calendar other = (Calendar) obj;
+		if (calendarName == null)
+		{
+			if (other.calendarName != null)
+				return false;
+		}
+		else if (!calendarName.equals(other.calendarName))
+			return false;
+		return true;
+	}
+
+	public String getLastModifiedDeviceId()
+	{
+		return lastModifiedDeviceId;
+	}
+
+	public void setLastModifiedDeviceId(String lastModifiedDeviceId)
+	{
+		this.lastModifiedDeviceId = lastModifiedDeviceId;
+	}
+
+	@JsonIgnore
+	public String getSyncId()
+	{
+		return "id";
+	}
+
+	@Override
+	@JsonIgnore
+	public String getClassName()
+	{
+		return this.getClassName();
+	}	
+	
+	@Override
+	@JsonIgnore
+	public String getIShareImplClassName()
+	{
+		return ShareCalendar.class.getName();
+	}
+
+	public boolean isPublicList()
+	{
+		return publicList;
+	}
+
+	public void setPublicList(boolean publicList)
+	{
+		this.publicList = publicList;
+	}
+
+	public boolean isPublishToAppStore()
+	{
+		return publishToAppStore;
+	}
+
+	public void setPublishToAppStore(boolean publishToAppStore)
+	{
+		this.publishToAppStore = publishToAppStore;
+	}
+
+	public double getAppleStorePrice()
+	{
+		return appleStorePrice;
+	}
+
+	public void setAppleStorePrice(double appleStorePrice)
+	{
+		this.appleStorePrice = appleStorePrice;
+	}
+
+	public int getApprovalStatusOrdinal()
+	{
+		return approvalStatusOrdinal;
+	}
+
+	public void setApprovalStatusOrdinal(int approvalStatusOrdinal)
+	{
+		this.approvalStatusOrdinal = approvalStatusOrdinal;
+	}
+
+	public int getPushTypeOrdinal()
+	{
+		return pushTypeOrdinal;
+	}
+
+	public void setPushTypeOrdinal(int pushTypeOrdinal)
+	{
+		this.pushTypeOrdinal = pushTypeOrdinal;
+	}
+
+	public String getTitle()
+	{
+		return title;
+	}
+
+	public void setTitle(String title)
+	{
+		this.title = title;
+	}
+
+	public String getDescription()
+	{
+		return description;
+	}
+
+	public void setDescription(String description)
+	{
+		this.description = description;
+	}
+
+	public CalendarStoreUserDefinedCategory getCalendarStoreUserDefinedCategory()
+	{
+		return calendarStoreUserDefinedCategory;
+	}
+
+	public void setCalendarStoreUserDefinedCategory(
+			CalendarStoreUserDefinedCategory calendarStoreUserDefinedCategory)
+	{
+		this.calendarStoreUserDefinedCategory = calendarStoreUserDefinedCategory;
+	}
+
+	
+	
+	
+}

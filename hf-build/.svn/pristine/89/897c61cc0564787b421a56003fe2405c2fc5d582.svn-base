@@ -1,0 +1,26 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+Task:  <a href="${link}">${task.title}</a> is due.<br/>  
+#if ($task.formatedStartDate)
+Start Date: ${task.formatedStartDate}<br/>
+#end
+#if ($task.formatedEndDate)
+End Date:  ${task.formatedEndDate}<br/>
+#end
+#if ($task.taskLocation)
+Where:  ${task.taskLocation}<br/>
+#end
+#if ($task.taskCreator.name)
+Who:  ${task.taskCreator.name}<br/>
+#end
+<br>
+<br>
+Your Never Forget Companion,
+<br>
+Reminded.me
+</body>
+</html>

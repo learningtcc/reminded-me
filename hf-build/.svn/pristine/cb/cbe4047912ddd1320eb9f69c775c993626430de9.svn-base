@@ -1,0 +1,47 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+	Hi ${userTO.name}!,
+	<br/>
+	<br/>
+	<div style="text-align:center;">Thank you for joining Reminded.me. We are super happy you joined us!</div>
+	<br/>
+	<h3 style="text-align:center;">The Personal Assistant for your Brain!</h2>
+	<h3 style="text-align:center;">Always available wherever you are.</h2>
+	<br/>
+	<h4 style="color:#505050;"><u>Your Account Information:</u></h4>
+	<div style="padding-left:5em;">Login: ${userTO.member.email}</div>
+	<br/>
+	<br/>
+	<h4 style="color:#505050;">Tell your friends</h4>
+	Think you just might be in love with Reminded.me...? Tell all of your friends about it. Help them get more organized by spreading the word on <a href="http://twitter.com/RemindedMe">Twitter</a> &amp; <a href="http://facebook.com/Reminded.me">Facebook</a>, or simply invite them to one of your lists.
+	<br/>	
+	<br/>
+	<em>Thank you,</em><br/>
+	<em>Zak</em><br/>
+	<em><a href="mailto:zak@reminded.me">zak@reminded.me</a></em><br/>
+	<em>Co-founder</em><br/>
+	<br/>
+	<br/>
+	P.S. Complete this <a href="http://www.surveymonkey.com/s/LCZZHWY">secret survery</a> and I'll happily send you a wireless, battery-free, silicon and completely portable amplifying speaker for the iPhone! for free - its on us!. 
+	<br/>
+	<br/>
+	<div  style="text-align:center;">
+	<img src="http://static.reminded.me/rmimages/image01.png" width="177" height="58" alt="Reminded.me logo"/>
+    <br/>
+    <a href="http://facebook.com/Reminded.me">
+        <img src="http://static.reminded.me/rmimages/image02.png" width="23" height="23" alt="Facebook logo"/>
+        <span>Facebook</span>
+    </a>
+    <br/>
+    <a href="http://twitter.com/RemindedMe" style="margin-left:-20px;">
+        <img src="http://static.reminded.me/rmimages/image00.png" width="23" height="23" alt="Reminded.me logo"/>
+        <span>Twitter</span>
+    </a>
+</div>
+</body>
+</html

@@ -1,0 +1,150 @@
+package com.homefellas.rm.notification;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.batch.INotificationServiceTX;
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.metrics.CollectTimeMetrics;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.task.Task;
+import com.homefellas.service.core.AbstractService;
+import com.homefellas.user.UserValidationCodeEnum;
+
+public class ClientNotificationService extends AbstractService implements IClientNotificationServiceTX
+{
+
+	@Autowired
+	private IClientNotificationValidator clientNotificationValidator;
+	
+	@Autowired
+	private IClientNotificationDao clientNotificationDao;
+	
+	@Autowired
+	private INotificationServiceTX notificationService;
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Notification pushAppleNotificationTX(Notification notification)
+	{
+		notification.setPushTypeOrdinal(PushTypeEnum.APPLE.ordinal());
+		notification.setNotificationTypeOrdinal(NotificationTypeEnum.PUSH.ordinal());
+		notification.setToSendTime(new DateTime().plusSeconds(30).getMillis());
+		notification.setSendFrom("neverforget@reminded.me");
+		
+		notificationService.scheduleNotification(notification);
+		
+		return notification;
+	}
+	
+//	@Transactional
+//	@CollectTimeMetrics
+//	public List<Device> getDevicesByEmailTX(String email)
+//	{
+//		return clientNotificationDao.getDevicesByEmail(email);
+//	}
+	
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public List<ClientNotification> getBulkClientNotificationsTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		StringTokenizer stringTokenizer = new StringTokenizer(taskDelimiter, ",");
+		List<ClientNotification> list = new ArrayList<ClientNotification>(11);
+		List<String> ids = new ArrayList<String>();
+		while (stringTokenizer.hasMoreTokens())
+		{
+			String id = stringTokenizer.nextToken();
+			ids.add(id);
+		}
+	
+		list = clientNotificationDao.getClientNotificationByIds(ids);
+		return list;
+	}
+
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public ClientNotification updateClientNotificationTX( ClientNotification clientNotification, String loggedInUserEmail) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		clientNotificationValidator.validateClientNotification(clientNotification);
+		
+		final ClientNotification clientNotificationFromDB = dao.loadByPrimaryKey(ClientNotification.class, clientNotification.getId());
+		
+		if (!clientNotificationFromDB.getMember().getEmail().equals(loggedInUserEmail))
+			throw new ValidationException(ValidationCodeEnum.MEMBER_DOES_NOT_HAVE_AUTHORIZATION);
+		
+		//check to see if the modified date from the db is before the one being passed
+		clientNotificationValidator.validateSynchronizationUpdate(clientNotification, clientNotificationFromDB);
+		clientNotification.setModifiedDateZone(new DateTime());
+		
+		//update the task in the db
+		dao.merge(clientNotification);
+		
+		return clientNotification;
+	}
+
+	@Override
+	@Transactional
+	@CollectTimeMetrics
+	public ClientNotification createClientNotificationTX(
+			ClientNotification clientNotification) throws ValidationException
+	{
+		return createClientNotification(clientNotification);
+	}
+	
+	public ClientNotification createClientNotification(ClientNotification clientNotification) throws ValidationException
+	{
+		clientNotificationValidator.validateClientNotification(clientNotification);
+		
+		dao.save(clientNotification);
+		
+		return clientNotification;
+	}
+
+	@Transactional(readOnly = true)
+	@CollectTimeMetrics
+	public List<Device> getBulkDevicesTX(String taskDelimiter, String loggedInUserEmail) throws ValidationException
+	{
+		if (loggedInUserEmail == null || "".equals(loggedInUserEmail.trim()))
+			throw new ValidationException(UserValidationCodeEnum.USER_MUST_BE_LOGGED_IN);
+		
+		StringTokenizer stringTokenizer = new StringTokenizer(taskDelimiter, ",");
+		List<String> ids = new ArrayList<String>();
+		while (stringTokenizer.hasMoreTokens())
+		{
+			String id = stringTokenizer.nextToken();
+			ids.add(id);
+		}
+		
+		return clientNotificationDao.getBulkDevices(ids, loggedInUserEmail);
+		
+	}
+	
+	@Transactional
+	@CollectTimeMetrics
+	public Device createDeviceTX(Device device) throws ValidationException
+	{
+		clientNotificationValidator.validateDevice(device);
+	
+		Device deviceFromDb = dao.loadByPrimaryKey(Device.class, device.getId());
+		if (deviceFromDb == null)
+			dao.save(device);
+		
+		return device;
+	}
+}

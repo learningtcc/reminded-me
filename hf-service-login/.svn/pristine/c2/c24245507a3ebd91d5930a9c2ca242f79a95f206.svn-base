@@ -1,0 +1,28 @@
+package com.homefellas.user;
+
+import java.net.URL;
+import java.util.Locale;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import com.homefellas.exception.DatabaseNotInitializedException;
+import com.homefellas.exception.ValidationException;
+
+public interface IUserService extends UserDetailsService
+{
+
+	public Role getRole(RoleEnum authorizationEnum);
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException, DataAccessException;
+	public Profile loadProfileById(String id);
+	public Member loadMemberById(String id);
+	public void deleteCasRegisterTO(RegisterTicket casRegisterTO);
+	public Profile getProfileByEmail(String email);
+	public void sendJoinEmail(Profile member, Locale locale);
+	public Profile reigsterGuest(String email, String alias) throws ValidationException, DatabaseNotInitializedException;
+	public boolean loginMember(String userName, String password);
+	public Profile createTGT(Profile profile);
+//	public String getProfileCASUrl();
+}

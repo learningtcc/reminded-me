@@ -1,0 +1,434 @@
+package com.homefellas.rm.task;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonBackReference;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonManagedReference;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.rm.ISynchronizeable;
+import com.homefellas.rm.ISynchronizeableFiltered;
+import com.homefellas.rm.reminder.IRepeatSetup;
+import com.homefellas.rm.reminder.RepeatOccurance;
+import com.homefellas.user.Member;
+import com.homefellas.ws.core.JodaDateTimeJsonDeSerializer;
+import com.homefellas.ws.core.JodaDateTimeJsonSerializer;
+
+@Entity
+@Table(name="t_repeatsetup")
+@Proxy(lazy=false)
+@XmlRootElement
+public class RepeatSetup extends AbstractGUIDModel implements IRepeatSetup, ISynchronizeableFiltered
+{
+
+	private String monthlyrule;
+	private String repeatOccurance;
+	private long repeatPeriod;
+	private boolean skipMonday;
+	private boolean skipTuesday;
+	private boolean skipWednesday;
+	private boolean skipThursday;
+	private boolean skipFriday;
+	private boolean skipSaturday;
+	private boolean skipSunday;
+	private int endsAfterOccurance;
+	private boolean usingEndsAfterOccurance=false;
+	private int remainingOccurances; 
+	
+	
+	public void setUsingEndsAfterOccurance(boolean usingEndsAfterOccurance)
+	{
+		this.usingEndsAfterOccurance = usingEndsAfterOccurance;
+	}
+
+	@Columns(columns={@Column(name="startsRepeatingOn",insertable=true,updatable=true),@Column(name="startsRepeatingOnZone",insertable=true,updatable=true)})
+	@Type(type="org.joda.time.contrib.hibernate.PersistentDateTimeTZ")
+	@JsonSerialize(using=JodaDateTimeJsonSerializer.class)
+	@JsonDeserialize(using=JodaDateTimeJsonDeSerializer.class)
+	private DateTime startsRepeatingOn;
+	
+	@Columns(columns={@Column(name="endsRepeatingOn",insertable=true,updatable=true),@Column(name="endsRepeatingOnZone",insertable=true,updatable=true)})
+	@Type(type="org.joda.time.contrib.hibernate.PersistentDateTimeTZ")
+	@JsonSerialize(using=JodaDateTimeJsonSerializer.class)
+	@JsonDeserialize(using=JodaDateTimeJsonDeSerializer.class)
+	private DateTime endsRepeatingOn;
+	
+	@Columns(columns={@Column(name="lastGeneratedDate",insertable=true,updatable=true),@Column(name="lastGeneratedDateZone",insertable=true,updatable=true)})
+	@Type(type="org.joda.time.contrib.hibernate.PersistentDateTimeTZ")
+	@JsonSerialize(using=JodaDateTimeJsonSerializer.class)
+	@JsonDeserialize(using=JodaDateTimeJsonDeSerializer.class)
+	private DateTime lastGeneratedDate;
+	
+	@OneToMany(fetch=FetchType.EAGER,cascade={CascadeType.ALL},mappedBy="repeatSetup", orphanRemoval=true)
+	@JsonManagedReference("repeatsetup")
+	private List<SkipTime> skipTimes = new ArrayList<SkipTime>();
+
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="taskTemplateId",updatable=false)
+	private TaskTemplate clonedTask;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=true)
+	@JoinColumn(name="memberId")
+	@Index(name="repeatSetupMemberIndex")
+	private Member member;
+	
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+
+	private int repeatSetupStatusOrdinal = RepeatSetupStatus.OPENED.ordinal();
+	
+	public enum RepeatSetupStatus {OPENED,DELETE};
+	
+	public TaskTemplate getClonedTask()
+	{
+		return clonedTask;
+	}
+
+	public void setClonedTask(TaskTemplate clonedTask)
+	{
+		this.clonedTask = clonedTask;
+	}
+
+	public String getRepeatOccurance()
+	{
+		return repeatOccurance;
+	}
+
+	public void setRepeatOccurance(String repeatOccurance)
+	{
+		this.repeatOccurance = repeatOccurance;
+	}
+
+	public long getRepeatPeriod()
+	{
+		return repeatPeriod;
+	}
+
+	public void setRepeatPeriod(long repeatPeriod)
+	{
+		this.repeatPeriod = repeatPeriod;
+	}
+
+	public boolean isSkipMonday()
+	{
+		return skipMonday;
+	}
+
+	public void setSkipMonday(boolean skipMonday)
+	{
+		this.skipMonday = skipMonday;
+	}
+
+	public boolean isSkipTuesday()
+	{
+		return skipTuesday;
+	}
+
+	public void setSkipTuesday(boolean skipTuesday)
+	{
+		this.skipTuesday = skipTuesday;
+	}
+
+	public boolean isSkipWednesday()
+	{
+		return skipWednesday;
+	}
+
+	public void setSkipWednesday(boolean skipWednesday)
+	{
+		this.skipWednesday = skipWednesday;
+	}
+
+	public boolean isSkipThursday()
+	{
+		return skipThursday;
+	}
+
+	public void setSkipThursday(boolean skipThursday)
+	{
+		this.skipThursday = skipThursday;
+	}
+
+	public boolean isSkipFriday()
+	{
+		return skipFriday;
+	}
+
+	public void setSkipFriday(boolean skipFriday)
+	{
+		this.skipFriday = skipFriday;
+	}
+
+	
+
+	public boolean isSkipSaturday()
+	{
+		return skipSaturday;
+	}
+
+	public void setSkipSaturday(boolean skipSaturday)
+	{
+		this.skipSaturday = skipSaturday;
+	}
+
+	public boolean isSkipSunday()
+	{
+		return skipSunday;
+	}
+
+	public void setSkipSunday(boolean skipSunday)
+	{
+		this.skipSunday = skipSunday;
+	}
+
+	public List<SkipTime> getSkipTimes()
+	{
+		return skipTimes;
+	}
+
+	public void setSkipTimes(List<SkipTime> skipTimes)
+	{
+		this.skipTimes = skipTimes;
+	}
+
+	public String getMonthlyrule()
+	{
+		return monthlyrule;
+	}
+
+	public void setMonthlyrule(String monthlyrule)
+	{
+		this.monthlyrule = monthlyrule;
+	}
+
+	@Override
+	public boolean isUsingEndsAfterOccurance()
+	{
+		return usingEndsAfterOccurance;
+	}
+
+	@Override
+	public int getEndsAfterOccurance()
+	{
+		return endsAfterOccurance;
+	}
+
+	@Override
+	public DateTime getStartsRepeatingOn()
+	{
+		return startsRepeatingOn;
+	}
+
+	@Override
+	public DateTime getEndsRepeatingOn()
+	{
+		return endsRepeatingOn;
+	}
+
+	@Override
+	@JsonIgnore
+	public int getRepeatsEvery()
+	{
+		return Integer.parseInt(String.valueOf(repeatPeriod));
+	}
+
+	public void setStartsRepeatingOn(DateTime startsRepeatingOn)
+	{
+		this.startsRepeatingOn = startsRepeatingOn;
+	}
+
+	public void setEndsRepeatingOn(DateTime endsRepeatingOn)
+	{
+		this.endsRepeatingOn = endsRepeatingOn;
+	}
+
+	@Override
+	@JsonIgnore
+	public RepeatOccurance getRepeatOccuranceInterval()
+	{
+		return RepeatOccurance.valueOf(repeatOccurance);
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnMonday()
+	{
+		return !skipMonday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnTuesday()
+	{
+		return !skipTuesday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnWednesday()
+	{
+		return !skipWednesday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnThursday()
+	{
+		return !skipThursday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnFriday()
+	{
+		return !skipFriday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnSaturday()
+	{
+		return !skipSaturday;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isRepeatsOnSunday()
+	{
+		return !skipSunday;
+	}
+
+	@Override
+	public boolean shouldIgnoreTime(DateTime notificationTime)
+	{
+		if (skipTimes==null || skipTimes.isEmpty())
+			return false;
+		
+		for (SkipTime skipTime : skipTimes)
+		{
+			if (notificationTime.isAfter(skipTime.getSkipStart()) && notificationTime.isBefore(skipTime.getSkipEnd()))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	public Member getMember()
+	{
+		return member;
+	}
+
+	public void setMember(Member member)
+	{
+		this.member = member;
+	}
+
+	public String getLastModifiedDeviceId()
+	{
+		return lastModifiedDeviceId;
+	}
+
+	public void setLastModifiedDeviceId(String lastModifiedDeviceId)
+	{
+		this.lastModifiedDeviceId = lastModifiedDeviceId;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getMemberAttributeName()
+	{
+		return "member";
+	}
+
+	@Override
+	@JsonIgnore
+	public String getSyncId()
+	{
+		return "id";
+	}
+
+//	@JsonIgnore
+//	public void setClondedTaskAsTask(Task task)
+//	{
+//		this.clonedTask = new TaskTemplate(task);
+//	}
+
+	public DateTime getLastGeneratedDate()
+	{
+		return lastGeneratedDate;
+	}
+
+	public void setLastGeneratedDate(DateTime lastGeneratedDate)
+	{
+		this.lastGeneratedDate = lastGeneratedDate;
+	}
+
+	public int getRepeatSetupStatusOrdinal()
+	{
+		return repeatSetupStatusOrdinal;
+	}
+
+	public void setRepeatSetupStatusOrdinal(int repeatSetupStatusOrdinal)
+	{
+		this.repeatSetupStatusOrdinal = repeatSetupStatusOrdinal;
+	}
+
+	@JsonIgnore
+	@Override
+	public String getDeleteStatusField()
+	{
+		return "repeatSetupStatusOrdinal";
+	}
+
+	@JsonIgnore
+	@Override
+	public int getDeletedTrueValue()
+	{
+		return RepeatSetupStatus.DELETE.ordinal();
+	}
+
+	@JsonIgnore
+	@Override
+	public boolean isStatusExclusive()
+	{
+		return true;
+	}
+
+	public void setEndsAfterOccurance(int endsAfterOccurance)
+	{
+		this.endsAfterOccurance = endsAfterOccurance;
+	}
+
+	public int getRemainingOccurances()
+	{
+		return remainingOccurances;
+	}
+
+	public void setRemainingOccurances(int remainingOccurances)
+	{
+		this.remainingOccurances = remainingOccurances;
+	}
+	
+	
+}

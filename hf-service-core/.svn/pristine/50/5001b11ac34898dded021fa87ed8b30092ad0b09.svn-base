@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                http://www.springframework.org/schema/data/mongo
+                http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+ 
+    <!-- Default bean name is 'mongo' -->
+    <mongo:mongo host="localhost" port="27017">
+        <!-- OPTIONAL: configure <mongo:options /> -->
+    </mongo:mongo>
+ 
+    <mongo:db-factory dbname="redstream" mongo-ref="mongo"/>
+ 
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongoDbFactory"/>
+    </bean>
+    
+    <bean id="mongoDBDao" class="com.homefellas.dao.mongodb.core.MongoDBDao">
+    	<property name="mongoTemplate" ref="mongoTemplate"/>
+    </bean>
+</beans>

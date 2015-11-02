@@ -1,0 +1,40 @@
+package com.homefellas.rm.task;
+
+public enum GenericCategoryEnum {
+
+	Personal(new Category("Personal", "1", 1)),
+	Homework(new Category("Homework", "2", 2)),
+	Work(new Category("Work", "3", 3)),
+//	CONTACTS(new Category("Contacts", "4", 4)),
+	Shopping(new Category("Shopping", "5", 5)),
+//	Accounts(new Category("Accounts", "6", 6)),
+//	Places(new Category("Places", "7", 7)),
+//	Websites(new Category("Websites", "8", 8));
+	Family(new Category("Family", "4", 4)),
+	Study(new Category("Study", "6", 6)),
+	Test(new Category("Test", "7", 7)),
+	Pay_Bill(new Category("Pay Bill", "8", 8)),
+	Leisure(new Category("Leisure", "9", 9)),
+	TV(new Category("TV", "10", 10)),
+	Movies(new Category("Movies", "11", 11));
+	
+	private Category category;
+	
+	private GenericCategoryEnum(Category category)
+	{
+		this.category = category;
+	}
+	
+	public Category getCategory()
+	{
+		return category;
+	}
+	
+	public static boolean isGeneric(Category category)
+	{
+		for (GenericCategoryEnum categoryEnum : values())
+			if (categoryEnum.getCategory().getId().equals(category.getId()))
+				return true;
+		return false;
+	}
+}

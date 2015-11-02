@@ -1,0 +1,11 @@
+package com.homefellas.rm.notification;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.IRMValidator;
+
+public interface IClientNotificationValidator extends IRMValidator
+{
+
+	public void validateClientNotification(ClientNotification clientNotification) throws ValidationException;
+	public void validateDevice(Device device) throws ValidationException;
+}

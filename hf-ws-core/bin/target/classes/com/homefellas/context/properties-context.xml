@@ -1,0 +1,30 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<property name="basePropertiesHome" value="C:/workspace/eclipse/rm ws/hf-build/properties/"/>
+		<property name="locations">
+			<list>
+				<value>core.properties</value>
+				<value>location.properties</value>
+				<value>metrics.properties</value>
+				<value>rm.properties</value>
+				<value>login.properties</value>
+			</list>
+		</property>
+		<property name="properties">
+			<value>
+			task.landing.root=http://localhost/static/web/webapp/TaskListNew.html
+			oauth.security.check=http://localhost/ws/j_spring_oauth_security_check
+			facebook.key=205098492846954
+			facebook.secret=68564b8fa5393aa25871b85211d9f130
+			cas.oauth.profile.url=https://localhost/sso/v1/profile
+			login.url=http://localhost/static/web/webapp/TaskListNew.html
+			</value>
+		</property>
+	</bean>
+</beans>	
+	

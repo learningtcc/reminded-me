@@ -1,0 +1,40 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+Welcome ${userTO.name},
+
+Thank you for joining the Reminded.me revolution!
+
+“The clock’s run out, time’s up, over! Snapback to reality. Oh there goes gravity!”*
+
+We all know that gut-wrenching feeling... Does your Facebook & not-so-smartphone seem to be the root of all procrastination these days?  
+
+Reminded.me is the digital personal assistant for your brain. We help students, professionals & their families manage their day-to-day lives because well, not everyone can afford a real life personal assistant.
+
+Your Account Information:
+
+Login: ${userTO.member.email}
+
+Access & Sync Reminded.me:
+
+1. Download the mobile app available on all iOS devices (iPhone, iPad, iPod) or
+
+2. Online with your Chrome or Safari browser at app.reminded.me
+
+3. All your tasks, events and reminders will sync between your devices.
+
+If you have any immediate feedback, drop us a line on our website.
+
+Do you want to learn how to use Reminded.me? Check out our blog for simple directions.
+
+Your never forget companion,
+
+The Reminded.me Team
+
+*Eminem. (2002). Lose Yourself. Detroit: Shady, Aftermath, Interscope. 
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+package com.homefellas.rm;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.model.core.AbstractModel;
+import com.homefellas.service.core.AbstractValidator;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public abstract class AbstractRMValidator extends AbstractValidator
+{
+	
+	public void validateSynchronizationUpdate(ISynchronizeable objectToUpdate, ISynchronizeable objectFromDataSource) throws ValidationException
+	{
+		if (objectFromDataSource==null || objectToUpdate==null)
+			throw new ValidationException(ValidationCodeEnum.SYNC_UPDATE_FAILED_BECAUSE_PASSED_OBJECT_IS_NULL_OR_OBJECT_IN_DB_IS_NULL);
+		
+		if (objectFromDataSource.getModifiedDate()>objectToUpdate.getModifiedDate())
+		{
+			if (objectToUpdate.getClientUpdateTimeStamp()==null || objectFromDataSource.getModifiedDate()>objectToUpdate.getClientUpdateTimeStamp().getMillis())
+				throw new ValidationException(ValidationCodeEnum.SYNCHRONIZATION_REQUIRED);
+		}
+		
+//		if (isNullOrBlank(objectToUpdate.getLastModifiedDeviceId()))
+//			throw new ValidationException(ValidationCodeEnum.NO_DEVICE_ID_PASSED);
+		
+	}
+	
+	protected void validateMemberId(List<IValidationCode> codes, Member member)
+	{
+		if (member==null||!member.isPrimaryKeySet())
+			codes.add(ValidationCodeEnum.MEMBER_ID_IS_NULL);
+	}
+	
+	
+	protected void validateMemberId(List<IValidationCode> codes, Profile profile)
+	{
+		if (profile==null)
+			codes.add(ValidationCodeEnum.MEMBER_ID_IS_NULL);
+		else
+		{
+			if (!profile.isPrimaryKeySet())
+			{
+				if (profile.getMember()==null||!profile.getMember().isPrimaryKeySet())
+					codes.add(ValidationCodeEnum.MEMBER_ID_IS_NULL);
+			}
+		}
+	}
+	
+	protected void validatePrimaryKey(List<IValidationCode> codes, AbstractModel model)
+	{
+		if (!model.isPrimaryKeySet())
+			codes.add(ValidationCodeEnum.PK_NOT_SET);
+	}
+	
+	public void validationMemberIsSet(Member member) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validateMemberId(codes, member);
+		
+		throwException(codes);
+	}
+	
+	public void validatePrimaryKeyIsSet(AbstractModel model) throws ValidationException
+	{
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		validatePrimaryKey(codes, model);
+		
+		throwException(codes);
+	}
+	
+	
+}

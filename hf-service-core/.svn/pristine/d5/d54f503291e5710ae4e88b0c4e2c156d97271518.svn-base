@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+       
+       <bean id="locationService" class="com.homefellas.service.location.LocationService" parent="abstractService">
+       	<property name="locationDao" ref="locationDao"/>
+       	<property name="locationCache" ref="locationCache"/>
+       	<property name="locationLueceneIndexHome" value="${location.luecene.index.home}"/>
+       </bean>
+       
+       <bean id="locationDao" class="com.homefellas.service.location.LocationDao" parent="abstractDao">
+       
+       </bean>
+       
+       <bean id="locationCacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+    		<property name="configLocation" value="classpath:main/resource/conf/cache/location-ehcache.xml" />
+    	</bean>
+    	
+       <bean id="locationCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="locationCacheManager" />
+			<property name="cacheName" value="locationCache" />
+			<property name="eternal" value="true" />
+			<property name="overflowToDisk" value="false" />
+			<property name="memoryStoreEvictionPolicy" value="${location.evictionPolicy}"/>
+		</bean>
+
+</beans>

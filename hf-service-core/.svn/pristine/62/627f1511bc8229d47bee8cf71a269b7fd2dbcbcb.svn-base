@@ -1,0 +1,180 @@
+package com.homefellas.batch;
+
+import static org.junit.Assert.*;
+
+import java.io.Serializable;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import junit.framework.Assert;
+
+import org.joda.time.DateTime;
+import org.junit.Test;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.dao.core.AbstractTestDao;
+import com.homefellas.model.core.TestModelBuilder;
+
+public class NotificationDaoTest extends AbstractTestDao
+{
+
+	@Resource(name="notificationDao")
+	private NotificationDao notificationDao;
+	
+	protected INotifiable iNotification1;
+	protected INotifiable iNotification2;
+	protected Notification notification1Queued;
+	protected Notification notification2Sent;
+	protected Notification notification3Queued;
+	protected Notification notification4Failed;
+	protected Notification notification5Queued;
+	protected Notification notification6Canceled;
+	protected Notification notification7QueuedInstant;
+		
+	@Override
+	@Transactional
+	protected void createDatabaseDefaults()
+	{
+		iNotification1 = new INotifiable() {
+			
+			@Override
+			public String getNotificationId()
+			{
+				return "1";
+			}
+			
+			@Override
+			public String getClassName()
+			{
+				return "AnnymousInnerClass";
+			}
+
+			@Override
+			public boolean isCallBack()
+			{
+				return true;
+			}
+			
+			
+		};
+		
+		iNotification2 = new INotifiable() {
+			
+			@Override
+			public String getNotificationId()
+			{
+				return "2";
+			}
+			
+			@Override
+			public String getClassName()
+			{
+				return "AnnymousInnerClass";
+			}
+			
+			@Override
+			public boolean isCallBack()
+			{
+				return true;
+			}
+		};
+		
+		notification1Queued = TestModelBuilder.buildNotification(true, NotificationTypeEnum.EMAIL_SMS, PushTypeEnum.NONE, System.currentTimeMillis(), iNotification1);
+		dao.save(notification1Queued);
+		
+		notification2Sent = TestModelBuilder.buildNotification(true, NotificationTypeEnum.EMAIL_SMS, PushTypeEnum.NONE, System.currentTimeMillis(), iNotification1);
+		notification2Sent.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.save(notification2Sent);
+		
+		notification3Queued = TestModelBuilder.buildNotification(true, NotificationTypeEnum.EMAIL_SMS, PushTypeEnum.NONE, System.currentTimeMillis(), iNotification2);
+		dao.save(notification3Queued);
+		
+		notification4Failed = TestModelBuilder.buildNotification(true, NotificationTypeEnum.EMAIL_SMS, PushTypeEnum.NONE, System.currentTimeMillis(), iNotification2);
+		notification4Failed.setSentStatusOrdinal(NotificationStatusEnum.FAILED.ordinal());
+		dao.save(notification4Failed);
+		
+		notification5Queued = TestModelBuilder.buildNotification(true, NotificationTypeEnum.PUSH, PushTypeEnum.ANDROID, System.currentTimeMillis(), iNotification2);
+		dao.save(notification5Queued);
+		
+		notification6Canceled = TestModelBuilder.buildNotification(true, NotificationTypeEnum.PUSH, PushTypeEnum.ANDROID, System.currentTimeMillis(), iNotification2);
+		notification6Canceled.setSentStatusOrdinal(NotificationStatusEnum.CANCELED.ordinal());
+		dao.save(notification6Canceled);
+		
+		notification7QueuedInstant = TestModelBuilder.buildNotification(true, NotificationTypeEnum.PUSH, PushTypeEnum.ANDROID, 0, iNotification2);
+		dao.save(notification7QueuedInstant);
+	}
+
+	@Test
+	@Transactional
+	public void testFutureNonSends()
+	{
+		Notification futureNotification = TestModelBuilder.buildNotification(true, NotificationTypeEnum.EMAIL_SMS, PushTypeEnum.NONE, new DateTime().plusWeeks(1).getMillis(), iNotification1);
+		dao.save(futureNotification);
+		
+		List<Notification> notifications1 = notificationDao.getNotificationsToBeSent(new DateTime().plusSeconds(60).getMillis(), 100);
+		Assert.assertFalse(notifications1.contains(futureNotification));
+	}
+
+
+	@Test
+	@Transactional
+	public void testGetNotificationsForINotification()
+	{
+		List<Notification> notifications1 = notificationDao.getNotificationsForINotification(iNotification1);
+		List<Notification> notifications2 = notificationDao.getNotificationsForINotification(iNotification2);
+		
+		Assert.assertTrue(notifications1.contains(notification1Queued));
+		Assert.assertFalse(notifications1.contains(notification2Sent));
+		Assert.assertFalse(notifications2.contains(notification1Queued));
+		Assert.assertFalse(notifications2.contains(notification2Sent));
+		Assert.assertTrue(notifications2.contains(notification3Queued));
+	}
+	
+	@Test
+	@Transactional
+	public void getNotificationsToBeSent()
+	{
+		List<Notification> notifications = notificationDao.getNotificationsToBeSent(System.currentTimeMillis()+10000, 2);
+		Assert.assertTrue(notifications.contains(notification7QueuedInstant));
+		Assert.assertTrue(notifications.contains(notification1Queued));
+		
+		notifications = notificationDao.getNotificationsToBeSent(System.currentTimeMillis()+10000, 20);
+		Assert.assertTrue(notifications.contains(notification7QueuedInstant));
+		Assert.assertTrue(notifications.contains(notification1Queued));
+		Assert.assertTrue(notifications.contains(notification3Queued));
+		Assert.assertTrue(notifications.contains(notification4Failed));
+		Assert.assertTrue(notifications.contains(notification5Queued));
+	}
+	
+	@Test
+	@Transactional
+	public void getNotificationToBeSent()
+	{
+		Notification notification = notificationDao.getNotificationToBeSent(System.currentTimeMillis()+10000);
+		Assert.assertTrue(notification.equals(notification7QueuedInstant));
+		notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.updateObject(notification);
+		
+		notification = notificationDao.getNotificationToBeSent(System.currentTimeMillis()+10000);
+		Assert.assertTrue(notification.equals(notification1Queued));
+		notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.updateObject(notification);
+		
+		notification = notificationDao.getNotificationToBeSent(System.currentTimeMillis()+10000);
+		Assert.assertTrue(notification.equals(notification3Queued));
+		notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.updateObject(notification);
+		
+		notification = notificationDao.getNotificationToBeSent(System.currentTimeMillis()+10000);
+		Assert.assertTrue(notification.equals(notification4Failed));
+		notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.updateObject(notification);
+		
+		notification = notificationDao.getNotificationToBeSent(System.currentTimeMillis()+10000);
+		Assert.assertTrue(notification.equals(notification5Queued));
+		notification.setSentStatusOrdinal(NotificationStatusEnum.SENT.ordinal());
+		dao.updateObject(notification);
+	}
+
+}

@@ -1,0 +1,12 @@
+<enunciate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://enunciate.codehaus.org/schemas/enunciate-1.20.xsd">
+
+<modules>
+ <c disabled="true"/> 
+ <obj-c disabled="true"/> 
+ <csharp disabled="true"/>
+ <disable-rule id="c"/>
+ <disable-rule id="csharp"/>
+ <disable-rule id="obj-c"/>
+</modules>
+</enunciate>

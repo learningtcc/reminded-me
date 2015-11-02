@@ -1,0 +1,16 @@
+package com.homefellas.user;
+
+import org.springframework.security.core.userdetails.UserDetails;
+
+
+public interface IUserDao
+{
+
+	public UserDetails getUserDetailsById(String email);
+	public RegisterTicket getCasRegisterTO(String ticket, String email);
+	public Role getRole(RoleEnum authorizationEnum);
+	public Profile getProfileByEmail(String email);
+	public Member getMemberByEmail(String email);
+	public Profile getProfileByFaceBookId(String facebookId);
+
+}

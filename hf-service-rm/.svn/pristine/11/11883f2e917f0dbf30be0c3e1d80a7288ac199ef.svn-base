@@ -1,0 +1,117 @@
+package com.homefellas.rm.task;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+
+import com.homefellas.exception.IValidationCode;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.model.core.IGenericSynchroinzedLifeCycle;
+import com.homefellas.rm.ISynchronizeable;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.notification.Device;
+import com.homefellas.user.Member;
+
+@Entity
+@Table(name="t_isocalevents")
+@Proxy(lazy=false)
+@XmlRootElement
+public class AppleIOSCalEvent extends AbstractGUIDModel implements ISynchronizeable, IGenericSynchroinzedLifeCycle {
+
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="memberId")
+	@Index(name="iosEventMemberIndex")
+	private Member member;
+	
+	@ManyToOne(fetch=FetchType.EAGER,optional=false)
+	@JoinColumn(name="deviceId")
+	@Index(name="iosEventDeviceIndex")
+	private Device device;
+	
+	@Override
+	@JsonIgnore
+	public String getMemberAttributeName() {
+		return "member";
+	}
+
+	@Override
+	public String getLastModifiedDeviceId() {
+		return lastModifiedDeviceId;
+	}
+
+	@Override
+	public void setLastModifiedDeviceId(String deviceId) {
+		this.lastModifiedDeviceId = deviceId;
+	}
+
+	@Override
+	@JsonIgnore
+	public String getSyncId() {
+		return "id";
+	}
+
+	@Override
+	@JsonIgnore
+	public void validate() throws ValidationException {
+		List<IValidationCode> codes = new ArrayList<IValidationCode>();
+		
+		if (!isPrimaryKeySet())
+			codes.add(ValidationCodeEnum.PK_NOT_SET);
+		
+		if (member==null||!member.isPrimaryKeySet())
+			codes.add(ValidationCodeEnum.MEMBER_ID_IS_NULL);
+		
+		if (device==null||!device.isPrimaryKeySet())
+			codes.add(ValidationCodeEnum.DEVICE_ID_IS_NULL);
+		
+		if (!codes.isEmpty())
+			throw new ValidationException(codes);
+	}
+
+	@Override
+	@JsonIgnore
+	public String getEmailForAuthorization() {
+		return member.getEmail();
+	}
+
+	@Override
+	@JsonIgnore
+	public void markForDeletion() {
+		
+	}
+
+	public Member getMember() {
+		return member;
+	}
+
+	public void setMember(Member member) {
+		this.member = member;
+	}
+
+	public Device getDevice() {
+		return device;
+	}
+
+	public void setDevice(Device device) {
+		this.device = device;
+	}
+	
+	
+
+}

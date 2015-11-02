@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/batch"
+       xmlns:beans="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd">
+
+	<beans:import resource="classpath:main/resource/conf/core-context.xml"/>
+   	<beans:import resource="classpath:com/homefellas/context/rm-service-context.xml"/>
+   	<beans:import resource="classpath:com/homefellas/context/user-context.xml"/>
+   	<beans:import resource="classpath:main/resource/conf/metrics-context.xml"/>
+
+	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<beans:property name="driverClassName" value="com.mysql.jdbc.Driver" />
+			<beans:property name="url" value="${db.url}" />
+			<beans:property name="username" value="${db.username}" />
+			<beans:property name="password" value="${db.password}" />
+	</beans:bean>
+	
+	<beans:bean id="brochureDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<beans:property name="driverClassName" value="com.mysql.jdbc.Driver" />
+			<beans:property name="url" value="${brochure.db.url}" />
+			<beans:property name="username" value="${db.username}" />
+			<beans:property name="password" value="${db.password}" />
+	</beans:bean>
+	
+	<beans:bean id="propertyPlaceholderConfigurer" class="com.homefellas.util.AbsolutePathPropertyPlaceholderConfigurer">
+		<beans:property name="basePropertiesHome" value="${properties_home}"/>
+		<beans:property name="locations">
+			<beans:list>
+				<beans:value>core.properties</beans:value>
+				<beans:value>rm.properties</beans:value>
+				<beans:value>email.properties</beans:value>
+				<beans:value>classpath:notification.properties</beans:value>
+				<beans:value>metrics.properties</beans:value>
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+	<job id="dykJob" job-repository="jobRepository">
+        <step id="dykJobStep">
+            <tasklet ref="dykTasklet" />
+        </step>
+    </job>
+    
+    <job id="morningDigest" job-repository="jobRepository">
+        <step id="morningDigestStep">
+            <tasklet ref="morningDigestTasklet" />
+        </step>
+    </job>
+    
+    <job id="nightlyDigest" job-repository="jobRepository">
+        <step id="nightlyDigestStep">
+            <tasklet ref="nightlyDigestTasklet" />
+        </step>
+    </job>
+
+    <beans:bean id="jobRepository" class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean"/>
+
+    <beans:bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager" />
+
+    <beans:bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <beans:property name="jobRepository" ref="jobRepository" />
+    </beans:bean>
+
+    <beans:bean id="dykTasklet" class="me.reminded.launcher.DailyDidYouKnowTasklet">
+    	<beans:property name="notificationService" ref="notificationService"/>
+    	<beans:property name="didYouKnowService" ref="didYouKnowService"/>
+    </beans:bean>
+    
+    <beans:bean id="morningDigestTasklet" class="me.reminded.launcher.MorningDigestTasklet">
+   		<beans:property name="taskService" ref="taskService"/>
+   		<beans:property name="emailService" ref="emailService"/>
+    </beans:bean>
+    
+    <beans:bean id="nightlyDigestTasklet" class="me.reminded.launcher.NightlyDigestTasklet">
+    	<beans:property name="taskService" ref="taskService"/>
+   		<beans:property name="emailService" ref="emailService"/>
+    </beans:bean>
+</beans:beans>		

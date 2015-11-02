@@ -1,0 +1,68 @@
+package com.homefellas.user;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.springframework.security.core.GrantedAuthority;
+
+import com.homefellas.model.core.AbstractSequenceModel;
+
+@Entity
+@Table(name="u_role")
+//@XmlRootElement
+public class Role extends AbstractSequenceModel implements GrantedAuthority{
+
+	@Basic(fetch=FetchType.EAGER)
+	@Column(unique=true,nullable=false)
+	private String roleName;
+
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String role) {
+		this.roleName = role;
+	}
+	
+	public String getAuthority() {
+		return roleName;
+	}
+
+//	@Override
+//	public int hashCode()
+//	{
+//		final int prime = 31;
+//		int result = super.hashCode();
+//		result = prime * result
+//				+ ((roleName == null) ? 0 : roleName.hashCode());
+//		return result;
+//	}
+//
+//	@Override
+//	public boolean equals(Object obj)
+//	{
+//		if (this == obj)
+//			return true;
+//		if (!super.equals(obj))
+//			return false;
+//		if (getClass() != obj.getClass())
+//			return false;
+//		Role other = (Role) obj;
+//		if (roleName == null)
+//		{
+//			if (other.roleName != null)
+//				return false;
+//		}
+//		else if (!roleName.equals(other.roleName))
+//			return false;
+//		return true;
+//	}
+
+	
+	
+	
+}

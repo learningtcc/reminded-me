@@ -1,0 +1,25 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+<!-- 	<bean id="facebook1" class="org.scribe.up.provider.impl.FacebookProvider"> -->
+<!--        		<property name="key" value="205098492846954" /> -->
+<!--  			<property name="secret" value="68564b8fa5393aa25871b85211d9f130" /> -->
+<!--  			<property name="callbackUrl" value="https://localhost/sso/login" /> -->
+<!-- 		</bean> -->
+		
+<!-- 		<bean id="twitter1" class="org.scribe.up.provider.impl.TwitterProvider"> -->
+<!--  			<property name="key" value="the_key_for_twitter1" /> -->
+<!--  			<property name="secret" value="the_secret_for_twitter1" /> -->
+<!--  			<property name="callbackUrl" value="https://localhost/sso/login" /> -->
+<!-- 		</bean> -->
+
+<!-- 		<bean id="google1" class="org.scribe.up.provider.impl.GoogleProvider"> -->
+<!--  			<property name="key" value="the_key_for_google1" /> -->
+<!--  			<property name="secret" value="the_secret_for_google1" /> -->
+<!--  			<property name="callbackUrl" value="https://localhost/sso/login" /> -->
+<!-- 		</bean> -->
+</beans>	
+	

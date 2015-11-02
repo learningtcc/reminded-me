@@ -1,0 +1,20 @@
+package com.homefellas.rm.reminder;
+
+import java.util.List;
+
+import org.joda.time.DateTime;
+
+import com.homefellas.batch.INotifiableCallbackService;
+import com.homefellas.batch.Notification;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+
+public interface IReminderService extends INotifiableCallbackService
+{
+//	public List<Notification> buildNotifications(IRepeatSetup iRepeatSetup);
+//	public List<Notification> buildNotifications(IRepeatSetup iRepeatSetup, int queueSize);
+	public void unScheduleAlarm(Alarm alarm);
+	public void scheduleAlarm(Alarm alarm);
+	public List<Alarm> getAlarmdsyTask(Task task);
+	public Alarm getAlarmByTaskMemberAndTime(Task task, Member member, DateTime fireTime);
+}

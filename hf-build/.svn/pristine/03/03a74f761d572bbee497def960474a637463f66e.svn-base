@@ -1,0 +1,9 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body style="margin-top: 0px; margin-left: 0px;">
+${task.taskCreator.name} has ${event} <a href="${link}">${task.title}</a>
+</body>
+</html>

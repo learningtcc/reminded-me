@@ -1,0 +1,239 @@
+package com.homefellas.rm.task;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonAnySetter;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Proxy;
+
+import com.homefellas.model.core.AbstractGUIDModel;
+import com.homefellas.model.core.AbstractSequenceModel;
+import com.homefellas.rm.ISynchronizeable;
+import com.homefellas.rm.ISynchronizeableInitialized;
+import com.homefellas.user.Member;
+
+@Entity
+@Table(name="t_categories")
+@Proxy(lazy=false)
+@XmlRootElement
+public class Category extends AbstractGUIDModel implements ISynchronizeableInitialized {
+
+	/**
+	 * This is the category name that is displayed to the user.  It is required and must be passed.
+	 */
+	@Column(nullable=false)
+	private String categoryName;
+	
+	/**
+	 * This marks whether or not a category should be shown to all users or just hte owner of the category.  This
+	 * is up to the client to hide/show.
+	 */
+	@Column(nullable=false)
+	private boolean privateCategory=true;
+	
+	/**
+	 * This is the sort order in which the categories will be returned.  It will be from 0 to highest number.  Like
+	 * numbers will be sorted alaphbetically.
+	 */
+	@Column(nullable=false)
+	private int sortOrder=0;
+
+	/**
+	 * This flag marks whether or not a category should be generic.  It should be never changed by the client.
+	 */
+	@Column(nullable=false)
+//	@Index(name="genericIndex")
+	private boolean generic=false;
+	
+	/**
+	 * This is who the category belongs to.  The only attribute that needs to be passed is the member.id.
+	 * @see Member
+	 */
+	@ManyToOne(fetch=FetchType.EAGER,optional=true)
+	@JoinColumn(name="memberId")
+//	@Index(name="memberIndex")
+	private Member member;
+	
+	@Column(nullable=true)
+	private String lastModifiedDeviceId;
+	
+	
+	
+	private String modelName = getClass().getSimpleName();
+	
+	public Category()
+	{
+		
+	}
+	
+	public Category(String id)
+	{
+		this.id = id;
+	}
+	
+	/**
+	 * This is used to create a generic category
+	 * @param title
+	 * @param sortOrder
+	 */
+	public Category(String title, String id, int sortOrder)
+	{
+		generateGUIDKey();
+		this.categoryName = title;
+		this.id = id;
+		this.sortOrder = sortOrder;
+		this.generic=true;
+		privateCategory=false;
+	}
+	
+	/**
+	 * This is hte category name that identifies the category to the user.
+	 * @return categoryName
+	 */
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
+
+	/**
+	 * This is used to mark a category as private.  It is just a flag and it is up to the client to use it.
+	 * @return
+	 */
+	public boolean isPrivateCategory() {
+		return privateCategory;
+	}
+
+	public void setPrivateCategory(boolean privateCategory) {
+		this.privateCategory = privateCategory;
+	}
+
+	/**
+	 * This is the sort order.  It is just a number that can be used by the client.  
+	 * @return sortOrder
+	 */
+	public int getSortOrder() {
+		return sortOrder;
+	}
+
+	public void setSortOrder(int sortOrder) {
+		this.sortOrder = sortOrder;
+	}
+
+	/**
+	 * This is the member that the category belongs to.  Only member.id is required to be set.  This is required.  A valid member id is required.
+	 * @return
+	 */
+	public Member getMember() {
+		return member;
+	}
+
+	public void setMember(Member member) {
+		this.member = member;
+	}
+
+	
+	@Override
+	public String getMemberAttributeName()
+	{
+		return "member";
+	}
+
+	/**
+	 * This is not used by the client.  It's required for any object that needs to be synchronized.  It's default value is the Class Name.
+	 * @return className
+	 */
+	@Override
+	public String getModelName()
+	{
+		return modelName;
+	}
+	
+	@Override
+	public void setModelName(String modelName)
+	{
+		
+	}
+
+	@JsonAnySetter
+	  public void handleUnknown(String key, Object value) {
+		System.out.println("ignore "+key+" with a value of "+value);
+	  }
+
+	/**
+	 * This is used to mark a category as generic.  This should NEVER be set by the client.
+	 * @return
+	 */
+	public boolean isGeneric()
+	{
+		return generic;
+	}
+
+	public void setGeneric(boolean generic)
+	{
+		this.generic = generic;
+	}
+
+	public void setMemberId(String memberId)
+	{
+		if (member==null)
+			member = new Member();
+		member.setId(memberId);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((categoryName == null) ? 0 : categoryName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Category other = (Category) obj;
+		if (categoryName == null)
+		{
+			if (other.categoryName != null)
+				return false;
+		}
+		else if (!categoryName.equals(other.categoryName))
+			return false;
+		return true;
+	}
+
+	public String getLastModifiedDeviceId()
+	{
+		return lastModifiedDeviceId;
+	}
+
+	public void setLastModifiedDeviceId(String lastModifiedDeviceId)
+	{
+		this.lastModifiedDeviceId = lastModifiedDeviceId;
+	}
+	
+	@JsonIgnore
+	public String getSyncId()
+	{
+		return "id";
+	}
+	
+}

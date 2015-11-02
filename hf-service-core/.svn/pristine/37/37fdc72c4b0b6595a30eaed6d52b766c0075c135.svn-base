@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+    
+<hibernate-mapping auto-import="true" package="com.homefellas.model.location">
+		<class name="Zip" table="list_postalcodes">
+		<cache usage="read-write"/>
+		<id name="id" column="id" type="long" unsaved-value="0">
+   <generator class="identity"/>
+  </id>
+		
+		<property name="zipCode" column="ZIP_CODE" length="5" not-null="false" unique="true"/>
+		<property name="city" column="CITY" length="50" not-null="false"/>
+		<property name="latitude" column="LATITUDE" type="double"></property>
+		<property name="longitude" column="LONGITUDE" type="double"></property>
+		<property name="zipClass" column="ZIP_CLASS" length="20" not-null="false"/>
+	
+		<many-to-one name="state" class="State" column="stateId" lazy="false"/>
+		<many-to-one name="county" class="County" column="countyId" lazy="false"/>
+			
+	</class>
+	<!-- 
+	<class name="com.hicom.locations.dto.ZipProximityTO" table="list_proximity_postalcodes">
+		<cache usage="read-write"/>
+		<id name="id" column="id" type="long" unsaved-value="0">
+   <generator class="identity"/>
+  </id>
+  		
+		<property name="distance" length="5" not-null="true" type="double" index="baseZip"/>
+		<property name="baseZip" length="5" not-null="false" index="baseZip"/>
+		<property name="nearZip"  length="5" not-null="false" type="string"/>
+	</class>
+	-->
+	
+</hibernate-mapping>
+	

@@ -1,0 +1,173 @@
+package com.homefellas.model.core;
+
+import uk.co.jemos.podam.api.PodamFactory;
+import uk.co.jemos.podam.api.PodamFactoryImpl;
+
+import com.google.gson.Gson;
+import com.homefellas.batch.INotifiable;
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.batch.PushTypeEnum;
+import com.homefellas.metrics.ClientMetric;
+import com.homefellas.metrics.WebRequestMetric;
+import com.homefellas.model.location.Country;
+import com.homefellas.model.location.County;
+import com.homefellas.model.location.LocationAlias;
+import com.homefellas.model.location.LocationAlias.LocationAliasEnum;
+import com.homefellas.model.location.State;
+import com.homefellas.model.location.Zip;
+
+public abstract class TestModelBuilder {
+
+	protected static PodamFactory factory = new PodamFactoryImpl();
+
+	public static WebRequestMetric webRequestMetric(String email, String requestURI)
+	{
+		WebRequestMetric webRequestMetric = new WebRequestMetric();
+		webRequestMetric.setEmail(email);
+		webRequestMetric.setIpAddress("127.0.0.1");
+		webRequestMetric.setOperation("POST");
+		webRequestMetric.setRequestPayload(factory.getStrategy().getStringOfLength(2345));
+		webRequestMetric.setRequestURI(requestURI);
+		webRequestMetric.setStatus(200);
+		webRequestMetric.setTgt(factory.getStrategy().getStringOfLength(50));
+		
+		return webRequestMetric;
+	}
+	
+	public static Notification buildNotification(boolean newNotification, NotificationTypeEnum notificationTypeEnum, PushTypeEnum pushTypeEnum, long sendTime, INotifiable iNotification)
+	{
+		Notification notification = new Notification();
+		notification.setBody(factory.getStrategy().getStringValue());
+		notification.setNotificationTypeOrdinal(notificationTypeEnum.ordinal());
+		notification.setPushTypeOrdinal(pushTypeEnum.ordinal());
+		notification.setSendTo(factory.getStrategy().getStringValue());
+		notification.setSendFrom(factory.getStrategy().getStringValue());
+		notification.setToSendTime(sendTime);
+		notification.setINotification(iNotification);
+		
+		newObjectCheck(notification, newNotification);
+		
+		return notification;
+	}
+	
+	public static LocationAlias buildLocationAlias(boolean newLocationAlias, LocationAliasEnum locationAliasEnum, String alias, String value)
+	{
+		LocationAlias locationAlias = factory.manufacturePojo(LocationAlias.class);
+		locationAlias.setContext(locationAliasEnum.getContext());
+		locationAlias.setAlias(alias);
+		locationAlias.setValue(value);
+		
+		newObjectCheck(locationAlias, newLocationAlias);
+		
+		return locationAlias;
+	}
+	
+	protected static void newObjectCheck(AbstractBaseTO baseTO, boolean flag)
+	{
+		if (flag)
+			baseTO.setId(new Long(0));
+		else if (baseTO.getId()<0)
+		{
+			long oldId = baseTO.getId();
+			baseTO.setId(new Long(-oldId));
+		}
+	}
+	
+	protected static void newObjectCheck(AbstractModel baseTO, boolean flag)
+	{
+		if (baseTO instanceof AbstractSequenceModel)
+		{
+			AbstractSequenceModel model = (AbstractSequenceModel)baseTO;
+			if (flag)
+				model.setId(new Long(0));
+			else if (model.getId()<0) 
+				model.setId(-model.getId());
+		}
+		else if (baseTO instanceof AbstractGUIDModel)
+		{
+			AbstractGUIDModel model = (AbstractGUIDModel)baseTO;
+			model.generateGUIDKey();				
+		}
+	}
+
+	
+	public static MemberTO buildMemberTO(boolean newUser)
+	{
+		MemberTO memberTO = factory.manufacturePojo(MemberTO.class);
+
+		newObjectCheck(memberTO, newUser);
+		return memberTO;
+	}
+	
+	
+	public static String convertObjectToJSON(Object object)
+	{
+		Gson gson = new Gson();
+		return gson.toJson(object);
+	}
+	
+	public static County buildCounty(boolean newCounty, String defaultZip, State state, String name)
+	{
+		County county = new County();
+		county.setDefaultZip(defaultZip);
+		county.setName(name);
+		county.setFipsCl(factory.getStrategy().getStringOfLength(2));
+		county.setState(state);
+		
+		newObjectCheck(county, newCounty);
+		return county;
+	}
+	public static Zip buildZip(boolean newZip, String city, String zipCode, State state, County county)
+	
+	{
+		Zip zip = new Zip();
+		zip.setCity(city);
+		zip.setCounty(county);
+		zip.setState(state);
+		zip.setZipCode(zipCode);
+		
+		newObjectCheck(zip, newZip);
+		return zip;
+	}
+	public static Country buildCountry(boolean newCountry, String code, String name)
+	{
+		Country country = new Country();
+		country.setCode(code);
+		country.setName(name);
+		
+		newObjectCheck(country, newCountry);
+		return country;
+	}
+	public static State buildState(boolean newState, String code, String name, Country country, String defaultZip, boolean realState)
+	{
+		State state = factory.manufacturePojo(State.class);
+		state.setCode(code);
+		state.setCountry(country);
+		state.setDefaultZip(defaultZip);
+		state.setName(name);
+		state.setRealState(realState);
+		
+		newObjectCheck(state, newState);
+		return state;
+	}
+	
+	public static ClientMetric buildClientMetric(boolean newClientMetric)
+	{
+//		ClientMetric clientMetric = factory.manufacturePojo(ClientMetric.class);
+		ClientMetric clientMetric = new ClientMetric();
+		clientMetric.setAction(factory.getStrategy().getStringValue());
+		clientMetric.setCategory(factory.getStrategy().getStringValue());
+		clientMetric.setLabel(factory.getStrategy().getStringValue());
+		clientMetric.setMemberId(factory.getStrategy().getStringValue());
+		clientMetric.setValue(factory.getStrategy().getInteger());
+		newObjectCheck(clientMetric, newClientMetric);
+		return clientMetric;
+		
+	}
+	
+	public static String randomString()
+	{
+		return factory.getStrategy().getStringValue();
+	}
+}

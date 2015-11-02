@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+       
+       
+       <bean id="userDao" class="com.homefellas.user.UserDao" parent="hibernateDao"/>
+       
+       <bean id="userValidator" class="com.homefellas.user.UserValidator">
+		</bean>
+		
+		<bean id="jasyptStringDigester" class="org.jasypt.digest.StandardStringDigester" >
+    		<property name="algorithm" value="SHA-1" />
+    		<property name="iterations" value="100000" />
+  		</bean>
+  
+  		<bean id="passwordEncoder" class="org.jasypt.spring.security3.PasswordEncoder">
+    		<property name="stringDigester">
+     	 		<ref bean="jasyptStringDigester" />
+    		</property>
+    	</bean>
+       
+		<bean id="userService" class="com.homefellas.user.UserService" parent="abstractService">
+			<property name="userDao" ref="userDao"/>	
+			<property name="passwordEncoder" ref="passwordEncoder"/>	
+			<property name="userValidator" ref="userValidator"/>
+			<property name="roleCache" ref="roleCache"/>
+			<property name="host" value="${hf.core.server.name}"></property>
+			<property name="oauthProfileUrl" value="${cas.oauth.profile.url}"/>
+			<property name="generateTGT" ref="generateTGT"/> 
+		</bean> 
+		
+		<bean name="generateTGT" class="java.lang.Boolean">
+			<constructor-arg><value>true</value></constructor-arg>
+		</bean>  
+		
+		<bean id="roleCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="cacheManager"/>
+			<property name="cacheName" value="roleCache"/>
+		</bean>
+		
+		<bean id="userCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+			<property name="cacheManager" ref="cacheManager"/>
+			<property name="cacheName" value="userCache"/>
+		</bean>
+		
+		<alias name="userService" alias="loginService"/>
+		
+		<!-- MEMCACHED -->
+<!-- 		<import resource="simpledo osm-context.xml" /> -->
+		
+<!-- 		<bean name="defaultMemcachedClient" class="com.google.code.ssm.CacheFactory"> -->
+<!--           <property name="cacheClientFactory"> -->
+<!--                 <bean class="com.google.code.ssm.providers.xmemcached.MemcacheClientFactoryImpl" /> -->
+<!--           </property> -->
+<!--           <property name="addressProvider"> -->
+<!--                 <bean class="com.google.code.ssm.config.DefaultAddressProvider"> -->
+<!--                      <property name="address" value="127.0.0.1:11211" /> -->
+<!--                 </bean> -->
+<!--           </property> -->
+<!--           <property name="configuration"> -->
+<!--                 <bean class="com.google.code.ssm.providers.CacheConfiguration"> -->
+<!--                       <property name="consistentHashing" value="true" /> -->
+<!--                 </bean> -->
+<!--           </property> -->
+<!--      </bean> -->
+	
+</beans>

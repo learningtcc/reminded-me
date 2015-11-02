@@ -1,0 +1,5 @@
+#this properties is to map to a spring mvc
+cas.oauth.profile.url=${cas.oauth.profile.url}
+login.url=${login.url}
+facebook.key=${facebook.key}
+facebook.secret=${facebook.secret}

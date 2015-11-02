@@ -1,0 +1,18 @@
+package com.homefellas.rm.reminder;
+
+import java.util.List;
+
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.task.Task;
+import com.homefellas.user.Member;
+
+public interface IReminderServiceTX extends IReminderService
+{
+	public Alarm createAlarmTX(Alarm alarm) throws ValidationException;
+	public Alarm updateAlarmTX(Alarm alarm) throws ValidationException;
+	public void deleteAlarmTX(String id) throws ValidationException;
+	public List<Alarm> getBulkAlarmsTX(String alarmDelimiter, String loggedInUserEmail) throws ValidationException;
+	public List<Alarm> getAlarmByTaskAndMemberTX(Task task, Member member);
+	public List<Alarm> getAlarmdsyTaskTX(Task task);
+	public Alarm createAlarmTX(Alarm alarm, Member member) throws ValidationException;
+}

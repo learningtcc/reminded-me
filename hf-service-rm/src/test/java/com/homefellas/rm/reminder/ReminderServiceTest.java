@@ -1,0 +1,192 @@
+package com.homefellas.rm.reminder;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import junit.framework.Assert;
+
+import org.joda.time.DateTime;
+import org.junit.Test;
+
+import com.homefellas.batch.Notification;
+import com.homefellas.batch.NotificationService;
+import com.homefellas.batch.NotificationTypeEnum;
+import com.homefellas.exception.ValidationException;
+import com.homefellas.rm.AbstractRMTestDao;
+import com.homefellas.rm.RMTestModelBuilder;
+import com.homefellas.rm.ValidationCodeEnum;
+import com.homefellas.rm.reminder.Alarm.AlarmStatusEnum;
+import com.homefellas.rm.task.Task;
+import com.homefellas.rm.task.TaskService;
+import com.homefellas.user.Profile;
+
+
+public class ReminderServiceTest extends AbstractRMTestDao 
+{
+	@Resource(name="reminderService")
+	private ReminderService reminderService;
+	
+	@Resource(name="taskService")
+	private TaskService taskService;
+	
+	@Resource(name="notificationService")
+	private NotificationService notificationService;
+	
+	@Test
+	public void createAlarmNone()
+	{
+		
+		DateTime alarmTime = new DateTime().plusHours(4);
+		Alarm alarm = RMTestModelBuilder.alarm(createTaskAndProfile(), alarmTime);
+		alarm.setNotificationType(NotificationTypeEnum.NONE.ordinal());
+		try
+		{
+			alarm = reminderService.createAlarmTX(alarm);
+			
+			Assert.assertEquals(reminderService.getAlarmById(alarm.getId()), alarm);
+			Assert.assertTrue(notificationService.getNotificationsForINotificationTX(alarm).isEmpty());
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void createAlarm()
+	{
+		Profile profile = createProfile();
+		
+		DateTime alarmTime = new DateTime().plusHours(4);
+		Task task = new Task("12345");
+		task.setTaskCreator(profile);
+		Alarm alarm = RMTestModelBuilder.alarm(task, alarmTime);
+		try
+		{
+			alarm = reminderService.createAlarmTX(alarm);
+			Assert.fail();
+		}
+		catch (ValidationException e)
+		{
+			assertValidation(e, ValidationCodeEnum.TASK_NOT_FOUND);
+		}
+		
+		alarmTime = new DateTime().plusHours(4);
+		alarm = RMTestModelBuilder.alarm(createTaskAndProfile(), alarmTime);
+		try
+		{
+			alarm = reminderService.createAlarmTX(alarm);
+			
+			Assert.assertEquals(reminderService.getAlarmById(alarm.getId()), alarm);
+			Assert.assertEquals(alarmTime.getMillis(), notificationService.getNotificationsForINotificationTX(alarm).get(0).getToSendTime());
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	@Test
+	public void updateAlarm()
+	{
+		DateTime alarmTime = new DateTime().plusHours(4);
+		Alarm alarm = RMTestModelBuilder.alarm(createTaskAndProfile(), alarmTime);
+		try
+		{
+			alarm = reminderService.createAlarmTX(alarm);
+			
+			Assert.assertEquals(reminderService.getAlarmById(alarm.getId()), alarm);
+			Assert.assertEquals(alarmTime.getMillis(), notificationService.getNotificationsForINotificationTX(alarm).get(0).getToSendTime());
+			
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+		
+		try
+		{
+			alarmTime = new DateTime().plusDays(1);
+			alarm.setAlarmTime(alarmTime);
+			
+			reminderService.updateAlarm(alarm);
+			
+			Assert.assertEquals(reminderService.getAlarmById(alarm.getId()), alarm);
+			List<Notification> notifications = notificationService.getNotificationsForINotificationTX(alarm);
+			Assert.assertEquals(1, notifications.size());
+			Assert.assertEquals(alarmTime.getMillis(), notifications.get(0).getToSendTime());
+			
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+		
+	}
+	
+	@Test
+	public void deleteAlarm()
+	{
+		DateTime alarmTime = new DateTime().plusHours(4);
+		Alarm alarm = RMTestModelBuilder.alarm(createTaskAndProfile(), alarmTime);
+		try
+		{
+			alarm = reminderService.createAlarmTX(alarm);
+			
+			Assert.assertEquals(reminderService.getAlarmById(alarm.getId()), alarm);
+			Assert.assertEquals(alarmTime.getMillis(), notificationService.getNotificationsForINotificationTX(alarm).get(0).getToSendTime());
+			
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+		
+		try
+		{
+			reminderService.deleteAlarm(alarm.getId());
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}	
+			
+		
+		Alarm alarmUnderTest = reminderService.getAlarmById(alarm.getId());
+		Assert.assertEquals(AlarmStatusEnum.DELETED.ordinal(), alarmUnderTest.getAlarmStatus());
+		Assert.assertTrue(notificationService.getNotificationsForINotificationTX(alarm).isEmpty());
+		
+	}
+	
+	@Test
+	public void getBulkAlarms()
+	{
+		DateTime alarmTime1 = new DateTime().plusHours(4);
+		DateTime alarmTime2 = new DateTime().plusDays(4);
+		DateTime alarmTime3 = new DateTime().plusMinutes(4);
+		Profile profile = createProfile();
+		Alarm alarm1 = RMTestModelBuilder.alarm(createTask(profile), alarmTime1);
+		Alarm alarm2 = RMTestModelBuilder.alarm(createTask(profile), alarmTime2);
+		Alarm alarm3 = RMTestModelBuilder.alarm(createTask(profile), alarmTime3);
+		try
+		{
+			alarm1 = reminderService.createAlarmTX(alarm1);
+			alarm2 = reminderService.createAlarmTX(alarm2);
+			alarm3 = reminderService.createAlarmTX(alarm3);
+			
+			reminderService.deleteAlarm(alarm3.getId());
+			
+			List<Alarm> alarms = reminderService.getBulkAlarmsTX(alarm1.getId()+","+alarm2.getId()+","+alarm3.getId(), profile.getEmail());
+			Assert.assertTrue(alarms.contains(alarm1));
+			Assert.assertTrue(alarms.contains(alarm2));
+			Assert.assertTrue(alarms.contains(alarm3));
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+
+}

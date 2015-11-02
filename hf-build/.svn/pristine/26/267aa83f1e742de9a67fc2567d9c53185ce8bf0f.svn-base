@@ -1,0 +1,12 @@
+# Email
+displayname=
+from = support@homefellas.com
+subject = A question is being asked regarding your recent bid request
+template = BidProjectQuestion_en.html
+persist =true 
+
+testmode=false
+testemail=tdelesio@gmail.com
+password=homefellas05
+#Use comma separator, if you would like to send multiple emails.
+multipleemails=

@@ -1,0 +1,16 @@
+package com.homefellas.rm.reminder;
+
+import java.util.List;
+
+import com.homefellas.batch.INotifiableCallbackService;
+import com.homefellas.batch.Notification;
+import com.homefellas.rm.task.Task;
+
+public interface IReminderService extends INotifiableCallbackService
+{
+//	public List<Notification> buildNotifications(IRepeatSetup iRepeatSetup);
+//	public List<Notification> buildNotifications(IRepeatSetup iRepeatSetup, int queueSize);
+	public void unScheduleAlarm(Alarm alarm);
+	public void scheduleAlarm(Alarm alarm);
+	public List<Alarm> getAlarmdsyTask(Task task);
+}

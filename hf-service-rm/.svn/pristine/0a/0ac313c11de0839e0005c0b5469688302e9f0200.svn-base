@@ -1,0 +1,199 @@
+package com.homefellas.rm.share;
+
+import java.util.List;
+
+import org.hibernate.Query;
+import org.joda.time.DateTime;
+
+import com.homefellas.dao.hibernate.core.HibernateDao;
+import com.homefellas.rm.share.Share.ShareStatus;
+import com.homefellas.rm.task.Calendar;
+import com.homefellas.rm.task.Task;
+import com.homefellas.rm.user.Contact;
+import com.homefellas.user.Member;
+import com.homefellas.user.Profile;
+
+public class ShareDao extends HibernateDao implements IShareDao
+{
+	
+//	public int updateShareStatusForTasks(List<String> taskIds, Member sharee, ShareApprovedStatus shareApprovedStatus)
+//	{
+//		Query query = getQuery("update Share s set s.shareApprovedStatusOrdinal = :shareApprovedStatusOrdinal, s. where s.user.id = :shareeid and s.task.id in (:ids)");
+//		query.setInteger("shareApprovedStatusOrdinal", shareApprovedStatus.ordinal());
+//		query.setString("shareeid", sharee.getId());
+//		query.setParameterList("ids", taskIds);
+//		
+//		return query.executeUpdate();
+//	}
+	public Contact getContactByProfileId(String contactId, String ownerId)
+	{
+		Query query = getQuery("from Contact c where c.contactOwner.id=? and c.contact.id=?");
+		query.setString(0, ownerId);
+		query.setString(1, contactId);
+		
+		return (Contact)query.uniqueResult();		
+	}
+	
+	public List<Share> getSharesByIds(List<String>ids)
+	{
+		Query query = getQuery("from Share s where s.id in (:ids)");
+		query.setParameterList("ids", ids);
+		
+		return query.list();		
+				
+	}
+	
+	public Share getShareById(String id)
+	{
+		Query query = getQuery("from Share s where s.id = (:id)");
+		query.setParameter("id", id);
+		
+		return (Share)query.uniqueResult();		
+				
+	}
+	
+	public List<Invite> getInvitesByIds(List<String>ids)
+	{
+		Query query = getQuery("from Invite i where i.id in (:ids)");
+		query.setParameterList("ids", ids);
+		
+		return query.list();		
+				
+	}
+	
+	public List<Invite> getInvitesSharedWithEmail(String memberId)
+	{
+		Query query = getQuery("select invite from Share s where s.user.id=? and s.status!=?");
+		query.setParameter(0, memberId);
+		query.setParameter(1, ShareStatus.DELETED.ordinal());
+		return query.list();
+	}
+
+	public List<Invite> getSentInvitesForMember(String memberId)
+	{
+		Query query = getQuery("from Invite i where i.inviter.id=?");
+		query.setParameter(0, memberId);
+		
+		return query.list();
+	}
+	
+	public List<Profile> getInvitedContactsByMemberId(String memberId)
+	{
+	
+//		Query query = getQuery("select p from Share share inner join fetch Profile p on share.user.id = p.id where share.task.taskCreator.id = ?");
+		Query query = getQuery("select profile from Profile profile where profile.id in (select share.user from Share share where share.task.taskCreator.id = ?)");
+		query.setParameter(0, memberId);
+		
+		return query.list();
+	}
+	
+	public List<String> getAcceptedSharedTaskIdsForUser(String memberId)
+	{
+		Query query = getQuery("select s.task.id from Share s where s.user.id=? and s.shareApprovedStatusOrdinal=? and s.status!=?");
+		query.setParameter(0, memberId);
+		query.setParameter(1, ShareApprovedStatus.APPROVED.ordinal());
+		query.setParameter(2, ShareStatus.DELETED.ordinal());
+		return query.list();
+	}
+	
+	@Override
+	public List<Task> getAcceptedSharedTasksForUser(Member user)
+	{
+		Query query = getQuery("select s.task from Share s where s.user.id=? and s.shareApprovedStatusOrdinal=? and s.status!=?");
+		query.setParameter(0, user.getId());
+		query.setParameter(1, ShareApprovedStatus.APPROVED.ordinal());
+		query.setParameter(2, ShareStatus.DELETED.ordinal());
+		return query.list();
+	}
+	
+	public List<Share> getAcceptedSharesForTask(Task task)
+	{
+		Query query = getQuery("from Share s where s.task.id=? and s.shareApprovedStatusOrdinal=? and s.status!=?");
+		query.setParameter(0, task.getId());
+		query.setParameter(1, ShareApprovedStatus.APPROVED.ordinal());
+		query.setParameter(2, ShareStatus.DELETED.ordinal());
+		return query.list();
+	}
+
+	@Override
+	public List<Share> getSharesForUser(Member user)
+	{
+		Query query = getQuery("from Share s where s.user.id=? and s.status!=?");
+		query.setParameter(0, user.getId());
+		query.setParameter(1, ShareStatus.DELETED.ordinal());
+		
+		return query.list();
+	}
+
+	@Override
+	public Share getShareForUserAndTask(Task task, Member user)
+	{
+		Query query = getQuery("from Share s where s.user.id=? and s.task.id=? and s.status!=?");
+		query.setParameter(0, user.getId());
+		query.setParameter(1, task.getId());
+		query.setParameter(2, ShareStatus.DELETED.ordinal());
+		
+		return (Share)query.uniqueResult();
+	}
+	
+	public ShareCalendar getShareForUserAndCalendar(Calendar calendar, Member user)
+	{
+		Query query = getQuery("from ShareCalendar sc where sc.user.id=? and sc.calendar.id=?");
+		query.setParameter(0, user.getId());
+		query.setParameter(1, calendar.getId());
+		
+		return (ShareCalendar)query.uniqueResult();
+	}
+	
+	
+
+	@Override
+	public Share getShareForTaskAndEmail(Task task, String email)
+	{
+		Query query = getQuery("from Share s where s.user.email=? and s.task.id=? and s.status!=?");
+		query.setParameter(0, email);
+		query.setParameter(1, task.getId());
+		query.setParameter(2, ShareStatus.DELETED.ordinal());
+		
+		return (Share)query.uniqueResult();
+	}
+	
+	@Override
+	public List<Share> getSharesForTask(Task task)
+	{
+		Query query = getQuery("from Share s where s.task.id=? and s.status!=?");
+		query.setParameter(0, task.getId());
+		query.setParameter(1, ShareStatus.DELETED.ordinal());
+		
+		return query.list();
+	}
+
+	@Override
+	public List<ShareCalendar> getCalenderShares(Calendar calendar)
+	{
+		Query query = getQuery("from ShareCalendar sc where sc.calendar.id=?");
+		query.setParameter(0, calendar.getId());
+		
+		return query.list();
+	}
+	
+	public List<Member> getMembersFromCalendarShares(List<String> calendarKeys)
+	{
+		Query query = getQuery("select sc.user from ShareCalendar sc where sc.calendar.id in (:ids)");
+		query.setParameterList("ids", calendarKeys);
+		
+		return query.list();
+	}
+
+	@Override
+	public ShareCalendar getShareCalendarByCalendarAndMember(Calendar calendar, Member member)
+	{
+		Query query = getQuery("from ShareCalendar sc where sc.calendar.id = ? and sc.user.id=?");
+		query.setString(0, calendar.getId());
+		query.setString(1, member.getId());
+		
+		return (ShareCalendar)query.uniqueResult();
+	}
+	
+	
+}

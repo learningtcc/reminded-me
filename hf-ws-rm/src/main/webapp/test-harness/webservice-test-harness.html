@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+	<!-- Form authored by Scott Bush (scott.bush@gmail.com) in Seattle; Nov.-Dec.'10 -->
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Language" content="en" />
+
+		<title>Webservice Test Harness</title>
+
+		<link rel="stylesheet" href="base/jquery.ui.all.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="base/custom-theme/jquery-ui-1.8.6.custom.css" type="text/css" media="screen">
+		<style type="text/css">
+			body {
+				font-family: Arial, Helvetica, sans-serif;
+			}
+			div, input, select {
+				font-size: large;
+			}
+			div {
+				margin-bottom: 1em;
+			}
+			h2 {
+				margin-top: 0;
+			}
+			fieldset {
+				border: 1px solid #ddd;
+				margin-bottom: 0em;
+				background-color: #FCFFDB;
+			}
+			fieldset legend {
+				text-align: center;
+				font-weight: bold;
+			}
+			.left {
+				float: left;
+				margin-right: 1em;
+			}
+			.width50 {
+				width: 48%;
+			}
+			.width33 {
+				width: 30%;
+			}
+			hr.clear {
+				clear: both;
+				display: block;
+				border: none;
+				visibility: hidden;
+			}
+			#cookieArea {
+				display: none;
+			}
+			input[type=submit] {
+				color: green;
+			}
+			.deprecated {
+				display: none;
+				border-color: #8C061E !important;
+				margin-left: 1em !important;
+			}
+		</style>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="base/jquery.cookie.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				/** Buttons to set submission destination **/
+				$('#setProdURL').click(function(){
+					$('#qIP').val( $(this).parent().children("span:first").text() );
+					$('#qPort').children("option:first").attr("selected","selected");
+					$.cookie("testenvironment", "SL", { expires: 7 });
+				});
+				$('#setQAurl').click(function(){
+					$('#qIP').val( $(this).parent().children("span:first").text() );
+					$('#qPort').children("option:first").attr("selected","selected");
+					$.cookie("testenvironment", "QA", { expires: 7 });
+				});
+				$('#setDevURL').click(function(){
+					$('#qIP').val( $(this).parent().children("span:first").text() );
+					$('#qPort').children("option:first").attr("selected","selected");
+					$.cookie("testenvironment", "Dev", { expires: 7 });
+				});
+				switch( $.cookie("testenvironment") ) {
+					case "Prod" :
+						$('#setProdURL').click();
+						break;
+					case "QA" :
+						$('#setQAurl').click();
+						break;
+					case "Dev" :
+						$('#setDevURL').click();
+						break;
+					default:
+						break;
+				}
+
+				$("#formTabs").find("a").click( function() {
+					if( $(this).attr("href") == "#service4Tab" ) {
+						$("#protocol").val("https://")
+						$("#qPort").val("443");
+					} else {
+						$("#protocol").val("http://")
+						$("#qPort").val("80");
+					}
+				});
+
+				$("#protocol").change( function() {
+					if( $(this).val() == "https://" ) $("#qPort").val("443");
+					else $("#qPort").val("80");
+				});
+
+				/** Create tabs for each form type **/
+				$("#formTabs").tabs({ cookie: { expires: 30 } });
+
+				/** Date and time setup **/
+				var currentTime = new Date()
+				var month = currentTime.getMonth() + 1;
+				var hours = currentTime.getHours();
+				var day = currentTime.getDate() + 2;	// jump ahead a few days to ensure availability
+				var year = currentTime.getFullYear();
+
+				$("input[name=searchDate]").datepicker();
+				$("input[name=searchDate]").val( month + "/" + day + "/" + year );
+
+				// set am/pm
+				if( hours > 11 ) {
+					$("select[name=times-ampm]").children(":last").attr("selected", "selected");
+				}
+				$("select[name=times-hour]").children().each( function() {
+					// console.log("JS hour: "+ hours + " - and value: " + $(this).val() );
+					// Should fix: hours after 12pm due to 12-hour wrap-around clock.
+					if( $(this).val() == hours ) $(this).attr("selected","selected");
+				});
+
+				var action = "";
+				function buildFormAction( formType ) {
+					/** build a form's action parameter from inputs **/
+					action = "";							// clear action parameter in case previously set
+					action += $("#protocol").val();
+					action += $("#qIP").val();
+					if( $("#qPort").val() != "80" )
+						action += ":" + $("#qPort").val();
+					var URIpart1 = "#" + formType + "-q1";
+					var URIpart2 = "#" + formType + "-q2";
+					var URIpart3 = "#" + formType + "-q3";
+					var URIpart4 = "#" + formType + "-q4";
+					var URIpart5 = "#" + formType + "-q5";
+
+					action += "/" + $(URIpart1).val();					
+					action += "/" + $(URIpart2).val();
+					if( $(URIpart3).val() != "" ) action += "/" + $(URIpart3).val();
+					if( $(URIpart4).val() != "" && $(URIpart4).val() != undefined ) action += "/" + $(URIpart4).val();
+					if( $(URIpart5).val() != "" && $(URIpart5).val() != undefined ) action += "/" + $(URIpart5).val();
+					action += "/";
+
+					return action;
+				}
+
+				function displaySentParameters( uri, formData ) {
+					/** display form data on the console in raw form and separated nicely on the page **/
+					// console.log( "serialized form data: " + usefulFormElements.serialize() );
+					$("#formDataDisplay").html("<em>These values have been unescape()-ed</em><br />");
+					$("#formDataDisplay").append( "URI: <a href='" + uri + "'>" + uri + "</a><br />");
+					$(formData).each(function(index){
+						var pair = formData[index].split("=");
+						$("#formDataDisplay").append( pair[0] + ": " + unescape(pair[1]) + "<br />");
+					});
+				}
+
+				$("#chkOpenInNewWindow").click( function(){
+					if( $(this).is(":checked") ) displayInNewWindow( true );
+					else displayInNewWindow( false );
+				});
+				function displayInNewWindow( bool ) {
+					if( bool ) {
+						$("form").attr("target", "jsonWindow");
+					} else {
+						$("form").removeAttr("target");
+					}
+				}
+
+				/** form-specific submission handlers **/
+				function reenable( ) {
+					$("#service1Form input[type=hidden], #service1Form input[type=submit]").removeAttr("disabled");
+				}
+
+				$("#service1Form").submit( function() {
+					action = buildFormAction("service1");
+					/** set the action of the form to be the generated URL for a traditional load-in-new-page submission **/
+					$(this).attr("method","GET");		// change submission type from POST to GET
+					$(this).attr("action", action);
+
+					// disable hidden and submit inputs to keep querystring clean
+					$(this).find("input[type=hidden], input[type=submit]").attr("disabled","disabled");
+					displaySentParameters( action );
+					setTimeout( reenable, 2000 );		// wait two seconds for the form to submit, then re-enable the button
+
+					// return false;
+				});
+
+
+				$("#service2Form").submit( function() {
+
+					action = buildFormAction("service2");
+
+					
+					
+					/** build the boolean values from checkboxes, which by deafult return "on" instead of "true" **/
+					/*
+					if( $("#service2-chkCheckbox").is(":checked") ) {
+						$("#service2-nearMeSearch").val("true");
+					}
+					*/
+					/** build the 'times' value from inputs and set that value in the form's hidden input **/
+					/*
+					var times = $("#service2-times-hour").val() + ":" + $("#service2-times-minute").val() + " " + $("#service2-times-ampm").val();
+					$("#service2-times").attr("value",times);
+					*/
+					/** massage, format and display form data **/
+					// prevent some fields from being included in the serialization;
+					// checkboxes are not included because their values are converted to bools via a hidden input
+					// also, strip out querystring variables beginning with 'q': q1, q2, etc.
+					var usefulFormElements = $(this).find("input:not(:checkbox)").not("#qIP").not("input[name^='q']");
+					var usefulFormElementsDisplay = usefulFormElements.serialize().split("&");
+
+					displaySentParameters( action, usefulFormElementsDisplay );
+
+					/** set the action of the form to be the generated URL for a traditional load-in-new-page submission **/
+					$(this).attr("enctype", "application/json; charset=utf-8");
+					$(this).attr("action", action);
+
+					// return false;
+				});
+
+				$("#service3Form").submit( function() {
+
+					action = buildFormAction("hold_booking");
+
+					/** build the boolean values from checkboxes, which by deafult return "on" instead of "true" **/
+					if( $("#service3Form-chkHasAcceptedGuestPolicies").is(":checked") ) {
+						$("#service3Form-hasAcceptedGuestPolicies").val("true");
+					}
+
+					/** massage, format and display form data **/
+					// prevent some fields from being included in the serialization;
+					// checkboxes are not included because their values are converted to bools via a hidden input
+					// also, strip out querystring variables beginning with 'q': q1, q2, etc.
+					var usefulFormElements = $(this).find("input:not(:checkbox)").not("#qIP").not("input[name^='q']");
+					var usefulFormElementsDisplay = usefulFormElements.serialize().split("&");
+
+					displaySentParameters( action, usefulFormElementsDisplay );
+
+					/** set the action of the form to be the generated URL for a traditional load-in-new-page submission **/
+					$(this).attr("action", action);
+
+					// return false;
+				});
+
+				$("#service4Form").submit( function() {
+
+					action = buildFormAction("service4");
+
+					/** massage, format and display form data **/
+					// prevent some fields from being included in the serialization;
+					// checkboxes are not included because their values are converted to bools via a hidden input
+					// also, strip out querystring variables beginning with 'q': q1, q2, etc.
+
+					// clear out any special requests selected in previous runs w/o a browser refresh
+					$("#allergies, #accessibility").children("input[type='hidden']").remove();
+
+					// now loop through selected special requests and created hidden inputs for them
+					$("#allergies").children("input[type='checkbox']:checked").each( function(){
+						// console.log("Found one: " + $(this).prev("label").text() );
+						var allergy = document.createElement('input');
+						$( allergy ).attr({
+							type: "hidden",
+							name: "allergies",
+							value: $(this).prev("label").text()
+						});
+						$(this).after( allergy );	// attach to the DOM
+					});
+					$("#accessibility").children("input[type='checkbox']:checked").each( function(){
+						console.log("Found one: " + $(this).prev("label").text() );
+						var accessibility = document.createElement('input');
+						$( accessibility ).attr({
+							type: "hidden",
+							name: "specialNeeds",
+							value: $(this).prev("label").text()
+						});
+						$(this).after( accessibility );
+					});
+
+					var usefulFormElements = $(this).find("input:not(:checkbox)").not("#qIP").not("input[name^='q']");
+					var usefulFormElementsDisplay = usefulFormElements.serialize().split("&");
+
+					displaySentParameters( action, usefulFormElementsDisplay );
+
+					/** set the action of the form to be the generated URL for a traditional load-in-new-page submission **/
+					$(this).attr("action", action);
+
+					// return false;
+				});
+
+			});
+		</script>
+	</head>
+
+	<body>
+		<h1>Webservice Test Harness</h1>
+		<p>Get details on this form on a <a href="">blog post at scottbush.net</a></p>
+
+		<div id="formTabs">
+			<ul>
+				<li><a href="#service1Tab">Get Task</a></li>
+				<li><a href="#service2Tab">Create Task</a></li>
+				<li><a href="#service3Tab">Service 3</a></li>
+				<li><a href="#service4Tab">Service 4 (SSL)</a></li>
+			</ul>
+
+			<!-- FYI: this is called "facilities" instead of services because the service name changed from facilities to services, but I didn't bother renaming the divs and whatnot in the form -->
+			<div id="service1Tab">
+				<form id="service1Form" action="#" method="GET" target="jsonWindow">
+					<p>This tab can test a web service that requires no user input.</p>
+					<fieldset>
+						<legend>Get Task</legend>
+						<input type="hidden" id="service1-q1" name="q1" value="ws" />
+						<input type="hidden" id="service1-q2" name="q2" value="rest" />
+						<input type="hidden" id="service1-q3" name="q3" value="task" />
+						<input type="hidden" id="service1-q4" name="q4" value="getTask" />
+						Task Id:<input type="input" id="service1-q5" name="q5" value="" />
+						<input type="submit" id="facilities-submit" name="submit" value="Test the service" />
+
+					</fieldset>
+				</form>
+			</div> <!-- /div#service1Tab -->
+
+			<div id="service2Tab">
+				<form id="service2Form" action="#" method="POST" target="jsonWindow">
+					
+					<fieldset>
+						<legend>Create Task</legend>
+						<input type="hidden" id="service2-q1" name="q1" value="ws" />
+						<input type="hidden" id="service2-q2" name="q2" value="rest" />
+						<input type="hidden" id="service2-q3" name="q3" value="task" />
+						<input type="hidden" id="service2-q4" name="q4" value="createTask" />
+						<!-- 
+						<div data-role="fieldcontain">
+							<label for="chkCheckbox">Checkbox</label>
+							<input type="checkbox" id="service1Form-chkCheckbox" name="chkCheckbox" />
+							<input type="hidden" id="service1Form-checkbox" name="checkbox" value="false" />
+						</div>
+						<div data-role="fieldcontain">
+							<label for="latitude">Lat.</label>
+							<input type="text" id="service1Form-latitude" name="latitude" value="47.605557090000005" placeholder="[-]xxx.xxxxxxxxxxx" />
+							<label for="longitude">Long.</label>
+							<input type="text" id="service1Form-longitude" name="longitude" value="-122.332657058" placeholder="[-]xxx.xxxxxxxxxxx" />
+						</div>
+						<div data-role="fieldcontain">
+							<label for="times">Time</label>
+							<select id="service1Form-times-hour" name="times-hour">
+								<option value="01">01</option>
+								<option value="02">02</option>
+								<option value="03">03</option>
+								<option value="04">04</option>
+								<option value="05">05</option>
+								<option value="06">06</option>
+								<option value="07">07</option>
+								<option value="08">08</option>
+								<option value="09">09</option>
+								<option value="10">10</option>
+								<option value="11">11</option>
+								<option value="12">12</option>
+							</select>
+							:
+							<select id="service1Form-times-minute" name="times-minute">
+								<option value="00">00</option>
+								<option value="10">10</option>
+								<option value="20">20</option>
+								<option value="30">30</option>
+								<option value="40">40</option>
+								<option value="50">50</option>
+							</select>
+							<select id="service1Form-times-ampm" name="times-ampm">
+								<option value="am">a.m.</option>
+								<option value="pm">p.m.</option>
+							</select>
+
+							<input type="hidden" name="times" id="service1Form-times" value="00:00 am" />
+						</div>
+
+						<div data-role="fieldcontain">
+							<label for="searchDate">Date</label>
+							<input type="text" id="service1Form-searchDate" name="searchDate" placeholder="mm/dd/yyyy" />
+						</div>
+ -->
+						<div data-role="fieldcontain">
+							<label for="title">Number</label>
+							<input type="string" id="service1Form-number" name="title" value="" size="20" />
+						</div>
+
+
+						<input type="submit" id="service1Form-submit" name="submit" value="Test the service" />
+					</fieldset>
+
+				</form>
+			</div> <!-- /div#service2Tab -->
+
+			<div id="service3Tab">
+				<form id="service3Form" action="#" method="POST" target="jsonWindow">
+					<fieldset>
+						<legend>Service 3</legend>
+
+						<div data-role="fieldcontain">
+							<label for="product1">Product 1</label>
+							<input type="text" id="service3-product1" name="product1" value="" placeholder="xxxxxxxxxxx-xxxxxxx-xxxxxxx-xxxxxxx" size="45" />
+						</div>
+
+						<div data-role="fieldcontain">
+							<label for="product2">Product 2</label>
+							<input type="text" id="service3-product2" name="product2" value="" placeholder="xxxxxxxxxxx-xxxxxxx-xxxxxxx-xxxxxxx" size="45" />
+						</div>
+
+						<input type="hidden" id="service3-q1" name="q1" value="reservations" />
+						<input type="hidden" id="service3-q2" name="q2" value="dining" />
+						<input type="hidden" id="service3-q3" name="q3" value="services" />
+						<input type="hidden" id="service3-q4" name="q4" value="hold_booking" />
+
+						<input type="submit" id="service3-submit" name="submit" value="Test the service" />
+					</fieldset>
+				</form>
+			</div> <!-- /div#service3Tab -->
+
+			<div id="service4Tab">
+				<form id="service4Form" action="#" method="POST" target="jsonWindow">
+					<fieldset>
+						<legend>Person Info</legend>
+
+						<div data-role="fieldcontain">
+							<label for="firstName">First Name</label>
+							<input type="text" id="service4-firstName" name="firstName" value="" />
+							&nbsp;
+							<label for="lastName">Last Name</label>
+							<input type="text" id="service4-lastName" name="lastName" value="" />
+						</div>
+
+						<div data-role="fieldcontain">
+							<label for="emailAddress">E-mail Address</label>
+							<input type="email" id="service4-emailAddress" name="emailAddress" value="service4ame@domain.com" placeholder="you@domain.com" />
+						</div>
+
+						<div data-role="fieldcontain">
+							<label for="contactPhoneNumber">Phone Number</label>
+							<input type="tel" id="service4-contactPhoneNumber" name="contactPhoneNumber" value="555-111-1111" placeholder="xxx-xxx-xxxx" />
+						</div>
+
+						<div data-role="fieldcontain">
+							Special requests:
+							<fieldset id="allergies">
+								<legend>Allergies</legend>
+								<label for="service4-chkAllergies_egg">Egg</label>
+								<input type="checkbox" id="service4-chkAllergies_egg" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_fish">Fish</label>
+								<input type="checkbox" id="service4-chkAllergies_fish" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_peanut">Peanut</label>
+								<input type="checkbox" id="service4-chkAllergies_peanut" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_soy">Soy</label>
+								<input type="checkbox" id="service4-chkAllergies_soy" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_milk">Milk/Dairy</label>
+								<input type="checkbox" id="service4-chkAllergies_milk" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_shellfish">Shellfish</label>
+								<input type="checkbox" id="service4-chkAllergies_shellfish" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_treenut">Tree Nut</label>
+								<input type="checkbox" id="service4-chkAllergies_treenut" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_wheat">Wheat/Gluten</label>
+								<input type="checkbox" id="service4-chkAllergies_wheat" name="chkAllergies" />&nbsp;
+								<label for="service4-chkAllergies_other">Other</label>
+								<input type="checkbox" id="service4-chkAllergies_other" name="chkAllergies" />&nbsp;
+							</fieldset>
+						</div>
+
+						<input type="hidden" id="service4-q1" name="q1" value="reservations" />
+						<input type="hidden" id="service4-q2" name="q2" value="dining" />
+						<input type="hidden" id="service4-q3" name="q3" value="services" />
+						<input type="hidden" id="service4-q4" name="q4" value="confirmation" />
+						<input type="hidden" id="service4-q5" name="q5" value="booking" />
+
+						<input type="submit" id="service4-submit" name="submit" value="Test the service" />
+					</fieldset>
+				</form>
+			</div> <!-- /div#service4Tab -->
+
+		</div> <!-- /div#formTabs -->
+
+		<fieldset>
+			<legend>Submission environment</legend>
+			<div class="queryBuilder">
+				<select id="protocol" name="protocol">
+					<option value="http://" selected>http://</option>
+					<option value="https://">https://</option>
+				</select>
+				<input type="text" id="qIP" name="qIP" value="localhost" placeholder="IP address" />
+				:
+				<select id="qPort" name="qPort">
+					<option value="80" selected>80</option>
+					<option value="443">443</option>
+				</select>
+				&nbsp;
+				<label for="chkOpenInNewWindow">Open results in new window?</label>
+				<input type="checkbox" id="chkOpenInNewWindow" checked />
+
+				<h4>Environments</h4>
+				<ul>
+					<li><strong>Production:</strong> <span>domain.com</span> <input type="button" id="setProdURL" value="Set this URL" /></li>
+					<li><acronym title="quality assurance">QA</a>: <span>qa-domain.com</span> <input type="button" id="setQAurl" value="Set this URL" /></li>
+					<li>Dev: <span>localhost</span><span>:80</span> <input type="button" id="setDevURL" value="Set this URL" /></li>
+				</ul>
+			</div>
+		</fieldset>
+
+		<p id="formDataDisplay" class="left width50"><em>Form <strong>data</strong> will appear here</em></p>
+		<p id="resultsDisplay" class="left width50"><em>Form results will load in a new page</em> <br />
+		Drag this link to your bookmark bar to "prettify" the resulting JSON with one click: <a href="javascript:(function(){document.body.appendChild(document.createElement('script')).src='http://scottbush.net/disney/prettifyJSON.js';})();">Prettify JSON bookmarklet</a></p>
+	</body>
+</html>

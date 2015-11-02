@@ -1,0 +1,215 @@
+package com.homefellas.user;
+import static com.homefellas.user.UserTestModelBuilder.*;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import net.sf.ehcache.Ehcache;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.springframework.security.authentication.encoding.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.homefellas.dao.core.AbstractTestDao;
+import com.homefellas.exception.DatabaseNotInitializedException;
+import com.homefellas.exception.ValidationException;
+
+
+public abstract class AbstractUserTestDao extends AbstractTestDao
+{
+	
+	@Resource(name="userService")
+	private IUserServiceTX userService;
+	
+	@Resource(name="roleCache")
+	protected Ehcache roleCache; 
+
+	@Resource(name="passwordEncoder")
+	protected PasswordEncoder passwordEncoder;
+	
+//	protected Member memeber1;
+//	protected Member member2;
+//	
+//	protected Member member3Guest1;
+//	protected Member member4Guest2;
+//	
+	protected Role roleUser;
+	protected Role roleAdmin;
+	protected Role roleGuest;
+//	
+//	protected Profile profile3Guest1;
+//	protected Profile profile4Guest2;
+//
+//	protected Profile profile1;
+//	protected Profile profile2;
+//	
+//	protected int userCounter=0;
+//	protected int profileCounter=0;
+	protected Profile createProfile()
+	{
+		return createProfile(profile());
+	}
+	
+	protected Profile createProfile(Profile profile)
+	{
+		try
+		{
+			return userService.registerBasicMemberTX(profile);
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+		catch (DatabaseNotInitializedException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+	}
+	protected Profile createProfile(String email)
+	{
+		try
+		{
+			return userService.registerBasicMemberTX(profile(email));
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+		catch (DatabaseNotInitializedException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+	}
+
+	protected Profile createGuest(String email, String alias)
+	{
+		try
+		{
+			return userService.reigsterGuest(email, alias);
+		}
+		catch (ValidationException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+		catch (DatabaseNotInitializedException e)
+		{
+			Assert.fail(e.getMessage());
+			return null;
+		}
+	}
+	
+	protected Profile createGuest(String email)
+	{
+		return createGuest(email, null);
+	}
+	
+	protected Profile createGuest()
+	{
+		return createGuest(UserTestModelBuilder.guestEmail(), null);
+	}
+	
+//	protected void assertTableRowChecks()
+//	{
+//		super.assertTableRowChecks();
+//		
+//		assertRowCount(userCounter, new Member());
+//		assertRowCount(profileCounter, new Profile());
+////		assertRowCount(memberCounter, new Member());
+//	}
+	
+	@Before
+	public void recreateSchema()
+	{
+		super.recreateSchema();
+		roleCache.flush();
+	}
+	
+	@Override
+	@Transactional
+	protected void createDatabaseDefaults()
+	{
+		//create roles
+		for (RoleEnum authorizationEnum :RoleEnum.values())
+		{
+			Role role = new Role();
+			role.setId(authorizationEnum.getId());
+			role.setRoleName(authorizationEnum.getRole());
+			dao.save(role);			
+		}
+		
+		//load the roles
+		roleUser = dao.loadObject(Role.class, RoleEnum.HF_USER_ROLE.getId());
+		roleAdmin = dao.loadObject(Role.class, RoleEnum.HF_ADMIN_ROLE.getId());
+		roleGuest = dao.loadObject(Role.class, RoleEnum.GUEST.getId());
+		
+		//create the user roles set
+		Set<Role> userRoles = new HashSet<Role>();
+		userRoles.add(roleUser);
+		
+		//create the guest role
+		Set<Role> guestRoles = new HashSet<Role>();
+		guestRoles.add(roleUser);
+		guestRoles.add(roleGuest);
+		
+		//build the basic member
+//		memeber1 = buildMember(true, "basic@homefellas.com",userRoles,passwordEncoder);
+//		member2 = buildMember(true, "basic2@homefellas.com",userRoles,passwordEncoder);
+//
+//		//build the guests
+//		member3Guest1 = buildMember(true, "guest1@homefellas.com", guestRoles,passwordEncoder);
+//		member4Guest2 = buildMember(true, "guest2@homefellas.com", guestRoles,passwordEncoder);
+//		
+//		//build the basic profile
+//		profile1 = buildBasicMember(true,passwordEncoder);
+//		profile1.setMember(memeber1);
+//		profile1.generateGUIDKey();
+//		memeber1.setId(profile1.getId());
+//		
+//		profile2 = buildBasicMember(true,passwordEncoder);
+//		profile2.setMember(member2);
+//		profile2.generateGUIDKey();
+//		member2.setId(profile2.getId());
+//		
+//		profile3Guest1 = buildProfile(true);
+//		profile3Guest1.setMember(member3Guest1);
+//		member3Guest1.setId(profile3Guest1.getId());
+//		
+//		profile4Guest2 = buildProfile(true);
+//		profile4Guest2.setMember(member4Guest2);
+//		member4Guest2.setId(profile4Guest2.getId());
+//		
+//		//create the basic profile
+//		dao.saveOrUpdate(profile1);
+//		profileCounter++;
+//		userCounter++;
+//		
+//		//create the basic profile
+//		dao.saveOrUpdate(profile2);
+//		profileCounter++;
+//		userCounter++;
+//		
+//		dao.saveOrUpdate(profile4Guest2);
+//		profileCounter++;
+//		userCounter++;
+//		
+//		dao.saveOrUpdate(profile3Guest1);
+//		profileCounter++;
+//		userCounter++;
+		
+		//load the member
+//		memeber1 = profile1.getMember();
+//		member2 = profile2.getMember();		
+		
+		//increament the counters
+		assertTableRowChecks();
+	}
+
+}
